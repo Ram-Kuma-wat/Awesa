@@ -1,0 +1,335 @@
+package com.codersworld.awesalibs.database.dao;
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+import com.codersworld.awesalibs.beans.game.GameBean;
+import com.codersworld.awesalibs.beans.matches.ReactionsBean;
+import com.codersworld.awesalibs.database.DatabaseHelper;
+import com.codersworld.awesalibs.utils.CommonMethods;
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+
+public class MatchActionsDAO {
+
+    private static final String TABLE_MATCH_REACTIONS = "match_reactions";
+
+    // Contacts Table Columns names
+    private static final String COLUMN_KEY_ID = "id";
+    private static final String COLUMN_MATCH_ID = "match_id";
+    private static final String COLUMN_TEAM_ID = "team_id";
+    private static final String COLUMN_HALF = "half";
+    private static final String COLUMN_TIME = "time";
+    private static final String COLUMN_REACTION = "reaction";
+    private static final String COLUMN_VIDEO_NAME = "video_name";
+    private static final String COLUMN_VIDEO_PATH = "video_path";
+    private static final String COLUMN_CREATED_DATE = "created_date";
+    private static final String COLUMN_STATUS = "upload_status";
+    private static final String COLUMN_TEAM_NAME = "team_name";
+
+    private SQLiteDatabase mDatabase;
+    private Context mContext;
+
+    public MatchActionsDAO(SQLiteDatabase database, Context context) {
+        mDatabase = database;
+        mContext = context;
+    }
+
+    public static String getCreateTable() {
+        String CREATE_TABLE = "CREATE TABLE " + TABLE_MATCH_REACTIONS
+                + "("
+                + COLUMN_KEY_ID + " INTEGER PRIMARY KEY,"
+                + COLUMN_MATCH_ID + " INT ,"
+                + COLUMN_TEAM_ID + " INT ,"
+                + COLUMN_HALF + " INT ,"
+                + COLUMN_TIME + " TEXT ,"
+                + COLUMN_REACTION + " TEXT ,"
+                + COLUMN_VIDEO_NAME + " TEXT ,"
+                + COLUMN_VIDEO_PATH + " TEXT ,"
+                + COLUMN_STATUS + " INT ,"
+                + COLUMN_TEAM_NAME + " TEXT ,"
+                + COLUMN_CREATED_DATE + " TEXT)";
+
+        return CREATE_TABLE;
+    }
+
+    public static String getDropTable() {
+        return "DROP TABLE IF EXISTS " + TABLE_MATCH_REACTIONS;
+    }
+
+    public void initDBHelper() {
+        try {
+            DatabaseHelper mHelper = new DatabaseHelper(mContext);
+            mDatabase = mHelper.getWritableDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteAll(String id, int counter) {
+        initDBHelper();
+        try {
+            String delete_all = " DELETE " + " FROM " + TABLE_MATCH_REACTIONS;
+            if (CommonMethods.isValidString(id)) {
+                delete_all += " where id =" + id;
+            }
+            mDatabase.execSQL(delete_all);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (counter == 0) {
+                deleteAll(id, 1);
+            }
+        }
+    }
+
+    public void deleteByMatch(String id, String half, int counter) {
+        initDBHelper();
+        try {
+            String delete_all = " DELETE " + " FROM " + TABLE_MATCH_REACTIONS + " where 1=1";
+            if (CommonMethods.isValidString(id)) {
+                delete_all += " AND match_id =" + id;
+            }
+            if (CommonMethods.isValidString(half)) {
+                delete_all += " AND half =" + half;
+            }
+            mDatabase.execSQL(delete_all);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (counter == 0) {
+                deleteByMatch(id, half, 1);
+            }
+        }
+    }
+
+    public void deleteUploadedVideos() {
+        initDBHelper();
+        try {
+            String delete_all = " DELETE " + " FROM " + TABLE_MATCH_REACTIONS + " where upload_status==1";
+            mDatabase.execSQL(delete_all);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void insert(ArrayList<ReactionsBean> arrayList) {
+        initDBHelper();
+        try {
+            for (ReactionsBean mBean : arrayList) {
+                String[] bindArgs = {
+                        mBean.getMatch_id() + "",
+                        mBean.getTeam_id() + "",
+                        mBean.getHalf() + "",
+                        mBean.getTime() + "",
+                        mBean.getReaction() + "",
+                        "",
+                        "",
+                        "0",
+                        mBean.getCreated_date(),
+                        mBean.getTeam_name()
+                };
+
+                String insertUser = " INSERT INTO "
+                        + TABLE_MATCH_REACTIONS
+                        + " ( "
+                        + COLUMN_MATCH_ID
+                        + " , "
+                        + COLUMN_TEAM_ID
+                        + " , "
+                        + COLUMN_HALF
+                        + " , "
+                        + COLUMN_TIME
+                        + " , "
+                        + COLUMN_REACTION
+                        + " , "
+                        + COLUMN_VIDEO_NAME
+                        + " , "
+                        + COLUMN_VIDEO_PATH
+                        + " , "
+                        + COLUMN_STATUS
+                        + " , "
+                        + COLUMN_CREATED_DATE
+                        + " , "
+                        + COLUMN_TEAM_NAME
+                        + " ) "
+                        + " VALUES "
+                        + " (?,?,?,?,?,?,?,?,?,?)";
+                mDatabase.execSQL(insertUser, bindArgs);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public int getRowCount(String team_id, String match_id) {
+        initDBHelper();
+        int count = 0;
+        String query = "SELECT COUNT(*) FROM " + TABLE_MATCH_REACTIONS + " where 1=1 AND reaction = 'goal'";
+        if (CommonMethods.isValidString(team_id)) {
+            query += " AND team_id = " + team_id;
+        }
+        if (CommonMethods.isValidString(match_id)) {
+            query += " AND match_id = " + match_id;
+        }
+        Cursor cursor = mDatabase.rawQuery(query, null);
+        if (cursor.moveToNext()) {
+            count = cursor.getInt(0);
+        }
+        closeCursor(cursor);
+        return count;
+    }
+
+    public ArrayList<ReactionsBean> selectAll(String match_id, String half, int type) {
+        initDBHelper();
+        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") + ((type == 0) ? " AND video_path !=''" : "") + " order by id ASC";
+        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
+        ArrayList<ReactionsBean> dataList = manageCursor(cursor);
+        closeCursor(cursor);
+        return dataList;
+    }
+
+    public ArrayList<ReactionsBean> selectAllForPreview(String match_id) {
+        initDBHelper();
+        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + " order by half,time ASC";
+        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
+        ArrayList<ReactionsBean> dataList = manageCursor(cursor);
+        closeCursor(cursor);
+        return dataList;
+    }
+
+    public ArrayList<ReactionsBean> selectAllUploaded(String match_id, String half, int type) {
+        initDBHelper();
+        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") + ((type == 0) ? " AND video_path !=''" : "") + " order by id ASC";
+        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
+        ArrayList<ReactionsBean> dataList = manageCursor(cursor);
+        closeCursor(cursor);
+        return dataList;
+    }
+    public int getTotalCount(String match_id) {
+        initDBHelper();
+        int count = 0;
+        String query = "SELECT COUNT(*) FROM " + TABLE_MATCH_REACTIONS + " where 1=1";
+        if (CommonMethods.isValidString(match_id)){
+            query +=" AND match_id="+match_id;
+        }
+
+        Cursor cursor = mDatabase.rawQuery(query, null);
+        if (cursor.moveToNext()) {
+            count = cursor.getInt(0);
+        }
+        closeCursor(cursor);
+        return count;
+    }
+    public ArrayList<ReactionsBean> selectSingle(int counter) {
+        initDBHelper();
+        try {
+            String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where upload_status = 0 order by id ASC LIMIT 1";
+            Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
+            ArrayList<ReactionsBean> dataList = manageCursor(cursor);
+            closeCursor(cursor);
+            return dataList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return (counter == 0) ? selectSingle(1) : new ArrayList<>();
+        }
+    }
+
+
+    @SuppressLint("Range")
+    protected ReactionsBean cursorToData(Cursor cursor) {
+        ReactionsBean model = new ReactionsBean();
+        model.setId(cursor.getInt(cursor.getColumnIndex(COLUMN_KEY_ID)));
+        model.setMatch_id(cursor.getInt(cursor.getColumnIndex(COLUMN_MATCH_ID)));
+        model.setTeam_id(cursor.getInt(cursor.getColumnIndex(COLUMN_TEAM_ID)));
+        model.setHalf(cursor.getInt(cursor.getColumnIndex(COLUMN_HALF)));
+        model.setTime(cursor.getString(cursor.getColumnIndex(COLUMN_TIME)));
+        model.setReaction(cursor.getString(cursor.getColumnIndex(COLUMN_REACTION)));
+        model.setFile_name(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_NAME)));
+        model.setVideo(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_PATH)));
+        model.setUpload_status(cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)));
+        model.setCreated_date(cursor.getString(cursor.getColumnIndex(COLUMN_CREATED_DATE)));
+        model.setTeam_name(cursor.getString(cursor.getColumnIndex(COLUMN_TEAM_NAME)));
+        return model;
+    }
+
+    public void updateVideo(String video_name, String video_path, int id) {
+        initDBHelper();
+        String[] bindArgs = {
+                String.valueOf(video_name),
+                String.valueOf(video_path),
+                String.valueOf((CommonMethods.isValidString(video_path)) ? 1 : 0),
+                String.valueOf(id)
+        };
+        String update = " UPDATE "
+                + TABLE_MATCH_REACTIONS
+                + " SET "
+                + COLUMN_VIDEO_NAME
+                + " = ?, "
+                + COLUMN_VIDEO_PATH
+                + " = ?, "
+                + COLUMN_STATUS
+                + " = ? WHERE " + COLUMN_KEY_ID + "= ?";
+        mDatabase.execSQL(update, bindArgs);
+    }
+
+    public void updateVideoAll() {
+        String[] bindArgs = {
+                "",
+                "", "0"
+        };
+        String update = " UPDATE "
+                + TABLE_MATCH_REACTIONS
+                + " SET "
+                + COLUMN_VIDEO_NAME
+                + " = ?, "
+                + COLUMN_VIDEO_PATH
+                + " = ?, "
+                + COLUMN_STATUS
+                + " = ? WHERE 1=1";
+        mDatabase.execSQL(update, bindArgs);
+    }
+
+    protected void closeCursor(Cursor cursor) {
+        if (cursor != null) {
+            cursor.close();
+        }
+    }
+
+    public int getLastInsertedId() {
+        initDBHelper();
+        String countQuery = "SELECT  max(id) FROM " + TABLE_MATCH_REACTIONS;
+        Cursor cursor = mDatabase.rawQuery(countQuery, null);
+        int maxid = 0;
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                maxid = cursor.getInt(0);
+            }
+            closeCursor(cursor);
+        }
+        return maxid;
+        //return cursor.getCount();
+    }
+
+    protected ArrayList<ReactionsBean> manageCursor(Cursor cursor) {
+        ArrayList<ReactionsBean> dataList = new ArrayList<ReactionsBean>();
+        if (cursor != null) {
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                ReactionsBean singleModel = cursorToData(cursor);
+                if (singleModel != null) {
+                    dataList.add(singleModel);
+                }
+                cursor.moveToNext();
+            }
+        }
+        return dataList;
+    }
+}

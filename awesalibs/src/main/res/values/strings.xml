@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_internet">We think your internet connection is lost.</string>
+    <string name="ok">OK</string>
+    <string name="something_wrong">Something went wrong, try again.</string>
+    <string name="short_password">Password is too short</string>
+    <string name="invalid_password_error">Invalid Password</string>
+
+
+    <string name="str_camera">"Camera"</string>
+    <string name="str_gallery">"Gallery"</string>
+    <string name="str_cancel">Cancel</string>
+    <string name="error_exception_message">Pass activity or fragment.</string>
+    <string name="error_invalid_context_listener">Pass context which implements ImagePickerClickListener</string>
+    <string name="error_no_data_found">No data found</string>
+    <string name="str_done">Done</string>
+    <string name="str_picker_limit">Maximum selection reached</string>
+    <string name="str_selected_image_toolbar">%s (%d/%d)</string>
+
+
+</resources>

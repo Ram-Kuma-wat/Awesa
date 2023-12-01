@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navHome"
+        android:icon="@drawable/ic_home"
+        android:title="@string/lbl_home" />
+
+    <item
+        android:id="@+id/navProfile"
+        android:icon="@drawable/ic_profile"
+        android:title="@string/lbl_profile" />
+
+    <item
+        android:id="@+id/navHistory"
+        android:icon="@drawable/ic_hiostory"
+        android:title="@string/lbl_history" />
+    <item
+        android:id="@+id/navMore"
+        android:icon="@drawable/ic_more"
+        android:title="@string/lbl_more" />
+
+</menu>

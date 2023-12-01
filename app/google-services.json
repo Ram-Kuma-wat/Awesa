@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "791159477023",
+    "project_id": "awesa-c0154",
+    "storage_bucket": "awesa-c0154.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791159477023:android:9a9e43ef98ae2e0a4d162a",
+        "android_client_info": {
+          "package_name": "com.itech.game.awesa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcR7cwiUXZn9syiei1-X_HDR7w81IkzHA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,120 @@
+<resources>
+    <string name="app_name">Awesa</string>
+    <string name="welcome">Welcome back!</string>
+    <string name="lbl_welcome_back">Welcome\nBack</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="dont_have_account">I don\'t have an account? <font color="#E00169"><b>Sign Up</b></font></string>
+    <string name="already_have_account">Already have an account? <font color="#E00169"><b>Sign In</b></font></string>
+    <string name="password_hint">Password should be at least 6 digits and it should contains lower case, upper case, numbers and special characters</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="login">Sign In</string>
+    <string name="start_game">Start The Game</string>
+    <string name="username_place_holder">johndo12</string>
+    <string name="lbl_or">OR</string>
+    <string name="lbl_signup">Sign Up</string>
+    <string name="terms_conditions">By clicking on signup button you accepted Awesa terms and conditions</string>
+    <string name="something_wrong">Something went wrong, try again.</string>
+    <string name="error_internet">We think your internet connectison is lost.</string>
+    <string name="code_not_received">Code not received?</string>
+    <string name="lbl_submit">Submit</string>
+    <string name="lbl_name">Name</string>
+    <string name="lbl_verify">Verify</string>
+    <string name="lbl_resend">Resend the code</string>
+    <string name="lbl_wait_time">Wait XXXX seconds to resend the code!</string>
+    <string name="error_otp_required">Please enter OTP.</string>
+    <string name="lbl_privacy">By Signing up you agree to our</string>
+    <string name="lbl_privacy_policy">Privacy Policy</string>
+    <string name="lbl_terms_conditions">Terms &amp; Conditions</string>
+    <string name="lbl_and">and</string>
+    <string name="short_password">Password is too short</string>
+    <string name="invalid_password_error">Invalid Password</string>
+    <string name="invalid_password">Password does not match.</string>
+
+    <string name="error_username">Username is required.</string>
+    <string name="password_required">Password is required.</string>
+    <string name="first_name_required">Firstname is required.</string>
+    <string name="last_name_required">Lastname is required.</string>
+    <string name="email_required">Email is required.</string>
+    <string name="phone_required">Phone is required.</string>
+    <string name="error_email_invalid">Enter valid email address.</string>
+    <string name="error_phone_invalid">Enter valid phone number.</string>
+
+    <string name="first_name">First name</string>
+    <string name="last_name">Last name</string>
+    <string name="email_address">Email</string>
+    <string name="email_address1">Email address</string>
+    <string name="phone_number">Phone</string>
+    <string name="phone_number1">Phone number</string>
+    <string name="lbl_ok">OK</string>
+    <string name="lbl_cancel">Cancel</string>
+    <string name="lbl_exit">Exit</string>
+    <string name="lbl_yes">Yes</string>
+    <string name="lbl_no">No</string>
+    <string name="lbl_forgot_password_title">Forgot Password</string>
+    <string name="lbl_forgot_password_content">Enter your registered email address.  </string>
+    <string name="lbl_forgot_password_content1">Enter your registered email address to reset the password of your account.  </string>
+    <string name="lbl_exit_app_msg">Are you sure you want to close the app?</string>
+    <string name="lbl_delete_account_msg">Are you sure you want to delete your account permanently?</string>
+    <string name="lbl_more">More</string>
+    <string name="lbl_history">History</string>
+    <string name="lbl_profile">Profile</string>
+    <string name="lbl_home">Home</string>
+    <string name="lbl_send">Send</string>
+
+    <string name="error_message">Message cannot be empty.</string>
+    <string name="error_valid_message">Message length should be more than 10 characters.</string>
+    <string name="msg_share"> Download \'Awesa\' https://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="msg_action_success">Scene for %1$s captured successfully.</string>
+    <string name="lbl_share_via">Share via</string>
+    <string name="lbl_about_us">About Us</string>
+    <string name="lbl_share">Share</string>
+    <string name="lbl_contact_us">Contact Us</string>
+    <string name="lbl_version">Version (%1$s)</string>
+    <string name="lbl_no_data">No results found</string>
+    <string name="default_notification_channel_id">Default</string>
+    <string name="app_update_msg">There is newer version of this application available. please upgrade now.</string>
+    <string name="lbl_update_now">Update Now</string>
+    <string name="lbl_message_here">Message...</string>
+    <string name="error_name">Please enter full name.</string>
+    <string name="error_valid_name">Please enter a valid name.</string>
+    <string name="error_email">Please enter email address.</string>
+    <string name="error_valid_email">Please enter a valid email address.</string>
+    <string name="lbl_ticket"><b>Ticket ID : #</b> %1$s</string>
+    <string name="lbl_logout">Logout</string>
+    <string name="lbl_delete_account">Delete Account</string>
+    <string name="sport_not_include">Your sport is not included? <font color="#E00169"><b>Contact Us.</b></font></string>
+    <string name="team_not_include">Your team is not there? <font color="#E00169"><b>Contact Us.</b></font></string>
+    <string name="lbl_choose_game">Choose Your Game</string>
+    <string name="error_check_privacy">Please indicate that you accept the Terms &amp; Conditions and Privacy Policy.</string>
+    <string name="error_select_opponent_team">Opponent team is required to start the match.</string>
+    <string name="select_team">Select your team</string>
+    <string name="select_league">Select your league</string>
+    <string name="select_county">Select county</string>
+    <string name="select_opponent">Choose your opponent</string>
+    <string name="lbl_search">Search</string>
+    <string name="lbl_opponent">Opponent</string>
+    <string name="lbl_team_play">Where does your Team play?</string>
+    <string name="favorites">Favorites </string>
+    <string name="lbl_first_half">First half </string>
+    <string name="lbl_second_half">Second half </string>
+    <string name="lbl_select_subject">Select Subject </string>
+    <string name="error_subject_required">Support subject is required </string>
+    <string name="lbl_start_second_half">Start second half</string>
+    <string name="lbl_start_first_half">Start first half</string>
+    <string name="lbl_start_interview">Start Interview</string>
+    <string name="lbl_interview1">Interview</string>
+    <string name="lbl_wait_msg">Please wait while the videos is saving.</string>
+    <string name="msg_video_success">Your videos are recorded successfully.</string>
+    <string name="msg_interview_success">Your interview recorded successfully.</string>
+    <string name="msg_delete_action">Are you sure you want to delete this action?</string>
+    <string name="msg_delete_interview">Are you sure you want to delete this interview?</string>
+    <string name="msg_video_upload">Your videos are uploading, and it can take some time.</string>
+    <string name="lbl_compress_progress">Generating the video shorts of the performed actions.</string>
+    <string name="lbl_end_video">End video</string>
+    <string name="lbl_interview">Record interview</string>
+    <string name="msg_uploading">Processing</string>
+    <string name="msg_videos_are_under_uploading">Videos uploading is still in progress for this match,Videos will be available once uploading finished.</string>
+
+</resources>

@@ -1,0 +1,58 @@
+package com.codersworld.awesalibs.mediapicker.ui.dialog
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.os.bundleOf
+import androidx.fragment.app.DialogFragment
+import coil.load
+import com.codersworld.awesalibs.R
+import com.codersworld.awesalibs.databinding.DialogFragmentFullScreenImageBinding
+import com.codersworld.awesalibs.mediapicker.getModel
+import com.codersworld.awesalibs.mediapicker.model.Image
+
+/**
+ * FullScreenImageDialogFragment to display image full screen with transparent background.
+ */
+internal class FullScreenImageDialogFragment : DialogFragment() {
+    companion object {
+        const val IMAGE = "image"
+        const val FRAGMENT_TAG = "FullScreenImage"
+        fun newInstance(image: Image): FullScreenImageDialogFragment {
+            return FullScreenImageDialogFragment().apply {
+                arguments = bundleOf(IMAGE to image)
+            }
+        }
+    }
+
+    private lateinit var binding: DialogFragmentFullScreenImageBinding
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.let {
+            val width = ViewGroup.LayoutParams.MATCH_PARENT
+            val height = resources.getDimensionPixelSize(R.dimen._350dp)
+            it.window?.setLayout(width, height)
+            it.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = DialogFragmentFullScreenImageBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val image: Image? = arguments?.getModel(IMAGE)
+        if (image == null) {
+            dismiss()
+        }
+        binding.imageView.load(image?.uri)
+    }
+}

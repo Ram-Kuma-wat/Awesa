@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <declare-styleable name="DonutProgress">
+        <attr format="float" name="donut_progress"/>
+        <attr format="integer" name="donut_max"/>
+
+        <attr format="color" name="donut_unfinished_color"/>
+        <attr format="color" name="donut_finished_color"/>
+
+        <attr format="dimension" name="donut_finished_stroke_width"/>
+        <attr format="dimension" name="donut_unfinished_stroke_width"/>
+
+        <attr format="dimension" name="donut_text_size"/>
+        <attr format="color" name="donut_text_color"/>
+
+        <attr format="string" name="donut_prefix_text"/>
+        <attr format="string" name="donut_suffix_text"/>
+        <attr format="string" name="donut_text"/>
+
+        <attr format="color" name="donut_background_color"/>
+
+        <attr format="string" name="donut_inner_bottom_text"/>
+        <attr format="dimension" name="donut_inner_bottom_text_size"/>
+        <attr format="color" name="donut_inner_bottom_text_color"/>
+
+        <attr format="integer" name="donut_circle_starting_degree"/>
+        <attr format="boolean" name="donut_show_text"/>
+        <attr format="reference" name="donut_inner_drawable"/>
+    </declare-styleable>
+    <declare-styleable name="PageIndicatorView">
+        <attr name="piv_orientation">
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
+        </attr>
+
+        <attr name="piv_viewPager" format="reference" />
+        <attr name="piv_select" format="integer" />
+
+        <attr name="piv_count" format="integer" />
+        <attr name="piv_dynamicCount" format="boolean" />
+
+        <attr name="piv_radius" format="dimension" />
+        <attr name="piv_padding" format="dimension" />
+        <attr name="piv_strokeWidth" format="dimension" />
+        <attr name="piv_scaleFactor" format="float" />
+        <attr name="piv_autoVisibility" format="boolean" />
+
+        <attr name="piv_unselectedColor" format="color" />
+        <attr name="piv_selectedColor" format="color" />
+
+        <attr name="piv_interactiveAnimation" format="boolean" />
+        <attr name="piv_animationDuration" format="integer" />
+        <attr name="piv_animationType">
+            <enum name="none" value="0" />
+            <enum name="color" value="1" />
+            <enum name="scale" value="2" />
+            <enum name="worm" value="3" />
+            <enum name="slide" value="4" />
+            <enum name="fill" value="5" />
+            <enum name="thinWorm" value="6" />
+            <enum name="drop" value="7" />
+            <enum name="swap" value="8" />
+            <enum name="scale_down" value="9" />
+        </attr>
+        <attr name="piv_rtl_mode">
+            <enum name="on" value="0" />
+            <enum name="off" value="1" />
+            <enum name="auto" value="2" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="SliderView">
+
+        <attr name="sliderIndicatorOrientation">
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
+        </attr>
+
+        <attr name="sliderIndicatorEnabled" format="boolean" />
+        <attr name="sliderIndicatorRadius" format="dimension" />
+        <attr name="sliderIndicatorPadding" format="dimension" />
+        <attr name="sliderIndicatorMargin" format="dimension" />
+        <attr name="sliderIndicatorMarginLeft" format="dimension" />
+        <attr name="sliderIndicatorMarginRight" format="dimension" />
+        <attr name="sliderIndicatorMarginTop" format="dimension" />
+        <attr name="sliderIndicatorMarginBottom" format="dimension" />
+
+        <attr name="sliderIndicatorGravity">
+            <flag name="bottom" value="80" />
+            <flag name="center" value="17" />
+            <flag name="center_horizontal" value="1" />
+            <flag name="center_vertical" value="16" />
+            <flag name="clip_horizontal" value="8" />
+            <flag name="clip_vertical" value="128" />
+            <flag name="end" value="8388613" />
+            <flag name="fill" value="119" />
+            <flag name="fill_horizontal" value="7" />
+            <flag name="fill_vertical" value="112" />
+            <flag name="left" value="3" />
+            <flag name="right" value="5" />
+            <flag name="start" value="8388611" />
+            <flag name="top" value="48" />
+        </attr>
+
+        <attr name="sliderIndicatorUnselectedColor" format="color" />
+        <attr name="sliderIndicatorSelectedColor" format="color" />
+        <attr name="sliderIndicatorAnimationDuration" format="integer" />
+        <attr name="sliderAnimationDuration" format="integer" />
+
+        <attr name="sliderIndicatorRtlMode">
+            <enum name="on" value="0" />
+            <enum name="off" value="1" />
+            <enum name="auto" value="2" />
+        </attr>
+
+        <attr name="sliderScrollTimeInSec" format="integer" />
+        <attr name="sliderAutoCycleEnabled" format="boolean" />
+        <attr name="sliderStartAutoCycle" format="boolean" />
+
+        <attr name="sliderAutoCycleDirection">
+            <enum name="right" value="0" />
+            <enum name="left" value="1" />
+            <enum name="back_and_forth" value="2" />
+        </attr>
+
+    </declare-styleable>
+
+    <declare-styleable name="LoadingButton">
+        <attr name="lb_btnColor" format="reference|color" />
+        <attr name="lb_btnText" format="reference|string" />
+        <attr name="lb_textColor" format="reference|color" />
+        <attr name="lb_resetAfterFailed" format="boolean" />
+        <attr name="lb_rippleEnable" format="boolean" />
+        <attr name="lb_btnRippleColor" format="reference|color" />
+        <attr name="lb_btnRippleAlpha" format="float" />
+        <attr name="lb_cornerRadius" format="dimension" />
+        <attr name="lb_min_height" format="dimension" />
+        <attr name="lb_btnDisabledColor" format="reference|color" />
+        <attr name="lb_disabledTextColor" format="reference|color" />
+    </declare-styleable>
+    <declare-styleable name="ArcView">
+        <attr name="shape_arc_height" format="dimension"/>
+        <attr name="shape_arc_position" format="enum">
+            <enum name="bottom" value="1"/>
+            <enum name="top" value="2"/>
+            <enum name="left" value="3"/>
+            <enum name="right" value="4"/>
+        </attr>
+    </declare-styleable>
+
+    <!-- Custom Shapes -->
+    <declare-styleable name="ShapeOfView">
+        <attr name="shape_clip_drawable" format="reference"/>
+    </declare-styleable>
+
+    <declare-styleable name="DiagonalView">
+        <attr name="shape_diagonal_angle" format="float"/>
+        <attr name="shape_diagonal_position" format="enum">
+            <enum name="bottom" value="1"/>
+            <enum name="top" value="2"/>
+            <enum name="left" value="3"/>
+            <enum name="right" value="4"/>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="CircleView">
+        <attr name="shape_circle_borderWidth" format="dimension"/>
+        <attr name="shape_circle_borderColor" format="color"/>
+    </declare-styleable>
+
+    <declare-styleable name="LoopingViewPager">
+        <attr name="isInfinite" format="boolean" />
+        <attr name="autoScroll" format="boolean" />
+        <attr name="wrap_content" format="boolean" />
+        <attr name="scrollInterval" format="integer"/>
+        <attr name="viewpagerAspectRatio" format="float"/>
+        <attr name="itemAspectRatio" format="float"/>
+    </declare-styleable>
+
+    <declare-styleable name="CustomShapePagerIndicator">
+        <attr name="indicator_spacing" format="dimension"/>
+    </declare-styleable>
+    <declare-styleable name="BaseCircleIndicator">
+        <attr name="ci_width" format="dimension"/>
+        <attr name="ci_height" format="dimension"/>
+        <attr name="ci_margin" format="dimension"/>
+        <attr name="ci_animator" format="reference"/>
+        <attr name="ci_animator_reverse" format="reference"/>
+        <attr name="ci_drawable" format="reference"/>
+        <attr name="ci_drawable_unselected" format="reference"/>
+
+        <attr name="ci_orientation" format="enum">
+            <!-- Defines an horizontal widget. -->
+            <enum name="horizontal" value="0"/>
+            <!-- Defines a vertical widget. -->
+            <enum name="vertical" value="1"/>
+        </attr>
+
+        <attr name="ci_gravity">
+            <!-- Push object to the top of its container, not changing its size. -->
+            <flag name="top" value="0x30"/>
+            <!-- Push object to the bottom of its container, not changing its size. -->
+            <flag name="bottom" value="0x50"/>
+            <!-- Push object to the left of its container, not changing its size. -->
+            <flag name="left" value="0x03"/>
+            <!-- Push object to the right of its container, not changing its size. -->
+            <flag name="right" value="0x05"/>
+            <!-- Place object in the vertical center of its container, not changing its size. -->
+            <flag name="center_vertical" value="0x10"/>
+            <!-- Grow the vertical size of the object if needed so it completely fills its container. -->
+            <flag name="fill_vertical" value="0x70"/>
+            <!-- Place object in the horizontal center of its container, not changing its size. -->
+            <flag name="center_horizontal" value="0x01"/>
+            <!-- Grow the horizontal size of the object if needed so it completely fills its container. -->
+            <flag name="fill_horizontal" value="0x07"/>
+            <!-- Place the object in the center of its container in both the vertical and horizontal axis, not changing its size. -->
+            <flag name="center" value="0x11"/>
+            <!-- Grow the horizontal and vertical size of the object if needed so it completely fills its container. -->
+            <flag name="fill" value="0x77"/>
+            <!-- Additional option that can be set to have the top and/or bottom edges of
+            the child clipped to its container's bounds.
+            The clip will be based on the vertical gravity: a top gravity will clip the bottom
+            edge, a bottom gravity will clip the top edge, and neither will clip both edges. -->
+            <flag name="clip_vertical" value="0x80"/>
+            <!-- Additional option that can be set to have the left and/or right edges of
+            the child clipped to its container's bounds.
+            The clip will be based on the horizontal gravity: a left gravity will clip the right
+            edge, a right gravity will clip the left edge, and neither will clip both edges. -->
+            <flag name="clip_horizontal" value="0x08"/>
+            <!-- Push object to the beginning of its container, not changing its size. -->
+            <flag name="start" value="0x00800003"/>
+            <!-- Push object to the end of its container, not changing its size. -->
+            <flag name="end" value="0x00800005"/>
+        </attr>
+
+    </declare-styleable>
+
+
+    <declare-styleable name="OtpViewTheme">
+        <attr format="reference" name="otpViewStyle"/>
+    </declare-styleable>
+
+    <declare-styleable name="OtpView">
+        <attr format="integer" name="OtpItemCount"/>
+        <attr format="dimension" name="OtpItemWidth"/>
+        <attr format="dimension" name="OtpItemHeight"/>
+        <attr format="dimension" name="OtpItemRadius"/>
+        <attr format="dimension" name="OtpItemSpacing"/>
+        <attr format="dimension" name="OtpLineWidth"/>
+        <attr format="reference|color" name="OtpLineColor"/>
+        <attr format="enum" name="OtpViewType">
+            <enum name="rectangle" value="0"/>
+            <enum name="line" value="1"/>
+            <enum name="none" value="2"/>
+        </attr>
+        <attr name="android:cursorVisible"/>
+        <attr name="android:textAllCaps"/>
+        <attr format="dimension" name="OtpCursorWidth"/>
+        <attr format="reference|color" name="OtpCursorColor"/>
+        <attr name="android:itemBackground"/>
+        <attr format="boolean" name="OtpHideLineWhenFilled"/>
+        <attr format="boolean" name="OtpState_filled"/>
+        <attr format="boolean" name="OtpRtlTextDirection"/>
+        <attr format="string" name="OtpMaskingChar"/>
+    </declare-styleable>
+    <declare-styleable name="SSImagePickerTheme">
+        <!--PICKER ACTIVITY ATTRIBUTES-->
+        <!--Status bar color of image picker activity -->
+        <attr name="ssStatusBarColor" format="color" />
+        <!--Whether status bar should be in light or dark mode-->
+        <attr name="ssStatusBarLightMode" format="boolean" />
+        <!--Toolbar background color of image picker activity -->
+        <attr name="ssToolbarBackground" format="reference|color" />
+        <!--Toolbar back icon of image picker activity -->
+        <attr name="ssToolbarBackIcon" format="reference" />
+        <!--Toolbar title text appearance -->
+        <attr name="ssToolbarTextAppearance" format="reference" />
+        <!--Toolbar camera icon -->
+        <attr name="ssToolbarCameraIcon" format="reference" />
+        <!--Toolbar done icon -->
+        <attr name="ssToolbarDoneIcon" format="reference" />
+        <!--Toolbar done text -->
+        <attr name="ssToolbarDoneText" format="string" />
+        <!--Toolbar done text appearance -->
+        <attr name="ssToolbarDoneTextAppearance" format="reference" />
+        <!--Picker screen background. -->
+        <attr name="ssPickerBackground" format="reference|color" />
+        <!--Progress indicator style for the loading bar which is displayed until images are loaded -->
+        <attr name="ssProgressIndicatorStyle" format="reference" />
+        <!--Folder name text view style. This will show on folders -->
+        <attr name="ssFolderTextViewStyle" format="reference" />
+        <!--If no data is available, then this text will be shown to user -->
+        <attr name="ssNoDataText" format="string" />
+        <!--The text view style for the no data text. -->
+        <attr name="ssNoDataTextViewStyle" format="reference" />
+        <!--The text which will be displayed to user as toast message when the user tries to select more images then the specified pick limit-->
+        <attr name="ssImagePickerLimitText" format="string" />
+        <!--Grid count in picker screen for portrait mode. It will be same for both folder and the image-->
+        <attr name="ssPickerGridCount" format="integer" />
+        <!--Grid count in picker screen for landscape mode. It will be same for both folder and the image-->
+        <attr name="ssPickerGridCountLandscape" format="integer" />
+        <!--The image drawable to indicate the image is selected. the icon is displayed over the selected image.-->
+        <attr name="ssImageSelectIcon" format="reference" />
+        <!--The icon which is used to open image in dialog mode to see in full view mode-->
+        <attr name="ssImageZoomIcon" format="reference" />
+        <!--UCrop activity toolbar background color -->
+        <attr name="ssUCropToolbarColor" format="color" />
+        <!--UCrop activity status bar background color -->
+        <attr name="ssUCropStatusBarColor" format="color" />
+        <!--UCrop activity toolbar widget color -->
+        <attr name="ssUCropToolbarWidgetColor" format="color" />
+        <!--UCrop activity active control widget color -->
+        <attr name="ssUCropActiveControlWidgetColor" format="color" />
+        <!--PICKER OPTION BOTTOM SHEET ATTRIBUTES-->
+        <!-- Picker option bottom sheet camera text -->
+        <attr name="ssSheetCameraText" format="string" />
+        <!-- Picker option bottom sheet gallery text -->
+        <attr name="ssSheetGalleryText" format="string" />
+        <!-- Picker option bottom sheet cancel text -->
+        <attr name="ssSheetCancelText" format="string" />
+        <!-- Picker option bottom sheet camera button background -->
+        <attr name="ssSheetCameraButtonBackground" format="reference|color" />
+        <!-- Picker option bottom sheet gallery button background -->
+        <attr name="ssSheetGalleryButtonBackground" format="reference|color" />
+        <!-- Picker option bottom sheet cancel button background -->
+        <attr name="ssSheetCancelButtonBackground" format="reference|color" />
+        <!-- Picker option bottom sheet camera text view style -->
+        <attr name="ssSheetCameraViewStyle" format="reference" />
+        <!-- Picker option bottom sheet gallery text view background -->
+        <attr name="ssSheetGalleryViewStyle" format="reference" />
+        <!-- Picker option bottom sheet cancel text view background -->
+        <attr name="ssSheetCancelViewStyle" format="reference" />
+        <!-- Picker option bottom sheet background -->
+        <attr name="ssSheetBackground" format="reference|color" />
+    </declare-styleable>
+
+    <declare-styleable name="CameraView">
+
+        <attr name="ckFacing" format="enum">
+            <enum name="back" value="0" />
+            <enum name="front" value="1" />
+        </attr>
+
+        <attr name="ckFlash" format="enum">
+            <enum name="off" value="0" />
+            <enum name="on" value="1" />
+            <enum name="auto" value="2" />
+            <enum name="torch" value="3" />
+        </attr>
+
+        <attr name="ckFocus" format="enum">
+            <enum name="off" value="0" />
+            <enum name="continuous" value="1" />
+            <enum name="tap" value="2" />
+            <enum name="tapWithMarker" value="3" />
+        </attr>
+
+        <attr name="ckPinchToZoom" format="boolean" />
+
+        <attr name="ckZoom" format="float" />
+
+        <attr name="ckMethod" format="enum">
+            <enum name="standard" value="0" />
+            <enum name="still" value="1" />
+
+            <!-- TODO: Set to unique value when feature added -->
+            <enum name="speed" value="0" />
+        </attr>
+
+        <attr name="ckPermissions" format="enum">
+            <enum name="strict" value="0" />
+            <enum name="lazy" value="1" />
+            <enum name="picture" value="2" />
+        </attr>
+
+        <attr name="ckJpegQuality" format="integer" />
+
+        <attr name="ckVideoQuality" format="enum">
+            <enum name="max480p" value="0" />
+            <enum name="max720p" value="1" />
+            <enum name="max1080p" value="2" />
+            <enum name="max2160p" value="3" />
+            <enum name="highest" value="4" />
+            <enum name="lowest" value="5" />
+            <enum name="qvga" value="6" />
+        </attr>
+
+        <attr name="ckCropOutput" format="boolean" />
+
+        <attr name="ckVideoBitRate" format="integer" />
+
+        <attr name="ckDoubleTapToToggleFacing" format="boolean" />
+        <attr name="ckLockVideoAspectRatio" format="boolean" />
+
+        <attr name="android:adjustViewBounds" />
+
+    </declare-styleable>
+
+</resources>

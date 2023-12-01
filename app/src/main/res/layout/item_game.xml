@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_160dp"
+        android:layout_margin="@dimen/_5dp"
+        app:cardElevation="@dimen/_5dp">
+
+<!-- android:background="@drawable/row_selector" -->
+
+        <LinearLayout
+            android:padding="@dimen/_5dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/imgGame"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_120dp"
+                android:src="@drawable/app_icon" />
+
+            <com.codersworld.awesalibs.customFonts.SBTextViewRegular
+                android:id="@+id/txtGameTitle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                 android:paddingTop="@dimen/_5dp"
+                 android:paddingBottom="@dimen/_5dp"
+                android:textColor="@color/black"
+                android:text="@string/app_name"
+                android:textSize="@dimen/_15dp"
+                android:gravity="center" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</layout>

@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/llHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_view_search"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/_2dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="@dimen/_0dp"
+                app:cardElevation="@dimen/_10dp"
+                app:cardMaxElevation="@dimen/_10dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="?actionBarSize">
+
+                    <RelativeLayout
+                        android:id="@+id/llLogo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <de.hdodenhof.circleimageview.CircleImageView
+                                android:id="@+id/imgTeam1"
+                                android:layout_width="@dimen/_30dp"
+                                android:layout_height="@dimen/_30dp"
+                                android:src="@drawable/app_icon1" />
+
+                            <com.codersworld.awesalibs.customFonts.SBTextViewBold
+                                android:layout_width="@dimen/_30dp"
+                                android:layout_height="@dimen/_30dp"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="@dimen/_10dp"
+                                android:layout_marginEnd="@dimen/_10dp"
+                                android:gravity="center"
+                                android:text="Vs"
+                                android:textColor="@color/black" />
+
+                            <de.hdodenhof.circleimageview.CircleImageView
+                                android:id="@+id/imgTeam2"
+                                android:layout_width="@dimen/_30dp"
+                                android:layout_height="@dimen/_30dp"
+                                android:src="@drawable/app_icon1" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/imgHome"
+                            android:layout_width="@dimen/_44dp"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentEnd="true"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="@dimen/_7dp"
+                            android:src="@drawable/ic_home" />
+                    </RelativeLayout>
+
+                    <androidx.appcompat.widget.Toolbar
+                        android:id="@+id/toolbar"
+                        android:layout_width="35dp"
+                        android:layout_height="?attr/actionBarSize"
+                        android:layout_gravity="start"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        app:layout_collapseMode="pin"
+                        app:navigationIcon="@drawable/ic_back_black"
+                        app:theme="@style/ToolbarTheme">
+
+                    </androidx.appcompat.widget.Toolbar>
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swRefresh"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <androidx.core.widget.NestedScrollView
+                        android:id="@+id/mNestedScroll"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:isScrollContainer="true"
+                        android:visibility="visible">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rv_history"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:nestedScrollingEnabled="false"
+                                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                                tools:itemCount="6"
+                                tools:listitem="@layout/videos_item_layout" />
+                            <LinearLayout
+                                android:id="@+id/llInterview"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <com.codersworld.awesalibs.customFonts.SBTextViewBold
+                                    android:id="@+id/txtHalf"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/_44dp"
+                                    android:background="@color/light_txt_bg"
+                                    android:gravity="center_vertical"
+                                    android:paddingStart="@dimen/_10dp"
+                                    android:text="@string/lbl_interview1"
+                                    android:textColor="@color/black" />
+
+                                <androidx.cardview.widget.CardView
+                                    android:id="@+id/card_view"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="1dp"
+                                    android:background="?attr/selectableItemBackground"
+                                    android:translationZ="@dimen/_5dp"
+                                    app:cardCornerRadius="@dimen/_0dp"
+                                    app:cardElevation="0dp">
+
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:paddingStart="@dimen/_5dp"
+                                        android:paddingTop="@dimen/_5dp"
+                                        android:paddingEnd="@dimen/_5dp">
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_toStartOf="@+id/imgDelete"
+                                            android:orientation="vertical">
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:orientation="horizontal">
+
+                                                <RelativeLayout
+                                                    android:id="@+id/rlPlay"
+                                                    android:layout_width="@dimen/_80dp"
+                                                    android:layout_height="@dimen/_80dp">
+
+                                                    <ImageView
+                                                        android:id="@+id/imgThumbnail"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="match_parent"
+                                                        android:scaleType="centerCrop"
+                                                        android:src="@drawable/login_bg" />
+
+                                                    <ImageView
+                                                        android:id="@+id/imgPlay"
+                                                        android:layout_width="@dimen/_30dp"
+                                                        android:layout_height="@dimen/_30dp"
+                                                        android:layout_centerInParent="true"
+                                                        android:src="@drawable/ic_play"
+                                                        app:tint="@color/colorAccent" />
+                                                </RelativeLayout>
+
+                                                <LinearLayout
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="wrap_content"
+                                                    android:orientation="vertical"
+                                                    android:paddingStart="@dimen/_10dp"
+                                                    android:paddingEnd="@dimen/_10dp">
+
+                                                    <com.codersworld.awesalibs.customFonts.SBTextViewRegular
+                                                        android:id="@+id/txtTeam"
+                                                        android:layout_width="wrap_content"
+                                                        android:layout_height="wrap_content"
+                                                        android:layout_marginTop="@dimen/_5dp"
+                                                        android:ellipsize="end"
+                                                        android:gravity="center_vertical"
+                                                        android:maxLines="2"
+                                                        android:text="@string/lbl_interview1"
+                                                        android:textColor="@color/black" />
+
+                                                </LinearLayout>
+                                            </LinearLayout>
+                                        </LinearLayout>
+
+                                        <ImageView
+                                            android:id="@+id/imgDelete"
+                                            android:layout_width="40dp"
+                                            android:layout_height="40dp"
+                                            android:layout_alignParentEnd="true"
+                                            android:background="?attr/selectableItemBackground"
+                                            android:padding="@dimen/_5dp"
+                                            android:src="@drawable/ic_delete"
+                                            android:visibility="visible"
+                                            app:tint="@color/red" />
+
+                                    </RelativeLayout>
+                                </androidx.cardview.widget.CardView>
+                            </LinearLayout>
+
+                        </LinearLayout>
+                    </androidx.core.widget.NestedScrollView>
+
+                    <LinearLayout
+                        android:id="@+id/llNoData"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.codersworld.awesalibs.customFonts.SBTextViewBold
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:padding="@dimen/_10dp"
+                            android:text="@string/msg_videos_are_under_uploading"
+                            android:textSize="@dimen/_18dp" />
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="300dp"
+                            android:src="@drawable/no_data" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        </RelativeLayout>
+    </LinearLayout>
+</layout>

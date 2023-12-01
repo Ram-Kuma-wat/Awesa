@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:id="@+id/toast_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_20dp"
+        android:background="@drawable/success_shape"
+        android:paddingTop="@dimen/_8dp"
+       android:paddingBottom="@dimen/_8dp"
+        android:paddingStart="@dimen/_16dp"
+        android:paddingEnd="@dimen/_24dp">
+
+        <ImageView
+            android:id="@+id/toast_icon"
+            android:layout_width="@dimen/_20dp"
+            android:layout_height="@dimen/_20dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_info_outline_black_24dp" />
+
+        <TextView
+            android:id="@+id/toast_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_10dp"
+            tools:text="Hi! This is the sample toast example"
+            android:textColor="#FFFFFF" />
+
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_alignEnd="@+id/toast_type"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/app_icon"
+        android:layout_alignRight="@+id/toast_type" />
+
+
+</RelativeLayout>

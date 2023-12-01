@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/_3dp"
+        android:layout_marginStart="@dimen/_0_5dp"
+        android:layout_marginEnd="@dimen/_0_5dp"
+        android:translationZ="1dp"
+        app:cardCornerRadius="0dp"
+        android:background="?attr/selectableItemBackground"
+        app:cardElevation="@dimen/_0dp">
+
+        <RelativeLayout
+            android:id="@+id/llView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/row_selector"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/_10dp"
+            android:paddingEnd="@dimen/_5dp">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/imgTeam"
+                android:layout_width="@dimen/_35dp"
+                android:layout_height="@dimen/_35dp"
+                android:layout_centerVertical="true"
+                android:padding="3dp"
+                android:src="@drawable/app_icon" />
+
+            <com.codersworld.awesalibs.customFonts.SBTextViewRegular
+                android:id="@+id/txtName"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_centerVertical="true"
+                android:layout_toStartOf="@+id/imgArrow"
+                android:layout_toEndOf="@id/imgTeam"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/_10dp"
+                android:text="@string/app_name"
+                android:textColor="@color/row_defaultcolor"
+                android:textSize="@dimen/_15dp" />
+
+            <ImageView
+                android:id="@+id/imgArrow"
+                android:layout_width="@dimen/_30dp"
+                android:layout_height="@dimen/_30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:padding="3dp"
+                app:tint="@color/row_defaultcolor"
+                android:src="@drawable/ic_arrow_right" />
+
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</layout>

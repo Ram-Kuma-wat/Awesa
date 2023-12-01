@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:id="@+id/llView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/_10dp"
+        android:paddingEnd="@dimen/_5dp">
+
+
+        <com.codersworld.awesalibs.customFonts.SBTextViewRegular
+            android:id="@+id/txtName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/_44dp"
+            android:paddingStart="@dimen/_10dp"
+            android:text="@string/app_name"
+            android:textColor="@color/text_selector"
+            android:textSize="@dimen/_16dp" />
+
+    </RelativeLayout>
+
+</layout>
