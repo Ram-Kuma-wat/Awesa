@@ -1,31 +1,18 @@
 package com.game.awesa.ui.forgotpassword
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.media.MediaCodec
-import android.media.MediaExtractor
-import android.media.MediaFormat
-import android.media.MediaMetadataRetriever
-import android.media.MediaMuxer
-import android.media.MediaPlayer
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.util.Log
 import android.view.View
 import android.view.View.OnClickListener
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import androidx.multidex.BuildConfig
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.database.DatabaseHelper
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.rest.ApiCall
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.codersworld.awesalibs.utils.Logs
@@ -33,16 +20,9 @@ import com.codersworld.awesalibs.utils.Tags
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityForgotPasswordBinding
 import com.game.awesa.ui.VerifyActivity
-import com.google.android.exoplayer2.upstream.cache.CacheDataSink
-import com.google.gson.Gson
-import java.io.File
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.text.SimpleDateFormat
-import java.util.Date
 
 class ForgotPasswordActivity : AppCompatActivity(), OnConfirmListener, OnClickListener,
-    OnResponse<UniverSelObjct> {
+    OnResponse<UniversalObject> {
     lateinit var binding: ActivityForgotPasswordBinding
     var mApiCall: ApiCall? = null
     var strEmail: String = "";
@@ -58,8 +38,6 @@ class ForgotPasswordActivity : AppCompatActivity(), OnConfirmListener, OnClickLi
             }
         }
 
-        // database handler
-        DatabaseManager.initializeInstance(DatabaseHelper(this@ForgotPasswordActivity))
          binding.btnSubmit.setOnClickListener(this)
         binding.toolbar.setNavigationOnClickListener { finish() }
 
@@ -83,10 +61,10 @@ class ForgotPasswordActivity : AppCompatActivity(), OnConfirmListener, OnClickLi
         }
     }
 
-    override fun onSuccess(response: UniverSelObjct) {
+    override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodname.toString())
-            when (response.methodname) {
+            Logs.e(response.methodName.toString())
+            when (response.methodName) {
                 Tags.SB_FORGOT_PASSWORD_API -> {
                     var mCommonBean: CommonBean = response.response as CommonBean
                     if (mCommonBean.status == 1) {

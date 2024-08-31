@@ -25,7 +25,7 @@
                 android:id="@+id/audio_selection"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                 android:checked="true"
+                android:checked="true"
                 android:text="@string/app_name"
                 android:textColor="@color/white"
                 android:textSize="20sp"
@@ -40,7 +40,7 @@
                 android:layout_marginStart="96dp"
                 android:choiceMode="singleChoice"
                 android:translationY="-36dp"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
             <androidx.camera.view.PreviewView
                 android:id="@+id/previewView"
@@ -241,6 +241,7 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
+                    android:paddingStart="10dp"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -275,13 +276,14 @@
                                     android:layout_width="36dp"
                                     android:layout_height="36dp"
                                     android:maxWidth="44dp"
-                                    android:src="@drawable/tor_one" />
+                                    android:src="@drawable/tor_one"
+                                    app:tint="@color/white" />
 
                                 <com.codersworld.awesalibs.customFonts.SBTextViewBold
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Tor"
-                                    android:textColor="#2777E3"
+                                    android:textColor="@color/white"
                                     android:textSize="@dimen/_12sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -300,13 +302,14 @@
                                     android:layout_width="36dp"
                                     android:layout_height="36dp"
                                     android:maxWidth="44dp"
-                                    android:src="@drawable/chance_one" />
+                                    android:src="@drawable/chance_one"
+                                    app:tint="@color/white" />
 
                                 <com.codersworld.awesalibs.customFonts.SBTextViewBold
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Chance"
-                                    android:textColor="#2777E3"
+                                    android:textColor="@color/white"
                                     android:textSize="@dimen/_12sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -333,6 +336,65 @@
                             android:orientation="vertical">
 
                             <LinearLayout
+                                android:id="@+id/llHighlight"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/_15dp"
+                                android:gravity="center_horizontal"
+                                android:minWidth="@dimen/_60dp"
+                                android:orientation="vertical">
+
+                                <ImageView
+                                    android:id="@+id/imgHighlight"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:maxWidth="44dp"
+                                    android:src="@drawable/highlight"
+                                    app:tint="@color/white" />
+
+                                <com.codersworld.awesalibs.customFonts.SBTextViewBold
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Highlight"
+                                    android:textColor="@color/white"
+                                    android:textSize="@dimen/_12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                 android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/_15dp"
+                                android:gravity="center_horizontal"
+                                android:minWidth="@dimen/_60dp"
+                                android:visibility="invisible"
+                                android:orientation="vertical">
+
+                                <ImageView
+                                     android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:maxWidth="44dp"
+                                    android:src="@drawable/fail_one"
+                                    app:tint="@color/white" />
+
+                                <com.codersworld.awesalibs.customFonts.SBTextViewBold
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="FAIL"
+                                    android:textColor="@color/white"
+                                    android:textSize="@dimen/_12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </LinearLayout>
+         <LinearLayout
+                            android:layout_width="0dp"
+             android:visibility="gone"
+             android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:gravity="start"
+                            android:orientation="vertical">
+
+                            <LinearLayout
                                 android:id="@+id/llWow1"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -346,13 +408,14 @@
                                     android:layout_width="36dp"
                                     android:layout_height="36dp"
                                     android:maxWidth="44dp"
-                                    android:src="@drawable/wow_one" />
+                                    android:src="@drawable/wow_one"
+                                    app:tint="@color/white" />
 
                                 <com.codersworld.awesalibs.customFonts.SBTextViewBold
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="WOW"
-                                    android:textColor="#2777E3"
+                                    android:textColor="@color/white"
                                     android:textSize="@dimen/_12sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -371,13 +434,14 @@
                                     android:layout_width="36dp"
                                     android:layout_height="36dp"
                                     android:maxWidth="44dp"
-                                    android:src="@drawable/fail_one" />
+                                    android:src="@drawable/fail_one"
+                                    app:tint="@color/white" />
 
                                 <com.codersworld.awesalibs.customFonts.SBTextViewBold
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="FAIL"
-                                    android:textColor="#2777E3"
+                                    android:textColor="@color/white"
                                     android:textSize="@dimen/_12sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -395,6 +459,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:paddingEnd="10dp"
                     android:minHeight="50dp"
                     android:orientation="vertical">
 
@@ -428,6 +493,7 @@
 
 
                                 <ImageView
+                                    app:tint="@color/dot_dark_screen1"
                                     android:id="@+id/imgTor1"
                                     android:layout_width="36dp"
                                     android:layout_height="36dp"
@@ -438,7 +504,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Tor"
-                                    android:textColor="#CF2B27"
+                                    android:textColor="@color/dot_dark_screen1"
                                     android:textStyle="bold" />
                             </LinearLayout>
 
@@ -454,6 +520,7 @@
 
                                 <ImageView
                                     android:id="@+id/imgChance1"
+                                    app:tint="@color/dot_dark_screen1"
                                     android:layout_width="36dp"
                                     android:layout_height="36dp"
                                     android:maxWidth="44dp"
@@ -464,7 +531,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Chance"
-                                    android:textColor="#CF2B27"
+                                    android:textColor="@color/dot_dark_screen1"
                                     android:textStyle="bold" />
 
                             </LinearLayout>
@@ -492,6 +559,66 @@
 
 
                             <LinearLayout
+                                android:id="@+id/llHighlight2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/_15dp"
+                                android:gravity="center_horizontal"
+                                android:minWidth="@dimen/_60dp"
+                                android:orientation="vertical">
+
+                                <ImageView
+                                    android:id="@+id/imgHighlight1"
+                                    app:tint="@color/dot_dark_screen1"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:maxWidth="44dp"
+                                    android:src="@drawable/highlight" />
+
+                                <com.codersworld.awesalibs.customFonts.SBTextViewBold
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Highlight"
+                                    android:textColor="@color/dot_dark_screen1"
+                                    android:textStyle="bold" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:visibility="invisible"
+                                 android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/_15dp"
+                                android:gravity="center_horizontal"
+                                android:minWidth="@dimen/_60dp"
+                                android:orientation="vertical">
+
+                                <ImageView
+                                     android:layout_width="36dp"
+                                    app:tint="@color/dot_dark_screen1"
+                                    android:layout_height="36dp"
+                                    android:maxWidth="44dp"
+                                    android:src="@drawable/fail_two" />
+
+                                <com.codersworld.awesalibs.customFonts.SBTextViewBold
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="FAIL"
+                                    android:textColor="@color/dot_dark_screen1"
+                                    android:textStyle="bold" />
+
+                            </LinearLayout>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:visibility="gone"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:gravity="end"
+                            android:orientation="vertical">
+
+
+                            <LinearLayout
                                 android:id="@+id/llWow2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -502,6 +629,7 @@
 
                                 <ImageView
                                     android:id="@+id/imgWow1"
+                                    app:tint="@color/dot_dark_screen1"
                                     android:layout_width="36dp"
                                     android:layout_height="36dp"
                                     android:maxWidth="44dp"
@@ -511,7 +639,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="WOW"
-                                    android:textColor="#CF2B27"
+                                    android:textColor="@color/dot_dark_screen1"
                                     android:textStyle="bold" />
 
                             </LinearLayout>
@@ -528,6 +656,7 @@
                                 <ImageView
                                     android:id="@+id/imgFail1"
                                     android:layout_width="36dp"
+                                    app:tint="@color/dot_dark_screen1"
                                     android:layout_height="36dp"
                                     android:maxWidth="44dp"
                                     android:src="@drawable/fail_two" />
@@ -536,7 +665,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="FAIL"
-                                    android:textColor="#CF2B27"
+                                    android:textColor="@color/dot_dark_screen1"
                                     android:textStyle="bold" />
 
                             </LinearLayout>
@@ -559,6 +688,46 @@
                 android:textSize="100sp"
                 android:textStyle="bold"
                 android:visibility="visible" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="@dimen/_10dp"
+                android:orientation="vertical">
+                 <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="@dimen/_44dp"
+                    android:layout_height="@dimen/_44dp"
+                    android:id="@+id/imgZoomOut"
+                    android:padding="@dimen/_5dp"
+                    android:src="@drawable/zoom_out"
+                    app:tint="@color/dot_dark_screen1"
+                    />
+                <com.codersworld.awesalibs.customFonts.SBTextViewBold
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/_44dp"
+                    android:minWidth="80dp"
+                    android:text="1.0x"
+                    android:id="@+id/txtZoom"
+                    android:textSize="10pt"
+                    android:textColor="@color/dot_dark_screen1"
+                    android:gravity="center"/>
+                <ImageView
+                    android:layout_width="@dimen/_44dp"
+                    android:layout_height="@dimen/_44dp"
+                    android:id="@+id/imgZoomIn"
+                    android:padding="@dimen/_5dp"
+                    android:src="@drawable/zoom_in"
+                    app:tint="@color/dot_dark_screen1"
+                    />
+
+            </LinearLayout>
+            </LinearLayout>
         </RelativeLayout>
 
         <RelativeLayout
@@ -584,7 +753,8 @@
                     android:gravity="center"
                     android:text="@string/lbl_wait_msg"
                     android:textColorLink="@color/black"
-                    android:textSize="@dimen/_16dp" />
+                    android:textSize="@dimen/_16dp"
+                    android:visibility="gone" />
 
                 <com.codersworld.awesalibs.customFonts.SBTextViewBold
                     android:id="@+id/tvUpload"

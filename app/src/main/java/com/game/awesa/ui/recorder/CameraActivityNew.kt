@@ -1,8 +1,6 @@
 package com.game.awesa.ui.recorder
 
-
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import androidx.databinding.DataBindingUtil
@@ -11,17 +9,17 @@ import com.codersworld.awesalibs.database.DatabaseHelper
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityCameraRecordBinding
 import com.game.awesa.ui.BaseActivity
-import com.google.gson.Gson
 import com.otaliastudios.cameraview.FileCallback
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 
-
-class CameraActivityNew : BaseActivity(), View.OnClickListener, OnResponse<UniverSelObjct>,
+@AndroidEntryPoint
+class CameraActivityNew : BaseActivity(), View.OnClickListener, OnResponse<UniversalObject>,
     OnConfirmListener, FileCallback {
     lateinit var binding: ActivityCameraRecordBinding
 
@@ -37,7 +35,6 @@ class CameraActivityNew : BaseActivity(), View.OnClickListener, OnResponse<Unive
         if (intent.hasExtra("MatchBean")) {
             mMatchBean = CommonMethods.getSerializable(intent, "MatchBean", MatchesBean.InfoBean::class.java)
         }
-        DatabaseManager.initializeInstance(DatabaseHelper(applicationContext))
         //CommonMethods.loadImageDrawable(this@CameraActivity,R.drawable.loading_img_one,binding.imgTor)
          val mFragment = CaptureFragment()
          val bundle = Bundle()
@@ -66,7 +63,7 @@ class CameraActivityNew : BaseActivity(), View.OnClickListener, OnResponse<Unive
 
     }
 
-    override fun onSuccess(response: UniverSelObjct?) {
+    override fun onSuccess(response: UniversalObject?) {
     }
 
     override fun onError(type: String?, error: String?) {

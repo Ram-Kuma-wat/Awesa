@@ -6,23 +6,35 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- Devices running Android 12L (API level 32) or lower  -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL"
-        tools:ignore="ProtectedPermissions" />
+    <!-- To handle the reselection within the app on devices running Android 14
+     or higher if your app targets Android 14 (API level 34) or higher.  -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.RECEIVE_LAUNCH_BROADCASTS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
 
     <application
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
         android:name=".ui.MyApp"
+        android:extractNativeLibs="false"
         android:allowBackup="true"
         android:configChanges="locale|orientation|screenSize|layoutDirection"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -30,12 +42,12 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Awesa"
         android:usesCleartextTraffic="true"
         android:windowSoftInputMode="adjustResize"
-        tools:targetApi="31">
+        tools:ignore="UnusedAttribute">
         <activity
             android:name=".ui.SplashActivity"
             android:exported="true"
@@ -47,7 +59,7 @@
         </activity>
         <activity
             android:name=".ui.dashboard.MainActivity"
-            android:exported="true"
+            android:exported="false"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.LoginActivity"
@@ -86,18 +98,14 @@
             android:exported="true"
             android:screenOrientation="portrait">
         </activity>
-        <activity
-            android:name=".ui.recorder.CameraActivity"
-            android:exported="true"
-            android:screenOrientation="landscape">
-        </activity>
+
     <activity
             android:name=".ui.recorder.CameraActivityNew"
             android:exported="true"
             android:screenOrientation="landscape">
         </activity>
-        <activity
-            android:name=".ui.recorder.InterviewActivity"
+  <activity
+            android:name=".ui.recorder.InterviewActivityNew"
             android:exported="true"
             android:screenOrientation="landscape">
         </activity>
@@ -106,6 +114,14 @@
             android:name=".ui.recorder.VideoPreviewActivity"
             android:exported="true"
             android:screenOrientation="landscape"/>
+    <activity
+            android:name=".ui.recorder.TutorialActivity"
+            android:exported="true"
+            android:screenOrientation="landscape"/>
+    <activity
+            android:name=".ui.recorder.ProcessingActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.SupportActivity"
             android:exported="true"
@@ -128,10 +144,47 @@
             android:configChanges="orientation|screenSize"
             android:theme="@style/CustomSSImagePicker" />
 
-        <service android:name=".services.TrimService" />
-        <service android:name=".services.VideoUploadService" />
-        <service android:name=".services.InterviewUploadService" />
+        <service
+            android:name=".services.TrimService"
+            android:exported="false" />
+        <service
+            android:name=".services.VideoUploadService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
 
+        <service
+            android:name=".services.VideoUploadJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+
+        <service
+            android:name=".services.InterviewUploadService"
+            android:exported="false" />
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
+        <receiver
+            android:name=".services.MyBroadCastReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:label="StartMyServiceAtBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

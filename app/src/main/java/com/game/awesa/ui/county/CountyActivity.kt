@@ -1,24 +1,20 @@
 package com.game.awesa.ui.county
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.MotionEvent
-import android.view.inputmethod.InputMethodManager
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.codersworld.awesalibs.beans.county.CountyBean
-import com.codersworld.awesalibs.beans.teams.TeamsBean
 import com.codersworld.awesalibs.database.DatabaseHelper
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnCountyListener
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.rest.ApiCall
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.codersworld.awesalibs.utils.Logs
@@ -26,12 +22,13 @@ import com.codersworld.awesalibs.utils.Tags
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityCountyBinding
  import com.game.awesa.ui.BaseActivity
+import com.game.awesa.ui.LoginActivity
 import com.game.awesa.ui.county.adapter.CountyAdapter
 import com.game.awesa.ui.dashboard.MainActivity
 import com.game.awesa.ui.league.LeagueActivity
-import com.game.awesa.ui.teams.TeamsActivity
+import com.game.awesa.utils.Global
 
-class CountyActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObjct>,OnCountyListener {
+class CountyActivity : BaseActivity(), OnConfirmListener,OnResponse<UniversalObject>,OnCountyListener {
     lateinit var binding: ActivityCountyBinding
     var mApiCall: ApiCall? = null
     var game_category=""
@@ -43,7 +40,6 @@ class CountyActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObj
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_county)
         initApiCall()
-        DatabaseManager.initializeInstance(DatabaseHelper(this@CountyActivity))
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.imgHome.setOnClickListener { CommonMethods.moveWithClear(this@CountyActivity,
             MainActivity::class.java) }
@@ -85,18 +81,27 @@ class CountyActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObj
         }
     }
     override fun onConfirm(isTrue: Boolean, type: String) {
+        if (isTrue){
+            if (type.equals("99")){
+                UserSessions.clearUserInfo(this@CountyActivity)
+                startActivity(Intent(this@CountyActivity, LoginActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+                finishAffinity()
+            }
+        }
     }
-
-    override fun onSuccess(response: UniverSelObjct) {
+    override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodname.toString())
-            when (response.methodname) {
+            Logs.e(response.methodName.toString())
+            when (response.methodName) {
                 Tags.SB_COUNTY_API -> {
                     var mCountyBean: CountyBean = response.response as CountyBean
                     if (mCountyBean.status == 1) {
                         mListCounty = mCountyBean.info
                         setData(mListCounty)
                       //  moveToNext(mLoginBean.info)
+                    }else if (mCountyBean.status == 99) {
+                        UserSessions.clearUserInfo(this@CountyActivity)
+                        Global().makeConfirmation(mCountyBean.msg, this@CountyActivity, this)
                     }else if (CommonMethods.isValidString(mCountyBean.msg)) {
                         errorMsg(mCountyBean.msg);
                     } else {

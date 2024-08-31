@@ -12,7 +12,7 @@ import androidx.multidex.BuildConfig
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.rest.ApiCall
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.codersworld.awesalibs.utils.Logs
@@ -22,7 +22,7 @@ import com.game.awesa.databinding.ActivitySignupBinding
 
 
 class SignUpActivity : BaseActivity(),
-    OnResponse<UniverSelObjct> {
+    OnResponse<UniversalObject> {
     lateinit var binding: ActivitySignupBinding
     var mApiCall: ApiCall? = null
 
@@ -71,10 +71,10 @@ class SignUpActivity : BaseActivity(),
         }
     }
 
-    override fun onSuccess(response: UniverSelObjct) {
+    override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodname.toString())
-            when (response.methodname) {
+            Logs.e(response.methodName.toString())
+            when (response.methodName) {
                 Tags.SB_SIGNUP_API -> {
                     var mCommonBean: CommonBean = response.response as CommonBean
                     if (mCommonBean.status == 1) {

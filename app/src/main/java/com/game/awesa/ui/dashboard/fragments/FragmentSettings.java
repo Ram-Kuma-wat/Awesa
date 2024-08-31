@@ -19,12 +19,11 @@ import androidx.fragment.app.Fragment;
 
 
 import com.codersworld.awesalibs.beans.CommonBean;
-import com.codersworld.awesalibs.beans.matches.MatchesBean;
 import com.codersworld.awesalibs.listeners.OnConfirmListener;
 import com.codersworld.awesalibs.listeners.OnPageChangeListener;
 import com.codersworld.awesalibs.listeners.OnResponse;
 import com.codersworld.awesalibs.rest.ApiCall;
-import com.codersworld.awesalibs.rest.UniverSelObjct;
+import com.codersworld.awesalibs.rest.UniversalObject;
 import com.codersworld.awesalibs.storage.UserSessions;
 import com.codersworld.awesalibs.utils.CommonMethods;
 import com.codersworld.awesalibs.utils.Tags;
@@ -33,14 +32,13 @@ import com.game.awesa.databinding.FragmentSettingsBinding;
 import com.game.awesa.ui.LoginActivity;
 import com.game.awesa.ui.SupportActivity;
 import com.game.awesa.ui.WebViewActivity;
-import com.game.awesa.ui.dashboard.MainActivity;
 import com.game.awesa.ui.dialogs.CustomDialog;
 import com.game.awesa.utils.Global;
 
 import org.jetbrains.annotations.NotNull;
 
 
-public class FragmentSettings extends Fragment implements View.OnClickListener, OnResponse<UniverSelObjct>,OnConfirmListener {
+public class FragmentSettings extends Fragment implements View.OnClickListener, OnResponse<UniversalObject>,OnConfirmListener {
 
     @NotNull
     public static final String TAG = FragmentSettings.class.getSimpleName();
@@ -164,10 +162,10 @@ public class FragmentSettings extends Fragment implements View.OnClickListener, 
 
 
     @Override
-    public void onSuccess(UniverSelObjct response) {
+    public void onSuccess(UniversalObject response) {
         try {
             if (response !=null){
-                if (response.getMethodname()== Tags.SB_DELETE_ACCOUNT_API){
+                if (response.getMethodName()== Tags.SB_DELETE_ACCOUNT_API){
                     CommonBean mCommonBean =(CommonBean) response.getResponse();
                     if (mCommonBean.getStatus()==1){
                         makeLogout();

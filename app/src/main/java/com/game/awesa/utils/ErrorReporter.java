@@ -30,7 +30,7 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
 
     private ProgressDialog progdialog;
     private String[] _recipients = new String[] { "ramniwas8824@gmail.com" };
-    private String _subject = "Awesa  Crash Report Android";
+    private String _subject = "Awesa Crash Report Android";
 
     String subject, body;
     String VersionName;
@@ -253,6 +253,7 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
     }
     private void SendErrorMail(Context _context, String ErrorContent) {
        try {
+           //Log.e("ErrorContent",ErrorContent);
            Intent sendIntent = new Intent(Intent.ACTION_SEND);
            String subject = _subject;
            String body = "\n\n" + ErrorContent + "\n\n";
@@ -304,7 +305,7 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
 
     public void CheckErrorAndSendMail(Context _context) {
         try {
-            Log.i("call", "call");
+          //  Log.i("call", "call");
             FilePath = _context.getFilesDir().getAbsolutePath();
             if (bIsThereAnyErrorFile()) {
                 String WholeErrorText = "";
@@ -325,7 +326,7 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
                         }
                         input.close();
                     }
-
+//Log.e("WholeErrorText",WholeErrorText);
                     // DELETE FILES !!!!
                     File curFile = new File(FilePath + "/" + curString);
                     curFile.delete();
@@ -338,7 +339,7 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
     }
     public void CheckErrorAndSendMail1(Context _context) {
          try {
-            Log.i("call", "call");
+          //  Log.i("call", "call");
             FilePath = _context.getFilesDir().getAbsolutePath();
             if (bIsThereAnyErrorFile()) {
                 String WholeErrorText = "";
@@ -384,7 +385,7 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
     public String CheckError(Context _context) {
         String WholeErrorText = "";
         try {
-            Log.i("call", "call");
+         //   Log.i("call", "call");
             FilePath = _context.getFilesDir().getAbsolutePath();
             if (bIsThereAnyErrorFile()) {
 

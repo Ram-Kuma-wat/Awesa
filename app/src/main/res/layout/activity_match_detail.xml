@@ -108,6 +108,70 @@
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
+                    <LinearLayout
+                        android:visibility="gone"
+                        android:id="@+id/llUploadProgress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/_5dp">
+
+                        <com.codersworld.awesalibs.customFonts.SBTextViewRegular
+                            android:id="@+id/txtUploaded"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="@string/lbl_videos_uploaded" />
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_3dp"
+                            android:visibility="gone">
+
+                            <ProgressBar
+                                android:id="@+id/pbProgress"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
+                                android:layout_toStartOf="@+id/txtProgress"
+                                android:indeterminate="false"
+                                android:max="100"
+                                android:progress="50" />
+
+                            <com.codersworld.awesalibs.customFonts.SBTextViewBold
+                                android:id="@+id/txtProgress"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:minWidth="50dp"
+                                android:paddingStart="@dimen/_10dp"
+                                android:paddingEnd="@dimen/_10dp"
+                                android:text="50%" />
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_3dp">
+
+
+                            <com.codersworld.awesalibs.customFonts.SBTextViewRegular
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerInParent="true"
+                                android:layout_centerVertical="true"
+                                android:drawableEnd="@drawable/ic_down"
+                                android:gravity="center"
+                                android:minWidth="50dp"
+                                android:paddingStart="@dimen/_10dp"
+                                android:paddingEnd="@dimen/_10dp"
+                                android:text="@string/lbl_pull_down" />
+                        </RelativeLayout>
+                    </LinearLayout>
+
                     <androidx.core.widget.NestedScrollView
                         android:id="@+id/mNestedScroll"
                         android:layout_width="match_parent"
@@ -128,11 +192,13 @@
                                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                                 tools:itemCount="6"
                                 tools:listitem="@layout/videos_item_layout" />
+
                             <LinearLayout
                                 android:id="@+id/llInterview"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:orientation="vertical">
+                                android:orientation="vertical"
+                                android:visibility="gone">
 
                                 <com.codersworld.awesalibs.customFonts.SBTextViewBold
                                     android:id="@+id/txtHalf"

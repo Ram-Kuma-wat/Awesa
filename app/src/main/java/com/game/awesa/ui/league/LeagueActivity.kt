@@ -9,15 +9,13 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.codersworld.awesalibs.beans.leagues.LeagueBean
-import com.codersworld.awesalibs.beans.teams.TeamsBean
 import com.codersworld.awesalibs.database.DatabaseHelper
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnLeagueListener
 import com.codersworld.awesalibs.listeners.OnResponse
-import com.codersworld.awesalibs.listeners.OnTeamsListener
 import com.codersworld.awesalibs.rest.ApiCall
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.codersworld.awesalibs.utils.Logs
@@ -25,13 +23,14 @@ import com.codersworld.awesalibs.utils.Tags
 import com.game.awesa.R
  import com.game.awesa.databinding.ActivityLeagueBinding
  import com.game.awesa.ui.BaseActivity
+import com.game.awesa.ui.LoginActivity
 import com.game.awesa.ui.dashboard.MainActivity
 import com.game.awesa.ui.league.adapter.LeagueAdapter
-import com.game.awesa.ui.teams.OpponentTeamsActivity
 import com.game.awesa.ui.teams.TeamsActivity
+import com.game.awesa.utils.Global
 
 
-class LeagueActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObjct>,
+class LeagueActivity : BaseActivity(), OnConfirmListener,OnResponse<UniversalObject>,
     OnLeagueListener {
     lateinit var binding: ActivityLeagueBinding
     var mApiCall: ApiCall? = null
@@ -45,7 +44,6 @@ class LeagueActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObj
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_league)
         initApiCall()
-        DatabaseManager.initializeInstance(DatabaseHelper(this@LeagueActivity))
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.imgHome.setOnClickListener { CommonMethods.moveWithClear(this@LeagueActivity,MainActivity::class.java) }
         binding.rvLeagues.layoutManager = LinearLayoutManager(this@LeagueActivity,RecyclerView.VERTICAL,false)
@@ -92,6 +90,13 @@ class LeagueActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObj
         }
     }
     override fun onConfirm(isTrue: Boolean, type: String) {
+        if (isTrue){
+            if (type.equals("99")){
+                UserSessions.clearUserInfo(this@LeagueActivity)
+                startActivity(Intent(this@LeagueActivity, LoginActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+                finishAffinity()
+            }
+        }
     }
     fun hideShow(strMsg:String,type:Int){
         binding.txtError.text = strMsg
@@ -103,10 +108,10 @@ class LeagueActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObj
             binding.rvLeagues.visibility = View.VISIBLE
          }
     }
-    override fun onSuccess(response: UniverSelObjct) {
+    override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodname.toString())
-            when (response.methodname) {
+            Logs.e(response.methodName.toString())
+            when (response.methodName) {
                 Tags.SB_LEAGUE_API -> {
                     var mLeagueBean: LeagueBean = response.response as LeagueBean
                     if (mLeagueBean.status == 1) {
@@ -114,6 +119,9 @@ class LeagueActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObj
                         setData(mListTeams)
                         //  moveToNext(mLoginBean.info)
                         hideShow("",0)
+                    }else if (mLeagueBean.status == 99) {
+                        UserSessions.clearUserInfo(this@LeagueActivity)
+                        Global().makeConfirmation(mLeagueBean.msg, this@LeagueActivity, this)
                     }else if (CommonMethods.isValidString(mLeagueBean.msg)) {
                         hideShow(mLeagueBean.msg,1);
                     } else {

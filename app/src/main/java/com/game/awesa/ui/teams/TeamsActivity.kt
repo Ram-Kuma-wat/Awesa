@@ -15,7 +15,7 @@ import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.listeners.OnTeamsListener
 import com.codersworld.awesalibs.rest.ApiCall
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.codersworld.awesalibs.utils.Logs
@@ -23,11 +23,19 @@ import com.codersworld.awesalibs.utils.Tags
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityTeamBinding
 import com.game.awesa.ui.BaseActivity
+import com.game.awesa.ui.LoginActivity
 import com.game.awesa.ui.SupportActivity
 import com.game.awesa.ui.dashboard.MainActivity
 import com.game.awesa.ui.league.LeagueActivity
+import com.game.awesa.utils.Global
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-class TeamsActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObjct>,OnTeamsListener {
+@AndroidEntryPoint
+class TeamsActivity : BaseActivity(), OnConfirmListener,OnResponse<UniversalObject>,OnTeamsListener {
+
+    @Inject lateinit var databaseManager: DatabaseManager
+
     lateinit var binding: ActivityTeamBinding
     var mApiCall: ApiCall? = null
     var league=""
@@ -41,7 +49,6 @@ class TeamsActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObjc
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_team)
         initApiCall()
-        DatabaseManager.initializeInstance(DatabaseHelper(this@TeamsActivity))
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.imgHome.setOnClickListener { CommonMethods.moveWithClear(this@TeamsActivity,
             MainActivity::class.java) }
@@ -95,7 +102,15 @@ class TeamsActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObjc
             mApiCall = ApiCall(this@TeamsActivity)
         }
     }
+
     override fun onConfirm(isTrue: Boolean, type: String) {
+        if (isTrue){
+            if (type.equals("99")){
+                UserSessions.clearUserInfo(this@TeamsActivity)
+                startActivity(Intent(this@TeamsActivity, LoginActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+                finishAffinity()
+            }
+        }
     }
     fun hideShow(strMsg:String,type:Int){
         binding.txtError.text = strMsg
@@ -108,10 +123,10 @@ class TeamsActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObjc
         }
     }
 
-    override fun onSuccess(response: UniverSelObjct) {
+    override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodname.toString())
-            when (response.methodname) {
+            Logs.e(response.methodName.toString())
+            when (response.methodName) {
                 Tags.SB_TEAMS_API -> {
                     var mTeamsBean: TeamsBean = response.response as TeamsBean
                     if (mTeamsBean.status == 1) {
@@ -122,6 +137,9 @@ class TeamsActivity : BaseActivity(), OnConfirmListener,OnResponse<UniverSelObjc
                         binding.rvTeams1.adapter = mAdapter1
                         hideShow("",0)
                       //  moveToNext(mLoginBean.info)
+                    }else if (mTeamsBean.status == 99) {
+                        UserSessions.clearUserInfo(this@TeamsActivity)
+                        Global().makeConfirmation(mTeamsBean.msg, this@TeamsActivity, this)
                     }else if (CommonMethods.isValidString(mTeamsBean.msg)) {
                         hideShow(mTeamsBean.msg,1);
                     } else {

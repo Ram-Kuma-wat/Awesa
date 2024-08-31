@@ -56,11 +56,22 @@ public class OverviewAdapter extends RecyclerView.Adapter {
             }
         }
     }
+    public void update(ReactionsBean mBeanReaction,int position){
+        if (CommonMethods.isValidList(list) && mBeanReaction !=null){
+            list.set(position,mBeanReaction);
+            notifyDataSetChanged();
+        }
+    }
     String half="";
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int i) {
         GameHolder mHolder = (GameHolder) viewHolder;
         ReactionsBean mBean = list.get(i);
         mHolder.binding.imgDelete.setVisibility(View.VISIBLE);
+        mHolder.binding.imgEdit.setVisibility(View.VISIBLE);
+        try{
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
         mHolder.binding.txtHalf.setText((mBean.getHalf()==1)?context.getString(R.string.lbl_first_half):context.getString(R.string.lbl_second_half));
         if (half.equalsIgnoreCase(mBean.getHalf()+"")){
             mHolder.binding.txtHalf.setVisibility(View.GONE);
@@ -100,14 +111,17 @@ public class OverviewAdapter extends RecyclerView.Adapter {
             binding = DataBindingUtil.bind(view);
             binding.rlPlay.setOnClickListener(this);
             binding.imgDelete.setOnClickListener(this);
+            binding.imgEdit.setOnClickListener(this);
         }
 
         public void onClick(View view) {
             if (mListener !=null){
                 if (view.getId()==R.id.rlPlay) {
                     mListener.OnReactionAction(list.get(getAdapterPosition()),1,getAdapterPosition());
-                }else{
+                }else if(view.getId()==R.id.imgDelete){
                     mListener.OnReactionAction(list.get(getAdapterPosition()),2,getAdapterPosition());
+                }else{
+                    mListener.OnReactionAction(list.get(getAdapterPosition()),3,getAdapterPosition());
                 }
             }
         }

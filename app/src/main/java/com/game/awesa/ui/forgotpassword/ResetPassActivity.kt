@@ -1,18 +1,10 @@
 package com.game.awesa.ui.forgotpassword
 
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.hardware.biometrics.BiometricManager.Strings
 import android.os.Bundle
-import android.os.Handler
-import android.text.method.PasswordTransformationMethod
-import android.text.method.SingleLineTransformationMethod
-import android.text.method.TransformationMethod
-import android.util.Log
 import android.view.View
 import android.view.View.OnClickListener
-import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.database.DatabaseHelper
@@ -20,7 +12,7 @@ import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.rest.ApiCall
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.codersworld.awesalibs.utils.Logs
@@ -30,10 +22,9 @@ import com.game.awesa.databinding.ActivityResetPassBinding
 import com.game.awesa.ui.BaseActivity
 import com.game.awesa.ui.LoginActivity
 import com.game.awesa.ui.dialogs.CustomDialog
-import com.google.gson.Gson
 
 class ResetPassActivity : BaseActivity(), OnConfirmListener,  OnClickListener,
-    OnResponse<UniverSelObjct> {
+    OnResponse<UniversalObject> {
     lateinit var binding: ActivityResetPassBinding
     var mApiCall: ApiCall? = null
     var strEmail:String=""
@@ -43,8 +34,7 @@ class ResetPassActivity : BaseActivity(), OnConfirmListener,  OnClickListener,
         binding = DataBindingUtil.setContentView(this, R.layout.activity_reset_pass)
         UserSessions.saveIsProfile(this@ResetPassActivity, "-1")
         initApiCall()
-        // database handler
-        DatabaseManager.initializeInstance(DatabaseHelper(this@ResetPassActivity))
+
         if (intent.hasExtra("strOTP")){
             strOTP = intent.getStringExtra("strOTP") as String
         }
@@ -75,10 +65,10 @@ class ResetPassActivity : BaseActivity(), OnConfirmListener,  OnClickListener,
         }
     }
 
-    override fun onSuccess(response: UniverSelObjct) {
+    override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodname.toString())
-            when (response.methodname) {
+            Logs.e(response.methodName.toString())
+            when (response.methodName) {
                 Tags.SB_FORGOT_PASSWORD_RESET_API -> {
                     var mCommonBean: CommonBean = response.response as CommonBean
                     if (mCommonBean.status == 1) {

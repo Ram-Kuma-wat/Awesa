@@ -108,6 +108,18 @@ public class UserSessions {
         return mPrefs.getString(Tags.SB_APP_STATUS, "");
     }
 
+    public static void saveSponsors(Context context, String str) {
+        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = mPrefs.edit();
+        editor.putString("sponsors", str);
+        editor.commit();
+    }
+
+    public static String getSponsors(Context context) {
+        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return mPrefs.getString("sponsors", "");
+    }
+
     public static void saveOpened(Context context, int str) {
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = mPrefs.edit();

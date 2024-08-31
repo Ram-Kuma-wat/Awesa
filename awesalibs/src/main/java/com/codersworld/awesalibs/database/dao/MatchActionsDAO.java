@@ -188,7 +188,17 @@ public class MatchActionsDAO {
 
     public ArrayList<ReactionsBean> selectAll(String match_id, String half, int type) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") + ((type == 0) ? " AND video_path !=''" : "") + " order by id ASC";
+        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") + ((type == 0) ? " AND video_path !=''" : "") + " order by id DESC";
+         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
+        ArrayList<ReactionsBean> dataList = manageCursor(cursor);
+        closeCursor(cursor);
+        return dataList;
+    }
+
+    public ArrayList<ReactionsBean> selectAllForDelete(String match_id, String half) {
+        initDBHelper();
+        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") +  " AND video_path =''"  + " order by id DESC";
+        //Log.e("Query_exc",getAllDetails);
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<ReactionsBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
@@ -201,12 +211,33 @@ public class MatchActionsDAO {
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<ReactionsBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
+        try {
+            DatabaseHelper mHelper = new DatabaseHelper(mContext);
+            mHelper.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return dataList;
+    }
+
+    public ArrayList<ReactionsBean> selectAllForTrim(String match_id,int type) {
+        initDBHelper();
+        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where video_path='' " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + " order by half,time ASC "+((type==1)?"LIMIT 1":"");
+        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
+        ArrayList<ReactionsBean> dataList = manageCursor(cursor);
+        closeCursor(cursor);
+        try {
+            DatabaseHelper mHelper = new DatabaseHelper(mContext);
+            mHelper.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return dataList;
     }
 
     public ArrayList<ReactionsBean> selectAllUploaded(String match_id, String half, int type) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") + ((type == 0) ? " AND video_path !=''" : "") + " order by id ASC";
+        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") + ((type == 0) ? " AND video_path !=''" : "") + " order by id ASC, match_id DESC";
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<ReactionsBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
@@ -230,7 +261,7 @@ public class MatchActionsDAO {
     public ArrayList<ReactionsBean> selectSingle(int counter) {
         initDBHelper();
         try {
-            String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where upload_status = 0 order by id ASC LIMIT 1";
+            String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where upload_status = 0 order by id DESC LIMIT 1";
             Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
             ArrayList<ReactionsBean> dataList = manageCursor(cursor);
             closeCursor(cursor);
@@ -295,10 +326,27 @@ public class MatchActionsDAO {
                 + " = ? WHERE 1=1";
         mDatabase.execSQL(update, bindArgs);
     }
+    public void updateAction(String action,int id) {
+        initDBHelper();
+        String[] bindArgs = {
+                String.valueOf(action),
+                String.valueOf(id)
+        };
+        String update = " UPDATE "
+                + TABLE_MATCH_REACTIONS
+                + " SET "
+                + COLUMN_REACTION
+                + " = ? "
+                + " WHERE  "+ COLUMN_KEY_ID + "= ?";
+        mDatabase.execSQL(update, bindArgs);
+    }
 
     protected void closeCursor(Cursor cursor) {
-        if (cursor != null) {
+        try{ if (cursor != null) {
             cursor.close();
+        }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

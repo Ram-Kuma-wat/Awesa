@@ -229,7 +229,7 @@ public class VideoMasterDAO {
     public ArrayList<DBVideoUplaodDao> selectAll1(String match_id, String half) {
         initDBHelper();
         String getAllDetails = " SELECT " + " * " + " FROM "
-                + TABLE_VIDEO_MASTER + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND video_half=" + half : "") + " order by _id ASC LIMIT 1";
+                + TABLE_VIDEO_MASTER + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND video_half=" + half : "") + " order by _id DESC";
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<DBVideoUplaodDao> dataList = manageCursor(cursor);
         closeCursor(cursor);
@@ -252,8 +252,11 @@ public class VideoMasterDAO {
     }
 
     protected void closeCursor(Cursor cursor) {
-        if (cursor != null) {
+        try{ if (cursor != null) {
             cursor.close();
+        }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

@@ -86,6 +86,7 @@ public class InterviewsDAO {
 
 
     public void insert(String...param) {
+        initDBHelper();
              String[] bindArgs = {
                      param[0],
                      param[1],
@@ -129,7 +130,9 @@ public class InterviewsDAO {
 
     public ArrayList<InterviewBean> selectAll(String match_id) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") +" order by id ASC";
+        String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where 1 = 1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") +" order by id DESC";
+        //String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") +" order by id DESC";
+       // Log.e("interviewquery",getAllDetails);
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<InterviewBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
@@ -138,7 +141,7 @@ public class InterviewsDAO {
 
     public ArrayList<InterviewBean> selectAllUploaded(String match_id ) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + " order by id ASC";
+        String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + " order by id DESC";
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<InterviewBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
@@ -148,7 +151,7 @@ public class InterviewsDAO {
     public ArrayList<InterviewBean> selectSingle(int counter) {
         initDBHelper();
         try {
-            String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where upload_status = 0 order by id ASC LIMIT 1";
+            String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where upload_status = 0 order by id DESC LIMIT 1";
             Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
             ArrayList<InterviewBean> dataList = manageCursor(cursor);
             closeCursor(cursor);
@@ -174,6 +177,7 @@ public class InterviewsDAO {
 
     public void updateVideo(String video_name, String video_path, int id) {
         initDBHelper();
+       // Log.e("video_path",video_path);
         String[] bindArgs = {
                 String.valueOf(video_name),
                 String.valueOf(video_path),
@@ -208,9 +212,12 @@ public class InterviewsDAO {
     }
 
     protected void closeCursor(Cursor cursor) {
-        if (cursor != null) {
+       try{ if (cursor != null) {
             cursor.close();
         }
+        }catch (Exception e){
+           e.printStackTrace();
+       }
     }
 
     public int getLastInsertedId() {

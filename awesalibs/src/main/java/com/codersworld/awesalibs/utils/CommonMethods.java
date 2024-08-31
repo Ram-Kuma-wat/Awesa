@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -46,6 +47,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -99,10 +101,12 @@ public class CommonMethods {
         mView.setOnRefreshListener(mActivity);
         mView.setColorSchemeResources(R.color.purple_500);
     }
-    public static void changeView(View view1,View view2) {
+
+    public static void changeView(View view1, View view2) {
         view1.setVisibility(View.VISIBLE);
         view2.setVisibility(View.GONE);
-     }
+    }
+
     public static boolean isNetworkAvailable(Context context) {
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = manager.getActiveNetworkInfo();
@@ -111,6 +115,7 @@ public class CommonMethods {
         }
         return false;
     }
+
     public static Bitmap createVideoThumb(Context context, Uri uri) {
         try {
             MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
@@ -122,16 +127,35 @@ public class CommonMethods {
         return null;
 
     }
+
+
+     @SuppressLint("HardwareIds")
     public static String getIMEI(Activity activity) {
-        try {
-            String device_unique_id = Settings.Secure.getString(activity.getContentResolver(),
-                    Settings.Secure.ANDROID_ID);
-            return device_unique_id;
-        } catch (Exception e) {
-            return "";
+        String device_unique_id = "";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            device_unique_id = Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID);
+        } else {
+            DevicePolicyManager manager = (DevicePolicyManager) activity.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                device_unique_id = manager.getEnrollmentSpecificId();
+            }else{
+                try{
+                    device_unique_id = Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+                }catch (Exception e){}
+            }
         }
+        return device_unique_id;
     }
 
+    public static String getDeviceModel(Activity activity) {
+        try{
+            return Build.MODEL;
+        }catch (Exception e){
+            return "";
+        }
+
+    }
     public static void loadImage(Context context, String img, ImageView imageView) {
         if (isValidString(img)) {
             Glide.with(context)
@@ -142,14 +166,14 @@ public class CommonMethods {
         }
     }
 
-    public static void loadImageDrawable(Context context, int img, ImageView imageView,int type) {
-        if (type==0) {
+    public static void loadImageDrawable(Context context, int img, ImageView imageView, int type) {
+        if (type == 0) {
             Glide.with(context)
                     .load(img)
                     .placeholder(R.drawable.app_icon)
                     .error(R.drawable.app_icon)
                     .into(imageView);
-        }else{
+        } else {
             Handler handler = new Handler();
             // Create a Runnable that calls the doSomething() method
             Runnable runnable = new Runnable() {
@@ -289,6 +313,7 @@ public class CommonMethods {
         }
     }
 
+
     public static Boolean isValidArrayList(ArrayList mList) {
         if (mList != null && mList.size() > 0) {
             return true;
@@ -365,13 +390,14 @@ public class CommonMethods {
     public static void changeIconColorOnScroll(Toolbar toolbar, Context ctx, int type) {
         toolbar.getNavigationIcon().setColorFilter((type == 1) ? ctx.getResources().getColor(R.color.colorAccent) : ctx.getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
     }
+
     public static <T extends Serializable> T getSerializable(Intent intent, String key, Class<T> m_class) {
         if (intent != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                return  intent.getSerializableExtra(key, m_class);
+                return intent.getSerializableExtra(key, m_class);
             } else {
                 try {
-                    return (T) intent.getSerializableExtra(key) ;
+                    return (T) intent.getSerializableExtra(key);
                 } catch (Throwable ignored) {
                 }
             }
@@ -594,18 +620,18 @@ public class CommonMethods {
         return s.format(new Date(cal.getTimeInMillis()));
     }
 
-    public static String getStartEndMonthDate(String strMonth,String strYear/*"MM/dd/YYYY"*/) {
+    public static String getStartEndMonthDate(String strMonth, String strYear/*"MM/dd/YYYY"*/) {
         try {
             Calendar c = Calendar.getInstance();
             if (isValidString(strMonth) && isValidString(strYear)) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
-                Date convertedDate = dateFormat.parse(strMonth+"/01/"+strYear);
+                Date convertedDate = dateFormat.parse(strMonth + "/01/" + strYear);
                 c.setTime(convertedDate);
                 c.set(Calendar.DAY_OF_MONTH, c.getActualMaximum(Calendar.DAY_OF_MONTH));
             }
-            return strMonth+"/"+c.getActualMaximum(Calendar.DATE)+"/"+strYear;
+            return strMonth + "/" + c.getActualMaximum(Calendar.DATE) + "/" + strYear;
         } catch (Exception e) {
-            return strMonth+"/30/"+strYear;
+            return strMonth + "/30/" + strYear;
         }
     }
 
@@ -618,12 +644,49 @@ public class CommonMethods {
         }
     }
 
+    public static void checkServiceWIthData(Activity mContext, Class<?> serviceClass,String str) {
+        try {
+            Intent mIntent  = new Intent(mContext, serviceClass);
+            if (CommonMethods.isValidString(str)){
+                mIntent.putExtra("data_string",str);
+            }
+            if (isNetworkAvailable(mContext) && !isServiceRunning(mContext, serviceClass)) {
+                mContext.startService(mIntent);
+            } else {
+                mContext.stopService(mIntent);
+                mContext.startService(mIntent);
+            }
+        } catch (Exception ex1) {
+            ex1.printStackTrace();
+        }
+    }
+
     public static void checkService(Activity mContext, Class<?> serviceClass) {
-        if (isNetworkAvailable(mContext) && !isServiceRunning(mContext, serviceClass)) {
-            mContext.startService(new Intent(mContext, serviceClass));
-        } else {
+        try {
+            if (isNetworkAvailable(mContext) && !isServiceRunning(mContext, serviceClass)) {
+                mContext.startService(new Intent(mContext, serviceClass));
+            } else {
+                mContext.stopService(new Intent(mContext, serviceClass));
+                mContext.startService(new Intent(mContext, serviceClass));
+            }
+        } catch (Exception ex1) {
+            ex1.printStackTrace();
+        }
+    }
+
+    public static void checkForegroundService(Activity mContext, Class<?> serviceClass) {
+        try {
+            ContextCompat.startForegroundService(mContext, new Intent(mContext, serviceClass));
+        } catch (Exception ex1) {
+            ex1.printStackTrace();
+        }
+    }
+
+    public static void stopService(Activity mContext, Class<?> serviceClass) {
+        try {
             mContext.stopService(new Intent(mContext, serviceClass));
-            mContext.startService(new Intent(mContext, serviceClass));
+        } catch (Exception ex1) {
+            ex1.printStackTrace();
         }
     }
 
@@ -854,9 +917,9 @@ public class CommonMethods {
             @Override
             public void updateDrawState(TextPaint ds) {
                 super.updateDrawState(ds);
-                try{
+                try {
                     ds.setColor(ContextCompat.getColor(tv.getContext(), R.color.colorAccent));
-                }catch (Exception e){
+                } catch (Exception e) {
                     ds.setColor(tv.getContext().getResources().getColor(R.color.colorAccent));
                 }
                 ds.setUnderlineText(true);
@@ -875,7 +938,7 @@ public class CommonMethods {
         }
     }
 
-    public static void setClickableHighLightedText1(TextView tv, String textToHighlight,String textToHighlight1, View.OnClickListener onClickListener) {
+    public static void setClickableHighLightedText1(TextView tv, String textToHighlight, String textToHighlight1, View.OnClickListener onClickListener) {
         String tvt = tv.getText().toString();
         int ofe = tvt.indexOf(textToHighlight, 0);
         ClickableSpan clickableSpan = new ClickableSpan() {
@@ -887,9 +950,9 @@ public class CommonMethods {
             @Override
             public void updateDrawState(TextPaint ds) {
                 super.updateDrawState(ds);
-                try{
+                try {
                     ds.setColor(ContextCompat.getColor(tv.getContext(), R.color.colorAccent));
-                }catch (Exception e){
+                } catch (Exception e) {
                     ds.setColor(tv.getContext().getResources().getColor(R.color.colorAccent));
                 }
                 ds.setUnderlineText(true);
@@ -917,7 +980,8 @@ public class CommonMethods {
             }
         }
     }
-    public static void signupPolicy(String str,String strTerms,String strPolicy,String strAnd,TextView textView,Context ctx,View.OnClickListener onClickListener,View.OnClickListener onClickListener1) {
+
+    public static void signupPolicy(String str, String strTerms, String strPolicy, String strAnd, TextView textView, Context ctx, View.OnClickListener onClickListener, View.OnClickListener onClickListener1) {
         //textView.setText(str+" "+strTerms+" "+ strAnd+" "+strPolicy+"");
         SpannableStringBuilder spanText = new SpannableStringBuilder();
         spanText.append(str);
@@ -938,7 +1002,7 @@ public class CommonMethods {
             }
         }, spanText.length() - strTerms.length(), spanText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        spanText.append(" "+strAnd+" ");
+        spanText.append(" " + strAnd + " ");
         spanText.append(strPolicy);
         spanText.setSpan(new ClickableSpan() {
             @Override
@@ -954,7 +1018,7 @@ public class CommonMethods {
                 textPaint.setColor(textPaint.linkColor);    // you can use custom color
                 textPaint.setUnderlineText(false);    // this remove the underline
             }
-        },spanText.length() - strPolicy.length(), spanText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }, spanText.length() - strPolicy.length(), spanText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         textView.setText(spanText, TextView.BufferType.SPANNABLE);
         textView.setMovementMethod(LinkMovementMethod.getInstance());
@@ -963,6 +1027,7 @@ public class CommonMethods {
         tv.setText(wordToSpan, TextView.BufferType.SPANNABLE);
         tv.setMovementMethod(LinkMovementMethod.getInstance());*/
     }
+
     public static int getAndroidSDKVersion() {
         int version = 0;
         try {
@@ -1127,6 +1192,7 @@ public class CommonMethods {
         return isOK;
 
     }
+
     public static boolean validiate2(String pass, String firstname, EditText etPassword) {
         if (pass.length() < 6) {
             etPassword.setError(etPassword.getContext().getString(R.string.short_password));

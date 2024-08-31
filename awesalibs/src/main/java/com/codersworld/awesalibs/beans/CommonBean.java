@@ -1,5 +1,6 @@
 package com.codersworld.awesalibs.beans;
 
+import com.codersworld.awesalibs.beans.matches.MatchesBean;
 import com.codersworld.awesalibs.beans.matches.ScoresBean;
 import com.codersworld.awesalibs.beans.user.UserBean;
  import com.google.gson.annotations.SerializedName;
@@ -10,14 +11,44 @@ import java.util.ArrayList;
 public class CommonBean implements Serializable {
     @SerializedName("status")
     int status;
+    @SerializedName("app_signup_allowed")
+    int app_signup_allowed;
     @SerializedName("msg")
     String msg;
     @SerializedName("info")
     UserBean info;
     @SerializedName("ticket")
     TicketBean ticket;
+    @SerializedName("videos")
+    MatchesBean.VideosBean videos;
     @SerializedName("scores")
     ArrayList<ScoresBean> scores;
+    @SerializedName("sponsors")
+    ArrayList<SponsorsBean> sponsors;
+
+    public ArrayList<SponsorsBean> getSponsors() {
+        return sponsors;
+    }
+
+    public void setSponsors(ArrayList<SponsorsBean> sponsors) {
+        this.sponsors = sponsors;
+    }
+
+    public MatchesBean.VideosBean getVideos() {
+        return videos;
+    }
+
+    public void setVideos(MatchesBean.VideosBean videos) {
+        this.videos = videos;
+    }
+
+    public int getApp_signup_allowed() {
+        return app_signup_allowed;
+    }
+
+    public void setApp_signup_allowed(int app_signup_allowed) {
+        this.app_signup_allowed = app_signup_allowed;
+    }
 
     public TicketBean getTicket() {
         return ticket;

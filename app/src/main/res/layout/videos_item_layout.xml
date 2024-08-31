@@ -10,35 +10,33 @@
 
         <com.codersworld.awesalibs.customFonts.SBTextViewBold
             android:id="@+id/txtHalf"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_44dp"
+            android:background="@color/light_txt_bg"
             android:gravity="center_vertical"
             android:paddingStart="@dimen/_10dp"
-            android:textColor="@color/black"
-            android:background="@color/light_txt_bg"
             android:text="@string/select_opponent"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_44dp" />
+            android:textColor="@color/black" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/card_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="1dp"
             android:background="?attr/selectableItemBackground"
             android:translationZ="@dimen/_5dp"
-            android:layout_marginBottom="1dp"
             app:cardCornerRadius="@dimen/_0dp"
             app:cardElevation="0dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="@dimen/_5dp"
-                android:paddingTop="@dimen/_5dp"
-                android:paddingEnd="@dimen/_5dp">
+                android:padding="@dimen/_5dp">
 
                 <LinearLayout
-                    android:layout_toStartOf="@+id/imgDelete"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_toStartOf="@+id/deleteLayout"
                     android:orientation="vertical">
 
                     <LinearLayout
@@ -88,13 +86,14 @@
                             <com.codersworld.awesalibs.customFonts.SBTextViewRegular
                                 android:id="@+id/txtReaction"
                                 android:layout_width="wrap_content"
-                                android:visibility="gone"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/_5dp"
                                 android:ellipsize="end"
                                 android:gravity="center_vertical"
                                 android:maxLines="2"
-                                android:text="Team 1" />
+                                android:text="Team 1"
+                                android:visibility="gone" />
+
                             <com.codersworld.awesalibs.customFonts.SBTextViewRegular
                                 android:id="@+id/txtTime"
                                 android:layout_width="wrap_content"
@@ -104,29 +103,59 @@
                                 android:gravity="center_vertical"
                                 android:maxLines="2"
                                 android:text="Team 1" />
+
                             <com.codersworld.awesalibs.customFonts.SBTextViewRegular
                                 android:id="@+id/txtMsg"
-                                android:visibility="gone"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/_5dp"
                                 android:ellipsize="end"
                                 android:gravity="center_vertical"
                                 android:maxLines="2"
-                                android:text="@string/msg_uploading" />
+                                android:text="@string/msg_uploading"
+                                android:visibility="gone" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
+
+                <RelativeLayout
+                    android:id="@+id/deleteLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true">
+
+                    <ImageView
+                        android:id="@+id/imgDelete"
+                        android:layout_width="@dimen/_35dp"
+                        android:layout_height="@dimen/_35dp"
+                        android:background="@drawable/dialog_shape"
+                        android:padding="@dimen/_5dp"
+                        android:src="@drawable/ic_delete"
+                        android:visibility="visible"
+                        app:tint="@color/red" />
+                    <ProgressBar
+
+                        android:id="@+id/pbLoading"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:background="@drawable/dialog_shape"
+                        android:padding="@dimen/_5dp"
+                        android:visibility="gone"
+                        app:tint="@color/red" />
+                </RelativeLayout>
+
                 <ImageView
-                    android:visibility="visible"
-                    android:background="?attr/selectableItemBackground"
-                    android:padding="@dimen/_5dp"
-                    android:src="@drawable/ic_delete"
-                    app:tint="@color/red"
-                     android:layout_alignParentEnd="true"
-                    android:id="@+id/imgDelete"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"/>
+                    android:id="@+id/imgEdit"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:layout_below="@+id/deleteLayout"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="@dimen/_5dp"
+                    android:background="@drawable/dialog_shape"
+                    android:padding="@dimen/_8dp"
+                    android:src="@drawable/ic_edit"
+                    android:visibility="gone"
+                    app:tint="@color/red" />
 
             </RelativeLayout>
         </androidx.cardview.widget.CardView>

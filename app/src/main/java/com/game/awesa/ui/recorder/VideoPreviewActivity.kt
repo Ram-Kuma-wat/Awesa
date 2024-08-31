@@ -3,6 +3,7 @@ package com.game.awesa.ui.recorder
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.MediaController
 import androidx.appcompat.app.AppCompatActivity
@@ -38,7 +39,6 @@ class VideoPreviewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_video_preview)
         //  setContentView(R.layout.activity_video_preview)
-        DatabaseManager.initializeInstance(DatabaseHelper(applicationContext))
         if (intent.hasExtra("mBeanVideo")) {
             mBeanVideo = CommonMethods.getSerializable(
                 intent,
@@ -92,6 +92,7 @@ class VideoPreviewActivity : AppCompatActivity() {
     }
 
     fun initVideoView(video_path: String) {
+      //  Log.e("strPath",strPath);
         val controller = MediaController(this)
         controller.setAnchorView(binding.videoView)
         controller.setMediaPlayer(binding.videoView)

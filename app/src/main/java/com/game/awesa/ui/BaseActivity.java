@@ -1,18 +1,23 @@
 package com.game.awesa.ui;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.inputmethod.InputMethodManager;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.codersworld.awesalibs.storage.UserSessions;
 import com.game.awesa.R;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.play.core.appupdate.AppUpdateInfo;
@@ -28,6 +33,7 @@ public class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         appUpdateManager = AppUpdateManagerFactory.create(this);
+        requestPermissions();
     }
 
     String strVar;
@@ -51,9 +57,18 @@ public class BaseActivity extends AppCompatActivity {
         Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
         // Checks that the platform will allow the specified type of update.
         // Log.d("ASDD", "Checking for updates");
+        appUpdateInfoTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("appUpdateInfoTask","failed");
+                e.printStackTrace();
+            }
+        });
         appUpdateInfoTask.addOnSuccessListener(new OnSuccessListener<AppUpdateInfo>() {
             @Override
             public void onSuccess(AppUpdateInfo appUpdateInfo) {
+                Log.e("appUpdateInfoTask","success");
+
                 if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
                     UserSessions.saveUpdate(BaseActivity.this, 1);
                     //   Log.d("ASDD", "Update available");
@@ -85,6 +100,12 @@ public class BaseActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void requestPermissions() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.POST_NOTIFICATIONS }, 0);
+        }
     }
 
     @Override

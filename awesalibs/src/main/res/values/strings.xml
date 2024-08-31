@@ -16,6 +16,7 @@
     <string name="str_done">Done</string>
     <string name="str_picker_limit">Maximum selection reached</string>
     <string name="str_selected_image_toolbar">%s (%d/%d)</string>
+    <string name="no_network_message">Please check your Internet Connection.</string>
 
 
 </resources>

@@ -11,7 +11,7 @@ import com.codersworld.awesalibs.database.dao.MatchActionsDAO;
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
-    public static final String DATABASE_NAME = "awesa_2023_1.db";
+    public static final String DATABASE_NAME = "awesa_db_2024.db";
     public static final int DATABASE_VERSION = 1;
     private Context mContext;
 

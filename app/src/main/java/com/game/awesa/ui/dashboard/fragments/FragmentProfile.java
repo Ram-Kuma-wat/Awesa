@@ -1,8 +1,8 @@
 package com.game.awesa.ui.dashboard.fragments;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +23,7 @@ import androidx.fragment.app.Fragment;
 
 import com.codersworld.awesalibs.beans.CommonBean;
 import com.codersworld.awesalibs.beans.user.UserBean;
+import com.codersworld.awesalibs.listeners.OnConfirmListener;
 import com.codersworld.awesalibs.listeners.OnPageChangeListener;
 import com.codersworld.awesalibs.listeners.OnResponse;
 import com.codersworld.awesalibs.mediapicker.ImagePicker;
@@ -34,17 +34,18 @@ import com.codersworld.awesalibs.mediapicker.model.PickerType;
 import com.codersworld.awesalibs.mediapicker.ui.bottomsheet.SSPickerOptionsBottomSheet;
 import com.codersworld.awesalibs.rest.ApiCall;
 import com.codersworld.awesalibs.rest.RetrofitUtils;
-import com.codersworld.awesalibs.rest.UniverSelObjct;
+import com.codersworld.awesalibs.rest.UniversalObject;
 import com.codersworld.awesalibs.storage.UserSessions;
 import com.codersworld.awesalibs.utils.CommonMethods;
 import com.codersworld.awesalibs.utils.Tags;
 import com.game.awesa.R;
 import com.game.awesa.databinding.FragmentProfileBinding;
+import com.game.awesa.ui.LoginActivity;
 import com.game.awesa.ui.mediapicker.PickerOptions;
+import com.game.awesa.utils.Global;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -52,8 +53,8 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 
 public class FragmentProfile extends Fragment implements View.OnClickListener,
-        SSPickerOptionsBottomSheet.ImagePickerClickListener,
-        ImagePickerResultListener, OnResponse<UniverSelObjct> {
+        SSPickerOptionsBottomSheet.ImagePickerClickListener, OnConfirmListener,
+        ImagePickerResultListener, OnResponse<UniversalObject> {
     ApiCall mApiCall = null;
 
     ImagePicker mImagePicker;
@@ -316,14 +317,17 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
     }
 
     @Override
-    public void onSuccess(UniverSelObjct response) {
+    public void onSuccess(UniversalObject response) {
         try {
             if (response != null) {
-                if (response.getMethodname() == Tags.SB_UPDATE_PROFILE_API) {
+                if (response.getMethodName() == Tags.SB_UPDATE_PROFILE_API) {
                     CommonBean mCommonBean = (CommonBean) response.getResponse();
                     if (mCommonBean.getStatus() == 1) {
                         UserSessions.saveUserInfo(requireActivity(),mCommonBean.getInfo());
                         // makeLogout();
+                    }else if(mCommonBean.getStatus() == 99){
+                        UserSessions.clearUserInfo(requireActivity());
+                        new Global().makeConfirmation(mCommonBean.getMsg(),requireActivity(),this);
                     } else if (CommonMethods.isValidString(mCommonBean.getMsg())) {
                         errorMsg(mCommonBean.getMsg());
                     } else {
@@ -344,5 +348,16 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
 
     public void errorMsg(String strMsg) {
         CommonMethods.errorDialog(requireContext(), strMsg, getResources().getString(R.string.app_name), getResources().getString(R.string.lbl_ok));
+    }
+
+    @Override
+    public void onConfirm(Boolean isTrue, String type) {
+        if (isTrue){
+            if (type.equalsIgnoreCase("99")){
+                UserSessions.clearUserInfo(requireActivity());
+                startActivity(new Intent(requireActivity(), LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                requireActivity().finishAffinity();
+            }
+        }
     }
 }

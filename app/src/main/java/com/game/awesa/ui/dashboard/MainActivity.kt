@@ -14,7 +14,6 @@ import com.codersworld.awesalibs.listeners.OnPageChangeListener
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityMainBinding
-import com.game.awesa.services.InterviewUploadService
 import com.game.awesa.services.TrimService
 import com.game.awesa.services.VideoUploadService
 import com.game.awesa.ui.BaseActivity
@@ -27,8 +26,9 @@ import com.game.awesa.ui.dashboard.extension.switchFragment
 import com.game.awesa.ui.dialogs.CustomDialog
 import com.game.awesa.utils.ErrorReporter
 import com.google.gson.Gson
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
     lateinit var binding:ActivityMainBinding
     private var navPosition: JBNavigationPosition = JBNavigationPosition.HOME
@@ -113,8 +113,8 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
 
     override fun onResume() {
         super.onResume()
-        CommonMethods.checkService(this@MainActivity, TrimService::class.java)
-        CommonMethods.checkService(this@MainActivity, VideoUploadService::class.java)
-        CommonMethods.checkService(this@MainActivity, InterviewUploadService::class.java)
+//        CommonMethods.checkService(this@MainActivity, TrimService::class.java)
+//        CommonMethods.checkForegroundService(this@MainActivity, VideoUploadService::class.java) TODO: Refactor
+//        CommonMethods.checkService(this@MainActivity, InterviewUploadService::class.java)
     }
 }

@@ -3,9 +3,13 @@ package com.codersworld.awesalibs.rest;
 import android.util.Log;
 
 import com.codersworld.awesalibs.utils.Tags;
+import com.codersworld.awesalibs.rest.network.ProgressInterceptor;
+import com.codersworld.awesalibs.rest.network.RetryInterceptor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -55,14 +59,16 @@ public class RetrofitRequest {
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override
             public void log(String message) {
-             //   Log.e("APIresponse", "" + message);
+            //    Log.e("APIresponse", "" + message);
             }
         });
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        okClientBuilder.addInterceptor(new RetryInterceptor(300));
         okClientBuilder.addInterceptor(httpLoggingInterceptor);
-        okClientBuilder.connectTimeout(2000, TimeUnit.SECONDS);
-        okClientBuilder.readTimeout(2000, TimeUnit.SECONDS);
-        okClientBuilder.writeTimeout(2000, TimeUnit.SECONDS);
+        okClientBuilder.addNetworkInterceptor(new ProgressInterceptor());
+//        okClientBuilder.connectTimeout(2000, TimeUnit.SECONDS);
+//        okClientBuilder.readTimeout(2000, TimeUnit.SECONDS);
+//        okClientBuilder.writeTimeout(2000, TimeUnit.SECONDS);
        /* okClientBuilder.addInterceptor(new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
@@ -72,6 +78,30 @@ public class RetrofitRequest {
         });*/
         return okClientBuilder.build();
     }
+    public  static void logLongMessage(String tag, String message) {
+
+     /*   try {
+            File file = mFile;//new File(mContext.getExternalFilesDir(null), "response.txt");
+            FileWriter writer = new FileWriter(file);
+            writer.append(message);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+        if (message.length() > 4000) {
+            for (int i = 0; i < message.length(); i += 4000) {
+                if (i + 4000 < message.length()) {
+                    Log.d(tag, message.substring(i, i + 4000));
+                } else {
+                    Log.d(tag, message.substring(i));
+                }
+            }
+        } else {
+            Log.d(tag, message);
+        }
+    }
+
     public static OkHttpClient getUnsafeOkHttpClient() {
         try {
             // Create a trust manager that does not validate certificate chains
@@ -100,15 +130,16 @@ public class RetrofitRequest {
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.callTimeout(5,TimeUnit.MINUTES);
+            builder.connectTimeout(5,TimeUnit.MINUTES);
+            builder.readTimeout(5,TimeUnit.MINUTES);
+            builder.writeTimeout(5,TimeUnit.MINUTES);
             builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
-            HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
-                @Override
-                public void log(String message) {
-                   // Log.e("ApiResponse", message);
-                }
-            });
-            httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            builder.addInterceptor(httpLoggingInterceptor);
+            builder.retryOnConnectionFailure(true);
+            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+//            builder.addInterceptor(httpLoggingInterceptor);
+            builder.addInterceptor(interceptor);
             builder.hostnameVerifier(new HostnameVerifier() {
                 @Override
                 public boolean verify(String hostname, SSLSession session) {
@@ -116,6 +147,7 @@ public class RetrofitRequest {
                 }
             });
 
+            builder.addNetworkInterceptor(new ProgressInterceptor());
             OkHttpClient okHttpClient = builder.build();
             return okHttpClient;
         } catch (Exception e) {

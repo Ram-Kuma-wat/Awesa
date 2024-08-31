@@ -1,29 +1,28 @@
 package com.game.awesa.ui
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
 import android.widget.EditText
-import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import com.codersworld.awesalibs.beans.CommonBean
-import com.codersworld.awesalibs.beans.county.CountyBean
 import com.codersworld.awesalibs.beans.support.SubjectsBean
 import com.codersworld.awesalibs.beans.support.TicketsBean
+import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.rest.ApiCall
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
-import com.codersworld.awesalibs.utils.Logs
 import com.codersworld.awesalibs.utils.Tags
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivitySupportBinding
 import com.game.awesa.ui.adapters.SubjectsAdapter
+import com.game.awesa.utils.Global
 import com.game.awesa.utils.JBWatcher
 
-class SupportActivity : BaseActivity(), OnResponse<UniverSelObjct> {
+class SupportActivity : BaseActivity(), OnResponse<UniversalObject> ,OnConfirmListener{
      lateinit var binding: ActivitySupportBinding
     var strEmail = ""
     var strMessage = ""
@@ -88,9 +87,9 @@ class SupportActivity : BaseActivity(), OnResponse<UniverSelObjct> {
         binding.spSubject.adapter = SubjectsAdapter(this@SupportActivity,mListSubjects)
     }
     var mListSubjects : ArrayList<SubjectsBean.InfoBean> = ArrayList()
-    override fun onSuccess(response: UniverSelObjct) {
+    override fun onSuccess(response: UniversalObject) {
         try{
-            when(response.methodname){
+            when(response.methodName){
                 Tags.SB_SUPPORT_SUBJECTS_API->{
                     try{
                         var mSubjectsBean = response.response as SubjectsBean
@@ -115,6 +114,9 @@ class SupportActivity : BaseActivity(), OnResponse<UniverSelObjct> {
                                 binding.txtTicketId.visibility=View.INVISIBLE
                             }
                             binding.txtMessage.setText(mCommonBean.msg)
+                        } else if (mCommonBean.status == 99) {
+                            UserSessions.clearUserInfo(this@SupportActivity)
+                            Global().makeConfirmation(mCommonBean.msg, this@SupportActivity, this)
                         }else{
                             errorMsg(mCommonBean.msg)
                         }
@@ -150,6 +152,16 @@ class SupportActivity : BaseActivity(), OnResponse<UniverSelObjct> {
             ApiCall(this@SupportActivity).getSubjects(this, true)
         } else {
             errorMsg(getResources().getString(R.string.error_internet));
+        }
+    }
+
+    override fun onConfirm(isTrue: Boolean, type: String) {
+        if (isTrue){
+            if (type.equals("99")){
+                UserSessions.clearUserInfo(this@SupportActivity)
+                startActivity(Intent(this@SupportActivity,LoginActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+                finishAffinity()
+            }
         }
     }
 }

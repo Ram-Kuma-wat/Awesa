@@ -1,56 +1,53 @@
 package com.game.awesa.ui.dashboard.fragments;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.codersworld.awesalibs.beans.game.GameBean;
-import com.codersworld.awesalibs.beans.teams.TeamsBean;
 import com.codersworld.awesalibs.database.DatabaseHelper;
 import com.codersworld.awesalibs.database.DatabaseManager;
 import com.codersworld.awesalibs.database.dao.GamesCategoryDAO;
 import com.codersworld.awesalibs.listeners.OnConfirmListener;
 import com.codersworld.awesalibs.listeners.OnPageChangeListener;
 import com.codersworld.awesalibs.listeners.OnResponse;
-import com.codersworld.awesalibs.listeners.QueryExecutor;
 import com.codersworld.awesalibs.rest.ApiCall;
-import com.codersworld.awesalibs.rest.UniverSelObjct;
+import com.codersworld.awesalibs.rest.UniversalObject;
 import com.codersworld.awesalibs.storage.UserSessions;
 import com.codersworld.awesalibs.utils.CommonMethods;
 import com.codersworld.awesalibs.utils.Tags;
 import com.game.awesa.R;
 import com.game.awesa.databinding.FragmentHomeBinding;
-import com.game.awesa.databinding.FragmentSettingsBinding;
+import com.game.awesa.services.VideoUploadService;
+import com.game.awesa.ui.LoginActivity;
 import com.game.awesa.ui.SupportActivity;
 import com.game.awesa.ui.dashboard.adapter.GamesAdapter;
 import com.game.awesa.ui.teams.TeamsActivity;
+import com.game.awesa.utils.Global;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 
-public class FragmentHome extends Fragment implements View.OnClickListener, OnConfirmListener,OnResponse<UniverSelObjct> {
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
+public class FragmentHome extends Fragment implements View.OnClickListener, OnConfirmListener,OnResponse<UniversalObject> {
+
+    @Inject DatabaseManager databaseManager;
+
     @NotNull
     public static final String TAG = FragmentHome.class.getSimpleName();
 
@@ -88,7 +85,6 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
     public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_home, container, false);
         binding = DataBindingUtil.bind(view);
-        DatabaseManager.initializeInstance(new DatabaseHelper(requireActivity()));
         if (binding.txtAddSports.getText().toString().contains(getString(R.string.lbl_contact_us) + ".")) {
             CommonMethods.setClickableHighLightedText(binding.txtAddSports,
                     getString(R.string.lbl_contact_us) + ".", new View.OnClickListener() {
@@ -117,6 +113,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
         binding.imgFootBall.setOnClickListener(this);
         binding.imgHandBall.setOnClickListener(this);
 
+//        CommonMethods.checkForegroundService(requireActivity(), VideoUploadService.class); TODO: Refactor
         initApiCall();
         getGames();
         return view;
@@ -158,13 +155,19 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
 
     @Override
     public void onConfirm(Boolean isTrue, String type) {
-
+        if (isTrue){
+            if (type.equalsIgnoreCase("99")){
+                UserSessions.clearUserInfo(requireActivity());
+                startActivity(new Intent(requireActivity(), LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                requireActivity().finishAffinity();
+            }
+        }
     }
 
     @Override
-    public void onSuccess(UniverSelObjct response) {
+    public void onSuccess(UniversalObject response) {
         if (response !=null){
-            if (response.getMethodname() == Tags.SB_GAME_CATEGORY_API){
+            if (response.getMethodName() == Tags.SB_GAME_CATEGORY_API){
                 GameBean mBean = (GameBean)response.getResponse();
                 if(mBean.getStatus()==1 && CommonMethods.isValidArrayList(mBean.getInfo())){
                     mListGames = mBean.getInfo();
@@ -173,15 +176,9 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
                         binding.rvGames.setLayoutManager(new GridLayoutManager(requireActivity(),2));
                         binding.rvGames.setAdapter(mGamesAdapter);
                     }
-                    /*SQLiteDatabase database = DatabaseManager.getInstance().openDatabase();
-                    DatabaseManager.getInstance().executeQuery(new QueryExecutor() {
-                        @Override
-                        public void run(SQLiteDatabase database) {
-                            GamesCategoryDAO mDAO = new GamesCategoryDAO(database,requireActivity());
-                            mDAO.deleteAll();
-                            mDAO.insert(mBean.getInfo());
-                        }
-                    });*/
+                }else if(mBean.getStatus() == 99){
+                    UserSessions.clearUserInfo(requireActivity());
+                    new Global().makeConfirmation(mBean.getMsg(),requireActivity(),this);
                 }
                 //getDBGames();
             }
@@ -196,11 +193,11 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
     }
 
     public void getDBGames(){
-        SQLiteDatabase database = DatabaseManager.getInstance().openDatabase();
+        SQLiteDatabase database = databaseManager.openDatabase();
         GamesCategoryDAO mDAO=new GamesCategoryDAO(database,requireActivity());
         if (mDAO !=null){
             mListGames =mDAO.selectAll();
-            DatabaseManager.getInstance().closeDatabase();
+            databaseManager.closeDatabase();
             if (CommonMethods.isValidArrayList(mListGames)){
                 GamesAdapter mGamesAdapter = new GamesAdapter(requireActivity(),mListGames );
                 binding.rvGames.setLayoutManager(new GridLayoutManager(requireActivity(),2));

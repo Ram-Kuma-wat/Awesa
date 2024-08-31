@@ -3,7 +3,6 @@ package com.game.awesa.ui
 import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.util.Log
 import android.view.View
 import android.view.View.OnClickListener
 import androidx.appcompat.app.AppCompatActivity
@@ -13,7 +12,7 @@ import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.rest.ApiCall
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.codersworld.awesalibs.utils.Logs
@@ -22,10 +21,9 @@ import com.game.awesa.ui.dashboard.MainActivity
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityVerityOtpBinding
 import com.game.awesa.ui.forgotpassword.ResetPassActivity
-import com.google.gson.Gson
 
 class VerifyActivity : AppCompatActivity(), OnConfirmListener, OnClickListener,
-    OnResponse<UniverSelObjct> {
+    OnResponse<UniversalObject> {
     lateinit var binding: ActivityVerityOtpBinding
     var mApiCall: ApiCall? = null
     var mCommonBean: CommonBean?=null
@@ -120,10 +118,10 @@ class VerifyActivity : AppCompatActivity(), OnConfirmListener, OnClickListener,
         //method body
     }
 
-    override fun onSuccess(response: UniverSelObjct) {
+    override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodname.toString())
-            when (response.methodname) {
+            Logs.e(response.methodName.toString())
+            when (response.methodName) {
                 Tags.SB_SIGNUP_VERIFY_OTP_API -> {
                     var mCommonBean: CommonBean = response.response as CommonBean
                     if (mCommonBean.status == 1) {

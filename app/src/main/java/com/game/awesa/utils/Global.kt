@@ -3,9 +3,14 @@ package com.game.awesa.utils
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.multidex.BuildConfig
+import com.codersworld.awesalibs.listeners.OnConfirmListener
+import com.game.awesa.R
+import com.game.awesa.ui.dialogs.CustomDialog
 
 public class Global {
     var mContext: Context? = null
@@ -16,8 +21,24 @@ public class Global {
         mContext = ctx
     }
 
-    fun Global(ctx: Activity?) {
+    fun Global(ctx: Activity) {
         mContext = ctx
+    }
+
+    var customDialog: CustomDialog? = null
+    var isDialogOpen = false
+    fun makeConfirmation(msg:String,mActivity: Activity,mListener:OnConfirmListener){
+        if (!isDialogOpen) {
+            if (customDialog == null) {
+                customDialog = CustomDialog(mActivity,msg,"" ,mListener, "99")
+                customDialog!!.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            }
+            isDialogOpen = true
+            if (customDialog!! != null && customDialog!!.isShowing()) {
+                customDialog!!.dismiss()
+            }
+            customDialog!!.show()
+        }
     }
 
 

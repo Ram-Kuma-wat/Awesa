@@ -25,7 +25,7 @@ import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.listeners.OnTeamsListener
 import com.codersworld.awesalibs.rest.ApiCall
-import com.codersworld.awesalibs.rest.UniverSelObjct
+import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.codersworld.awesalibs.utils.Logs
@@ -33,13 +33,14 @@ import com.codersworld.awesalibs.utils.Tags
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityOpponentTeamBinding
 import com.game.awesa.ui.BaseActivity
+import com.game.awesa.ui.LoginActivity
 import com.game.awesa.ui.dashboard.MainActivity
-import com.game.awesa.ui.recorder.CameraActivity
-import com.game.awesa.ui.recorder.CameraActivityNew
+import com.game.awesa.ui.recorder.TutorialActivity
+import com.game.awesa.utils.Global
 
 
 class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener,
-    OnResponse<UniverSelObjct>, OnTeamsListener {
+    OnResponse<UniversalObject>, OnTeamsListener {
     lateinit var binding: ActivityOpponentTeamBinding
     var location_type="1"
     var mApiCall: ApiCall? = null
@@ -56,7 +57,6 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_opponent_team)
         initApiCall()
-        DatabaseManager.initializeInstance(DatabaseHelper(this@OpponentTeamsActivity))
         binding.imgHome.setOnClickListener { CommonMethods.moveWithClear(this@OpponentTeamsActivity,
             MainActivity::class.java) }
 
@@ -190,9 +190,16 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
             mApiCall = ApiCall(this@OpponentTeamsActivity)
         }
     }
-    override fun onConfirm(isTrue: Boolean, type: String) {
-    }
 
+    override fun onConfirm(isTrue: Boolean, type: String) {
+        if (isTrue){
+            if (type.equals("99")){
+                UserSessions.clearUserInfo(this@OpponentTeamsActivity)
+                startActivity(Intent(this@OpponentTeamsActivity, LoginActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+                finishAffinity()
+            }
+        }
+    }
     fun hideShow(strMsg:String,type:Int){
         binding.txtError.text = strMsg
         if (type==1) {
@@ -205,10 +212,10 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
             binding.llOther.visibility = View.VISIBLE
         }
     }
-    override fun onSuccess(response: UniverSelObjct) {
+    override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodname.toString())
-            when (response.methodname) {
+            Logs.e(response.methodName.toString())
+            when (response.methodName) {
                 Tags.SB_OPPONENT_TEAMS_API -> {
                     var mTeamsBean: TeamsBean = response.response as TeamsBean
                     if (mTeamsBean.status == 1) {
@@ -216,6 +223,9 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
                         setData(mListTeams)
                         //  moveToNext(mLoginBean.info)
                         hideShow("",0)
+                    }else if (mTeamsBean.status == 99) {
+                        UserSessions.clearUserInfo(this@OpponentTeamsActivity)
+                        Global().makeConfirmation(mTeamsBean.msg, this@OpponentTeamsActivity, this)
                     }else if (CommonMethods.isValidString(mTeamsBean.msg)) {
                         hideShow(mTeamsBean.msg,1)
                     } else {
@@ -226,8 +236,11 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
                     var mMatchesBean: MatchesBean = response.response as MatchesBean
                     if (mMatchesBean.status == 1 && CommonMethods.isValidArrayList(mMatchesBean.info)) {
                         this.mMatchBean = mMatchesBean.info[0]
-                       // startActivity(Intent(this@OpponentTeamsActivity,CameraActivity::class.java).putExtra("MatchBean",mMatchBean))
-                        startActivity(Intent(this@OpponentTeamsActivity,CameraActivityNew::class.java).putExtra("MatchBean",mMatchBean))
+                        startActivity(Intent(this@OpponentTeamsActivity,TutorialActivity::class.java).putExtra("MatchBean",mMatchBean))
+                        //startActivity(Intent(this@OpponentTeamsActivity,CameraActivityNew::class.java).putExtra("MatchBean",mMatchBean))
+                    }else if (mMatchesBean.status == 99) {
+                        UserSessions.clearUserInfo(this@OpponentTeamsActivity)
+                        Global().makeConfirmation(mMatchesBean.msg, this@OpponentTeamsActivity, this)
                     }else if (CommonMethods.isValidString(mMatchesBean.msg)) {
                         errorMsg(mMatchesBean.msg);
                     } else {
@@ -271,8 +284,8 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
 
     fun createMatch(vararg strParams: String) {
         if(mMatchBean !=null && mMatchBean!!.id>0){
-          //  startActivity(Intent(this@OpponentTeamsActivity,CameraActivity::class.java).putExtra("MatchBean",mMatchBean))
-            startActivity(Intent(this@OpponentTeamsActivity,CameraActivityNew::class.java).putExtra("MatchBean",mMatchBean))
+             startActivity(Intent(this@OpponentTeamsActivity,TutorialActivity::class.java).putExtra("MatchBean",mMatchBean))
+             //startActivity(Intent(this@OpponentTeamsActivity,CameraActivityNew::class.java).putExtra("MatchBean",mMatchBean))
         }else{
             if (CommonMethods.isNetworkAvailable(this@OpponentTeamsActivity)) {
                 mApiCall!!.createMatch(this, true,
@@ -290,6 +303,5 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
 
     override fun onTeamSelection(mBeanTeam: TeamsBean.InfoBean) {
         opponent_team_id = mBeanTeam.id.toString()
-       // startActivity(Intent(this@OpponentTeamsActivity,LeagueActivity::class.java).putExtra("game_category",game_category).putExtra("county",county).putExtra("team_id",mBeanTeam.id.toString()))
-    }
+     }
 }

@@ -50,6 +50,8 @@ public class MatchesBean implements Serializable {
         int id;
         @SerializedName("total_rows")
         int total_rows;
+        @SerializedName("total_actions")
+        int total_actions;
         @SerializedName("user_id")
         int user_id;
         @SerializedName("game_category")
@@ -96,6 +98,14 @@ public class MatchesBean implements Serializable {
         String interview_thumbnail;
         @SerializedName("videos")
         ArrayList<VideosBean> videos;
+
+        public int getTotal_actions() {
+            return total_actions;
+        }
+
+        public void setTotal_actions(int total_actions) {
+            this.total_actions = total_actions;
+        }
 
         public String getInterview() {
             return interview;
@@ -301,6 +311,10 @@ public class MatchesBean implements Serializable {
     public static class VideosBean implements  Serializable{
         @SerializedName("id")
         int id;
+        @SerializedName("local_id")
+        int local_id;
+        @SerializedName("match_id")
+        int match_id;
         @SerializedName("title")
         String title;
         @SerializedName("isDelete")
@@ -311,12 +325,38 @@ public class MatchesBean implements Serializable {
         String reaction;
         @SerializedName("video")
         String video;
+        @SerializedName("local_video")
+        String local_video;
         @SerializedName("thumbnail")
         String thumbnail;
         @SerializedName("half")
         int half;
         @SerializedName("views")
         int views;
+
+        public int getMatch_id() {
+            return match_id;
+        }
+
+        public void setMatch_id(int match_id) {
+            this.match_id = match_id;
+        }
+
+        public int getLocal_id() {
+            return local_id;
+        }
+
+        public void setLocal_id(int local_id) {
+            this.local_id = local_id;
+        }
+
+        public String getLocal_video() {
+            return local_video;
+        }
+
+        public void setLocal_video(String local_video) {
+            this.local_video = local_video;
+        }
 
         public String getIsDelete() {
             return isDelete;

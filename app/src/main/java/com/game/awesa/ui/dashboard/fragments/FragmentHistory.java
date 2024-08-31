@@ -18,25 +18,28 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.codersworld.awesalibs.beans.matches.MatchesBean;
+import com.codersworld.awesalibs.listeners.OnConfirmListener;
 import com.codersworld.awesalibs.listeners.OnMatchListener;
 import com.codersworld.awesalibs.listeners.OnPageChangeListener;
 import com.codersworld.awesalibs.listeners.OnResponse;
 import com.codersworld.awesalibs.rest.ApiCall;
-import com.codersworld.awesalibs.rest.UniverSelObjct;
+import com.codersworld.awesalibs.rest.UniversalObject;
 import com.codersworld.awesalibs.storage.UserSessions;
 import com.codersworld.awesalibs.utils.CommonMethods;
 import com.codersworld.awesalibs.utils.Tags;
 import com.game.awesa.R;
 import com.game.awesa.databinding.FragmentHistoryBinding;
-import com.game.awesa.databinding.FragmentSettingsBinding;
+import com.game.awesa.services.VideoUploadService;
+import com.game.awesa.ui.LoginActivity;
 import com.game.awesa.ui.dashboard.adapter.HistoryAdapter;
 import com.game.awesa.ui.matches.MatchDetailActivity;
+import com.game.awesa.utils.Global;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
-public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRefreshListener, OnResponse<UniverSelObjct>, OnMatchListener {
+public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRefreshListener, OnResponse<UniversalObject>, OnMatchListener, OnConfirmListener {
     ArrayList<MatchesBean.InfoBean> mListMatches = new ArrayList<>();
 
     @NotNull
@@ -55,10 +58,12 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
         } else {
             binding.loadingProgress.setVisibility(View.VISIBLE);
         }
-
+        //        CommonMethods.checkForegroundService(requireActivity(), VideoUploadService.class); TODO: Refactor
+        String user_id =  UserSessions.getUserInfo(requireActivity()).getId()+"";
+//        String user_id =  "72";
         //search user_id game_category  game_id
         new ApiCall(requireActivity()).getMatches(this, (page == 1) ? true : false, page + "", "",
-                UserSessions.getUserInfo(requireActivity()).getId() + "", game_category, game_id);
+                user_id, game_category, game_id);
     }
 
     @Override
@@ -157,10 +162,10 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
     private Boolean isLastPageBar = false;
 
     @Override
-    public void onSuccess(UniverSelObjct response) {
+    public void onSuccess(UniversalObject response) {
         try {
             if (response != null) {
-                if (response.getMethodname() == Tags.SB_USER_MATCHES_API) {
+                if (response.getMethodName() == Tags.SB_USER_MATCHES_API) {
                     MatchesBean mBeanMatches = (MatchesBean) response.getResponse();
                     if (mBeanMatches.getStatus() == 1 && CommonMethods.isValidArrayList(mBeanMatches.getInfo())) {
                         TOTAL_PAGES = mBeanMatches.getInfo().get(0).getTotal_rows();
@@ -171,6 +176,9 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
                         }
                         setPagination();
                         mListMatches.addAll(mBeanMatches.getInfo());
+                    }else if(mBeanMatches.getStatus() == 99){
+                        UserSessions.clearUserInfo(requireActivity());
+                        new Global().makeConfirmation(mBeanMatches.getMsg(),requireActivity(),this);
                     }
                     checkData();
                 }
@@ -179,6 +187,16 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
             binding.loadingProgress.setVisibility(View.GONE);
             binding.swRefresh.setRefreshing(false);
             ex.printStackTrace();
+        }
+    }
+    @Override
+    public void onConfirm(Boolean isTrue, String type) {
+        if (isTrue){
+            if (type.equalsIgnoreCase("99")){
+                UserSessions.clearUserInfo(requireActivity());
+                startActivity(new Intent(requireActivity(), LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                requireActivity().finishAffinity();
+            }
         }
     }
 
@@ -219,4 +237,5 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
     public void onVideoDelete(int positionVideo,MatchesBean.VideosBean mBeanVideo) {
 
     }
+
 }

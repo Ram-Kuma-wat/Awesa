@@ -17,8 +17,10 @@ public class Tags {
     public static final String SB_LANGUAGE = "aw_select_language";
     public static final String TAG = "Awesa";
     public static final String tag = "Awesa";
-
-    public static final String SERVER_MID_PATH = "sportapp.boonoserver.de";
+//https://sportapp.boonoserver.de/admin/games
+     //public static final String SERVER_MID_PATH = "sportapp.boonoserver.de";
+     public static final String SERVER_MID_PATH = "www.awesa-vereins.tv";
+    //public static final String SERVER_MID_PATH = "dev.inventiveinfosys.com/awesa";
     public static final String SERVER_API_PATH = "restapi";
     public static final String SERVER_SLASH = "/";
     public static final String SB_LOGIN_API = "action-login";
@@ -32,6 +34,7 @@ public class Tags {
     public static final String SB_COUNTY_API = "counties";
     public static final String SB_LEAGUE_API = "leagues";
     public static final String SB_CREATE_MATCH_API = "create-match";
+    public static final String SB_UPDATE_MATCH_COUNT_API = "update-match-count";
     public static final String SB_USER_MATCHES_API = "user-matches";
     public static final String SB_MATCH_DETAIL_API = "match-detail";
     public static final String SB_DELETE_VIDEO_API = "delete-video";
@@ -41,6 +44,7 @@ public class Tags {
     public static final String SB_DELETE_ACCOUNT_API = "action-delete-account";
     public static final String SB_FORGOT_PASSWORD_RESET_API = "action-update-password";
     public static final String SB_UPDATE_PROFILE_API = "update-profile";
+    public static final String SB_CHECK_SIGNUP_API = "check-data";
     //https://sportapp.boonoserver.de/page/terms-and-condition
     public static final String SB_PRIVACY_POLICY =   "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH +"page/privacy-policy";
     public static final String SB_ABOUT_US =   "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH +"page/about-us";
