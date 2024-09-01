@@ -16,9 +16,11 @@ import com.game.awesa.R
 import com.game.awesa.databinding.ActivityCameraRecordBinding
 import com.game.awesa.ui.BaseActivity
 import com.otaliastudios.cameraview.FileCallback
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 
 
+@AndroidEntryPoint
 class InterviewActivityNew : BaseActivity(), View.OnClickListener, OnResponse<UniversalObject>,
     OnConfirmListener, FileCallback {
     lateinit var binding: ActivityCameraRecordBinding
