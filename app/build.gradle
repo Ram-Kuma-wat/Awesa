@@ -53,12 +53,14 @@ android {
     }*/
     signingConfigs {
         release {
+          //  storeFile file('D:\\projects\\Awesa2\\awesa.jks')
             storeFile file('../keystore/awesa.jks')
             keyAlias 'awesa'
             storePassword 'awesa2023'
             keyPassword 'awesa2023'
         }
         debug {
+//            storeFile file('D:\\projects\\Awesa2\\awesa.jks')
             storeFile file('../keystore/awesa.jks')
             keyAlias 'awesa'
             storePassword 'awesa2023'

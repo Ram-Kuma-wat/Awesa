@@ -335,4 +335,11 @@ fun checkCompression(){
         //method body
     }
 
+    override fun onBackPressed() {
+        updateMatchCount()
+
+        //super.onBackPressed()
+    }
 }
+
+
