@@ -291,7 +291,6 @@ class VideoUploadsWorker @Inject constructor(
                 context.sendBroadcast(broadcastIntent)
 
                 if (mBean.status == 1 && CommonMethods.isValidString(response.msg)) {
-
                     if (reactionModel != null) {
                         databaseManager.executeQuery { database ->
                             val dao = MatchActionsDAO(database, context)
@@ -328,7 +327,7 @@ class VideoUploadsWorker @Inject constructor(
                     }
                 }
             }
-        }catch (ex: Exception) {
+        } catch (ex: Exception) {
             Log.e(TAG, ex.localizedMessage)
         }
     }

@@ -38,6 +38,7 @@ import com.game.awesa.utils.Global;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRefreshListener, OnResponse<UniversalObject>, OnMatchListener, OnConfirmListener {
     ArrayList<MatchesBean.InfoBean> mListMatches = new ArrayList<>();
@@ -58,29 +59,12 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
         } else {
             binding.loadingProgress.setVisibility(View.VISIBLE);
         }
-        //        CommonMethods.checkForegroundService(requireActivity(), VideoUploadService.class); TODO: Refactor
-        String user_id =  UserSessions.getUserInfo(requireActivity()).getId()+"";
+
+        String user_id =  Objects.requireNonNull(UserSessions.getUserInfo(requireActivity())).getId()+"";
 //        String user_id =  "72";
-        //search user_id game_category  game_id
-        new ApiCall(requireActivity()).getMatches(this, (page == 1) ? true : false, page + "", "",
+        // search user_id game_category  game_id
+        new ApiCall(requireActivity()).getMatches(this, page == 1, page + "", "",
                 user_id, game_category, game_id);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -107,23 +91,20 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
 
     public void setPagination() {
-        binding.mNestedScroll.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
-            @Override
-            public void onScrollChanged() {
-                int diff = binding.mNestedScroll.getChildAt(binding.mNestedScroll.getChildCount() - 1).getBottom() - (binding.mNestedScroll.getHeight() + binding.mNestedScroll.getScrollY());
-                if (diff == 0) {
-                    if (mPage < TOTAL_PAGES && isLoadingsBar == false) {
-                        isLoadingsBar = true;
-                        mPage += 1;
-                        binding.loadingProgress.setVisibility(View.VISIBLE);
-                        Handler handler = new Handler();
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                getMatches(mPage);
-                            }
-                        }, 1000);
-                    }
+        binding.mNestedScroll.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            int diff = binding.mNestedScroll.getChildAt(binding.mNestedScroll.getChildCount() - 1).getBottom() - (binding.mNestedScroll.getHeight() + binding.mNestedScroll.getScrollY());
+            if (diff == 0) {
+                if (mPage < TOTAL_PAGES && !isLoadingsBar) {
+                    isLoadingsBar = true;
+                    mPage += 1;
+                    binding.loadingProgress.setVisibility(View.VISIBLE);
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            getMatches(mPage);
+                        }
+                    }, 1000);
                 }
             }
         });
@@ -141,9 +122,7 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
         super.onAttach(context);
         try {
             mListener = (OnPageChangeListener) context;
-            if (mListener != null) {
-                mListener.onPageChange("history");
-            }
+            mListener.onPageChange("history");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -165,18 +144,14 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
     public void onSuccess(UniversalObject response) {
         try {
             if (response != null) {
-                if (response.getMethodName() == Tags.SB_USER_MATCHES_API) {
+                if (response.getMethodName().equals(Tags.SB_USER_MATCHES_API)) {
                     MatchesBean mBeanMatches = (MatchesBean) response.getResponse();
                     if (mBeanMatches.getStatus() == 1 && CommonMethods.isValidArrayList(mBeanMatches.getInfo())) {
                         TOTAL_PAGES = mBeanMatches.getInfo().get(0).getTotal_rows();
-                        if (mPage == TOTAL_PAGES) {
-                            isLastPageBar = true;
-                        } else {
-                            isLastPageBar = false;
-                        }
+                        isLastPageBar = mPage == TOTAL_PAGES;
                         setPagination();
                         mListMatches.addAll(mBeanMatches.getInfo());
-                    }else if(mBeanMatches.getStatus() == 99){
+                    } else if(mBeanMatches.getStatus() == 99) {
                         UserSessions.clearUserInfo(requireActivity());
                         new Global().makeConfirmation(mBeanMatches.getMsg(),requireActivity(),this);
                     }

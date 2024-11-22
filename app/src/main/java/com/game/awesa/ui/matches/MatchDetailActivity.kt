@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -156,9 +157,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                                 mAdapter!!.deleteVideo(videoPosition)
                             }
                         } else {
-                            if (matchBean != null) {
-                                binding.llInterview.visibility = View.GONE
-                            }
+                            binding.llInterview.visibility = View.GONE
                         }
                     } else if (CommonMethods.isValidString(mCommonBean.msg)) {
                         errorMsg(mCommonBean.msg);
@@ -229,7 +228,6 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
     override fun onError(type: String, error: String) {
         checkVideosProgress()
         errorMsg(error)
-        //method body
     }
 
     private fun getMatches() {
@@ -407,17 +405,15 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
     private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             try {
-                if (intent.hasExtra("Data")){
+                if (intent.hasExtra("Data")) {
                     val mBn:MatchesBean.VideosBean = Gson().fromJson(
                         intent.getStringExtra("Data"),
                         MatchesBean.VideosBean::class.java)
-                    if (intent.hasExtra("old_data")){
+                    if (intent.hasExtra("old_data")) {
                         val mBn1:ReactionsBean? = Gson().fromJson(
                             intent.getStringExtra("old_data"),ReactionsBean::class.java)
                         if (mBn1 != null) {
-                            if (mAdapter !=null){
-                                mAdapter!!.updateVideo(mBn1,mBn)
-                            }
+                            mAdapter?.updateVideo(mBn1,mBn)
                             databaseManager.executeQuery {
                                 val mMatchActionsDAO = MatchActionsDAO(it, this@MatchDetailActivity)
                                 val mActions = mMatchActionsDAO.getTotalCount(match_id);
