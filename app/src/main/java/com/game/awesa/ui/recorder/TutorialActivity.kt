@@ -24,21 +24,26 @@ class TutorialActivity : AppCompatActivity() {
         //    ApiHelper.setApplicationlanguage(this, UserSessions().getLanguage(this))
     }
 
-    var mMatchBean: MatchesBean.InfoBean? = null;
+    private var mMatchBean: MatchesBean.InfoBean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_splash)
         binding.img.setImageResource(R.drawable.recording_hint)
         binding.btnContinue.visibility=View.VISIBLE
-        animateButton();
+        animateButton()
 
-        if (intent.hasExtra("MatchBean")) {
+        if (intent.hasExtra(CaptureFragment.EXTRA_MATCH_BEAN)) {
             mMatchBean =
-                CommonMethods.getSerializable(intent, "MatchBean", MatchesBean.InfoBean::class.java)
+                CommonMethods.getSerializable(
+                    intent,
+                    CaptureFragment.EXTRA_MATCH_BEAN,
+                    MatchesBean.InfoBean::class.java)
         }
         binding.btnContinue.setOnClickListener {
-            startActivity(Intent(this@TutorialActivity,CameraActivityNew::class.java).putExtra("MatchBean",mMatchBean))
+            val intent = Intent(this@TutorialActivity, CameraActivityNew::class.java)
+            intent.putExtra(CaptureFragment.EXTRA_MATCH_BEAN, mMatchBean)
+            startActivity(intent)
             finish()
         }
     }
