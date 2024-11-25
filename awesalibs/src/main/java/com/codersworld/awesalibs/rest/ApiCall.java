@@ -3,6 +3,8 @@ package com.codersworld.awesalibs.rest;
 import android.app.Activity;
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+
 import com.codersworld.awesalibs.R;
 import com.codersworld.awesalibs.beans.CommonBean;
 import com.codersworld.awesalibs.beans.county.CountyBean;
@@ -578,45 +580,26 @@ public class ApiCall {
 
     public void getMatchDetail(OnResponse<UniversalObject> onResponse, Boolean isTrue, String... params) {
         if (isTrue) {
-            try {
-                SFProgress.showProgressDialog(mContext, true);
-            } catch (Exception e) {
-            }
+            SFProgress.showProgressDialog(mContext, true);
         }
         ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
         mRequest.getMatchDetail(params[0],params[1] ,CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<MatchesBean>() {
             @Override
-            public void onResponse(Call<MatchesBean> call, Response<MatchesBean> response) {
+            public void onResponse(@NonNull Call<MatchesBean> call, @NonNull Response<MatchesBean> response) {
                 if (isTrue) {
-                    try {
-                        SFProgress.hideProgressDialog(mContext);
-                    } catch (Exception e) {
-                    }
+                    SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    if (response != null) {
-                        try {
-                            onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_MATCH_DETAIL_API, "true", ""));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            onResponse.onError(Tags.SB_MATCH_DETAIL_API, mContext.getResources().getString(R.string.something_wrong));
-                        }
-                    } else {
-                        onResponse.onError(Tags.SB_MATCH_DETAIL_API, mContext.getResources().getString(R.string.something_wrong));
-                    }
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_MATCH_DETAIL_API, "true", ""));
                 } catch (Exception e) {
-                    e.printStackTrace();
+
+                    onResponse.onError(Tags.SB_MATCH_DETAIL_API, mContext.getResources().getString(R.string.something_wrong));
                 }
             }
             @Override
-            public void onFailure(Call<MatchesBean> call, Throwable t) {
-                if (isTrue) {
-                    try {
-                        SFProgress.hideProgressDialog(mContext);
-                    } catch (Exception e) {
-                    }
-                }
-                t.printStackTrace();
+            public void onFailure(@NonNull Call<MatchesBean> call, @NonNull Throwable t) {
+                SFProgress.hideProgressDialog(mContext);
+
                 onResponse.onError(Tags.SB_MATCH_DETAIL_API, mContext.getResources().getString(R.string.something_wrong));
             }
         });
