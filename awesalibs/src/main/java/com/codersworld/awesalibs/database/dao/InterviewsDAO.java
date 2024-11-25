@@ -139,7 +139,7 @@ public class InterviewsDAO {
         return dataList;
     }
 
-    public ArrayList<InterviewBean> selectAllUploaded(String match_id ) {
+    public ArrayList<InterviewBean> selectAllUploaded(String match_id) {
         initDBHelper();
         String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + " order by id DESC";
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);

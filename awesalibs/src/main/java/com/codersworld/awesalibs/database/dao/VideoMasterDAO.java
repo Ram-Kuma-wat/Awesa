@@ -1,10 +1,10 @@
 package com.codersworld.awesalibs.database.dao;
 
 import android.annotation.SuppressLint;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
 import com.codersworld.awesalibs.database.DatabaseHelper;
@@ -45,17 +45,14 @@ public class VideoMasterDAO {
                 + COLUMN_VIDEO_STATUS
                 + " = ? WHERE 1=1";
         mDatabase.execSQL(update, bindArgs);
-        /* ContentValues values = new ContentValues();
-        values.put(COLUMN_VIDEO_STATUS, "0");
-        mDatabase.update(TABLE_VIDEO_MASTER, values, "1=?", new String[]{"1"});*/
     }
 
     public void initDBHelper() {
         try {
             DatabaseHelper mHelper = new DatabaseHelper(mContext);
             mDatabase = mHelper.getWritableDatabase();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLiteException e) {
+            Log.e("VideoMasterDAO", e.getLocalizedMessage());
         }
     }
 
@@ -87,9 +84,9 @@ public class VideoMasterDAO {
         mDatabase.execSQL(delete_all);
     }
 
-    public void insert(ArrayList<DBVideoUplaodDao> arrayList) {
+    public void insert(ArrayList<DBVideoUploadDao> arrayList) {
         initDBHelper();
-        for (DBVideoUplaodDao singleInput : arrayList) {
+        for (DBVideoUploadDao singleInput : arrayList) {
             String[] bindArgs = {
                     singleInput.getVideo_name(),
                     singleInput.getMatch_id(),
@@ -216,30 +213,30 @@ public class VideoMasterDAO {
         return cnt;
     }
 
-    public ArrayList<DBVideoUplaodDao> selectAll() {
+    public ArrayList<DBVideoUploadDao> selectAll() {
         initDBHelper();
         String getAllDetails = " SELECT " + " * " + " FROM "
                 + TABLE_VIDEO_MASTER + " where 1=1 order by _id DESC";
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-        ArrayList<DBVideoUplaodDao> dataList = manageCursor(cursor);
+        ArrayList<DBVideoUploadDao> dataList = manageCursor(cursor);
         closeCursor(cursor);
         return dataList;
     }
 
-    public ArrayList<DBVideoUplaodDao> selectAll1(String match_id, String half) {
+    public ArrayList<DBVideoUploadDao> selectAll1(String match_id, String half) {
         initDBHelper();
         String getAllDetails = " SELECT " + " * " + " FROM "
                 + TABLE_VIDEO_MASTER + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND video_half=" + half : "") + " order by _id DESC";
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-        ArrayList<DBVideoUplaodDao> dataList = manageCursor(cursor);
+        ArrayList<DBVideoUploadDao> dataList = manageCursor(cursor);
         closeCursor(cursor);
         return dataList;
     }
 
 
     @SuppressLint("Range")
-    protected DBVideoUplaodDao cursorToData(Cursor cursor) {
-        DBVideoUplaodDao model = new DBVideoUplaodDao();
+    protected DBVideoUploadDao cursorToData(Cursor cursor) {
+        DBVideoUploadDao model = new DBVideoUploadDao();
         model.setmId(cursor.getInt(cursor.getColumnIndex(COLUMN_KEY_ID)));
         model.setVideo_name(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_NAME)));
         model.setMatch_id(cursor.getString(cursor.getColumnIndex(COLUMN_MATCH_ID)));
@@ -260,12 +257,12 @@ public class VideoMasterDAO {
         }
     }
 
-    protected ArrayList<DBVideoUplaodDao> manageCursor(Cursor cursor) {
-        ArrayList<DBVideoUplaodDao> dataList = new ArrayList<DBVideoUplaodDao>();
+    protected ArrayList<DBVideoUploadDao> manageCursor(Cursor cursor) {
+        ArrayList<DBVideoUploadDao> dataList = new ArrayList<DBVideoUploadDao>();
         if (cursor != null) {
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
-                DBVideoUplaodDao singleModel = cursorToData(cursor);
+                DBVideoUploadDao singleModel = cursorToData(cursor);
                 if (singleModel != null) {
                     dataList.add(singleModel);
                 }

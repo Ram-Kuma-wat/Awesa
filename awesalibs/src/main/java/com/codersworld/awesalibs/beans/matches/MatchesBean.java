@@ -308,7 +308,7 @@ public class MatchesBean implements Serializable {
         }
 
     }
-    public static class VideosBean implements  Serializable{
+    public static class VideosBean implements Serializable {
         @SerializedName("id")
         int id;
         @SerializedName("local_id")
