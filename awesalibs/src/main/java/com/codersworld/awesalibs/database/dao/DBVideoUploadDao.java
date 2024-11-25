@@ -1,10 +1,9 @@
 package com.codersworld.awesalibs.database.dao;
 
 import com.google.gson.annotations.SerializedName;
-
 import java.io.Serializable;
 
-public class DBVideoUplaodDao implements Serializable {
+public class DBVideoUploadDao implements Serializable {
     @SerializedName("_id")
     private int mId;
     @SerializedName("video_name")

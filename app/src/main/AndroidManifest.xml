@@ -50,8 +50,7 @@
         tools:ignore="UnusedAttribute">
         <activity
             android:name=".ui.SplashActivity"
-            android:exported="true"
-            android:screenOrientation="portrait">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -59,44 +58,34 @@
         </activity>
         <activity
             android:name=".ui.dashboard.MainActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
+            android:exported="false"/>
         <activity
             android:name=".ui.LoginActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.SignUpActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.forgotpassword.ForgotPasswordActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.forgotpassword.ResetPassActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.VerifyActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.teams.TeamsActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.league.LeagueActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.county.CountyActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.teams.OpponentTeamsActivity"
-            android:exported="true"
-            android:screenOrientation="portrait">
+            android:exported="true">
         </activity>
 
     <activity
@@ -120,24 +109,19 @@
             android:screenOrientation="landscape"/>
     <activity
             android:name=".ui.recorder.ProcessingActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.SupportActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.matches.MatchDetailActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.WebViewActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.recorder.MatchOverviewActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
 
         <activity
             android:name="com.codersworld.awesalibs.mediapicker.ui.activity.ImagePickerActivity"
@@ -155,7 +139,8 @@
         <service
             android:name=".services.VideoUploadJobService"
             android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            tools:targetApi="upside_down_cake" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
