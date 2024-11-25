@@ -23,6 +23,7 @@ import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadFailure
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadSuccess
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadInterviewSuccess
 import com.google.gson.Gson
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -145,7 +146,6 @@ class VideoUploadsRepository @Inject constructor(
                             )
                         }
                     }
-
                 })
             } catch (e: Exception) {
                 this@VideoUploadsRepository.onError(
@@ -163,19 +163,24 @@ class VideoUploadsRepository @Inject constructor(
             }
         }.onEach {
             if (it is UploadSuccess) {
-                Log.d(TAG, "VideoUploadsRepository > UploadSuccess for ${reactionModel.video}")
+                Log.d(TAG, "UploadSuccess for ${reactionModel.video}")
                 // Remove local file if it's in cache directory
 //                val filePath = localMediaModel.filePath
 //                if (filePath != null && filePath.contains(context.cacheDir.absolutePath)) {
 //                    File(filePath).delete()
 //                }
             }
+
+            if (it is UploadFailure) {
+                Log.d(TAG, "UploadFailure for ${reactionModel.video}")
+            }
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun uploadMedia(interviewModel: InterviewBean): Flow<UploadResult> {
         return callbackFlow {
-            Log.d(TAG, "VideoUploadsRepository > Dispatching request to upload ${interviewModel.video}")
+            Log.d(TAG, "Dispatching request to upload ${interviewModel.video}")
 
             if (!CommonMethods.isValidString(interviewModel.video)) {
                 trySend(UploadFailure(
@@ -275,8 +280,12 @@ class VideoUploadsRepository @Inject constructor(
                 }
             }
         }.onEach {
-            if (it is UploadResult.UploadInterviewSuccess) {
+            if (it is UploadInterviewSuccess) {
                 Log.d(TAG, "VideoUploadsRepository > UploadSuccess for ${interviewModel.video}")
+            }
+
+            if (it is UploadFailure) {
+                Log.d(TAG, "UploadFailure for ${interviewModel.video}")
             }
         }
     }
@@ -299,7 +308,7 @@ class VideoUploadsRepository @Inject constructor(
         return callbackFlow {
             databaseManager.executeQuery { database ->
                 val dao = InterviewsDAO(database, context)
-                val list = dao.selectAllUploaded( matchId)
+                val list = dao.selectAllUploaded(matchId)
 
                 trySend(list)
                 close()
