@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.codersworld.awesalibs.database.DatabaseManager
-import com.codersworld.awesalibs.database.dao.DBVideoUplaodDao
+import com.codersworld.awesalibs.database.dao.DBVideoUploadDao
 import com.codersworld.awesalibs.database.dao.InterviewsDAO
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO
@@ -43,20 +43,13 @@ class SplashActivity : AppCompatActivity() {
         errReporter.CheckErrorAndSendMail(this)
         UserSessions.saveUpdate(this@SplashActivity, 0)
 
-/*
-        databaseManager.executeQuery { database ->
-            val actionDao = MatchActionsDAO(database, applicationContext)
-            actionDao.updateVideoAll();
-            getSingleAction()
-        }
-*/
         databaseManager.executeQuery { database ->
             val actionDao = MatchActionsDAO(database, applicationContext)
             //actionDao.updateVideoAll();
 
             //actionDao.deleteUploadedVideos();
             val mVideoMasterDAO = VideoMasterDAO(database, applicationContext)
-            var mList = mVideoMasterDAO.selectAll() as ArrayList<DBVideoUplaodDao>
+            var mList = mVideoMasterDAO.selectAll() as ArrayList<DBVideoUploadDao>
             //Log.e("mList",Gson().toJson(mList))
             if (CommonMethods.isValidArrayList(mList)) {
                 for (a in mList.indices) {
@@ -104,36 +97,8 @@ class SplashActivity : AppCompatActivity() {
         // throw RuntimeException("Test Crash")
     }
 
-    fun getSingleAction() {
-        counter = -1;
-        databaseManager.executeQuery { database ->
-            val dao = InterviewsDAO(database, applicationContext)
-            dao.updateVideoAll()
-        }
-    }
-
     private fun callActivityIntent() {
-        //getSingleAction()
-//        CommonMethods.checkService(this@SplashActivity, TrimService::class.java)
-//        CommonMethods.checkService(this@SplashActivity, VideoUploadService::class.java)
-//        CommonMethods.checkService(this@SplashActivity, InterviewUploadService::class.java)
         CommonMethods.moveWithClear(this, LoginActivity::class.java)
-         //val intent = Intent(this@SplashActivity, MainActivity::class.java)
-         /*val intent = Intent(this@SplashActivity, ProcessingActivity::class.java)
-
-
-         var mBeanmatch: MatchesBean.InfoBean = MatchesBean.InfoBean()
-         mBeanmatch.id = 7
-         mBeanmatch.game_title = "Fussball"
-        mBeanmatch.game_image="https://sportapp.boonoserver.de/public/uploads/gameCategory/15Aug2023/awesa-football.png"
-        mBeanmatch.team1="BW Tündern III"
-        mBeanmatch.team2="TV Jahn Duderstadt"
-         mBeanmatch.team1_image="https://sportapp.boonoserver.de/public/uploads/teams/29Feb2024/157741-hsc-bw-tuendern-1-damen-2021-2022-wappen-awesa.png"
-         mBeanmatch.team2_image="https://sportapp.boonoserver.de/public/uploads/teams/21Sep2023/shutdown.png"
-         intent.putExtra("mMatchBean", mBeanmatch)
-*/
-        // startActivity(intent)
-
     }
 
     fun animateImage() {

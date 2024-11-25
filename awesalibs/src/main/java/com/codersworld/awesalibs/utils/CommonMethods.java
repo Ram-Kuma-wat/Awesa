@@ -47,7 +47,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -315,19 +314,11 @@ public class CommonMethods {
 
 
     public static Boolean isValidArrayList(ArrayList mList) {
-        if (mList != null && mList.size() > 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return mList != null && !mList.isEmpty();
     }
 
     public static Boolean isValidList(List mList) {
-        if (mList != null && mList.size() > 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return mList != null && !mList.isEmpty();
     }
 
     public static void spanStrike(TextView mTxt, String strVal) {
@@ -364,11 +355,7 @@ public class CommonMethods {
     public static void setTextWithHtml(String strText, TextView mTextView) {
         if (isValidString(strText)) {
             mTextView.setVisibility(View.VISIBLE);
-            if (Build.VERSION.SDK_INT >= 24) {
-                mTextView.setText(Html.fromHtml(strText, 63));
-            } else {
-                mTextView.setText(Html.fromHtml(strText));
-            }
+            mTextView.setText(Html.fromHtml(strText, 63));
         } else {
             mTextView.setVisibility(View.GONE);
         }
@@ -377,11 +364,7 @@ public class CommonMethods {
     public static void setTextWithHtmlLayout(String strText, TextView mTextView, View mView) {
         if (isValidString(strText)) {
             mView.setVisibility(View.VISIBLE);
-            if (Build.VERSION.SDK_INT >= 24) {
-                mTextView.setText(Html.fromHtml(strText, 63));
-            } else {
-                mTextView.setText(Html.fromHtml(strText));
-            }
+            mTextView.setText(Html.fromHtml(strText, 63));
         } else {
             mView.setVisibility(View.GONE);
         }
@@ -481,7 +464,7 @@ public class CommonMethods {
         mTimePicker.show();
     }
 
-    public static void onDatePickerForActivity(Activity mActivtiy, int mDate, int mMonth, int mYear, TextView mTextView, EditText mEditText) {
+    public static void onDatePickerForActivity(Activity mActivity, int mDate, int mMonth, int mYear, TextView mTextView, EditText mEditText) {
         if (mDate == 0) {
             final Calendar c = Calendar.getInstance();
             c.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.getDefault());
@@ -490,7 +473,7 @@ public class CommonMethods {
             mDate = c.get(Calendar.DAY_OF_MONTH);
         }
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(mActivtiy,
+        DatePickerDialog datePickerDialog = new DatePickerDialog(mActivity,
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -644,11 +627,11 @@ public class CommonMethods {
         }
     }
 
-    public static void checkServiceWIthData(Activity mContext, Class<?> serviceClass,String str) {
+    public static void checkTrimServiceWithData(Activity mContext, Class<?> serviceClass, String str) {
         try {
             Intent mIntent  = new Intent(mContext, serviceClass);
             if (CommonMethods.isValidString(str)){
-                mIntent.putExtra("data_string",str);
+                mIntent.putExtra("matchId",str);
             }
             if (isNetworkAvailable(mContext) && !isServiceRunning(mContext, serviceClass)) {
                 mContext.startService(mIntent);

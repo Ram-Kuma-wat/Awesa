@@ -113,7 +113,6 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
 
     override fun onResume() {
         super.onResume()
-//        CommonMethods.checkService(this@MainActivity, TrimService::class.java)
 //        CommonMethods.checkForegroundService(this@MainActivity, VideoUploadService::class.java) TODO: Refactor
 //        CommonMethods.checkService(this@MainActivity, InterviewUploadService::class.java)
     }

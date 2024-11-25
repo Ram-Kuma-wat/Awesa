@@ -93,17 +93,10 @@ public class VideosAdapter extends RecyclerView.Adapter {
                 mHolder.binding.imgDelete.setVisibility(View.VISIBLE);
                 mHolder.binding.pbLoading.setVisibility(View.GONE);
             }
-        }catch (Exception ex){
+        } catch (Exception ex){
             CommonMethods.loadImage(context, mBean.getThumbnail(), mHolder.binding.imgThumbnail);
             ex.printStackTrace();
         }
-        //new DownloadImage(mHolder.binding.imgThumbnail).execute(mBean.getVideo());
-
- /*
-        CommonMethods.loadImage(context, mBean.getTeam1_image(), mHolder.binding.imgTeam1);
-        mHolder.binding.tvTeam2.setText(mBean.getTeam2());
-        CommonMethods.loadImage(context, mBean.getTeam2_image(), mHolder.binding.imgTeam2);
-        mHolder.binding.txtDate.setText( mBean.getCreated_date() );*/
     }
 
     public void deleteVideo(int position){

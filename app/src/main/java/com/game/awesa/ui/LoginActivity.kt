@@ -49,7 +49,7 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
         errReporter.CheckErrorAndSendMail(this)
 
     }
-var clicked=0;
+    var clicked=0
     var isClicked=false
     override fun onResume() {
         super.onResume()

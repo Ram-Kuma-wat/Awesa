@@ -8,12 +8,12 @@ class UniversalObject {
     var  msg:String
     var daos: Any
 
-    constructor(result: Any, methodName: String, status: String, msg: String) {
+    constructor(result: Any?, methodName: String, status: String, msg: String) {
         this.daos = ""
 
-        if(result==null){
+        if(result == null) {
             this.response = ""
-        }else{
+        } else {
             this.response = result
         }
 
@@ -21,16 +21,16 @@ class UniversalObject {
         this.status = status
         this.msg = msg
     }
-    constructor(result: Any, methodName: String, status: String, msg: String, daos: Any) {
+    constructor(result: Any?, methodName: String, status: String, msg: String, daos: Any?) {
         this.daos = ""
         if (daos == null) {
             this.daos = ""
         } else {
             this.daos = daos
         }
-        if(result==null){
+        if(result == null) {
             this.response = ""
-        }else{
+        } else {
             this.response = result
         }
 
