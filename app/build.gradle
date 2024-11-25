@@ -107,7 +107,7 @@ dependencies {
 
     implementation "androidx.work:work-runtime-ktx:2.9.1"
 
-    implementation 'androidx.fragment:fragment-ktx:1.8.2'
+    implementation 'androidx.fragment:fragment-ktx:1.8.5'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
@@ -117,12 +117,16 @@ dependencies {
     api("com.otaliastudios:cameraview:2.7.2")
     implementation "androidx.concurrent:concurrent-futures-ktx:1.2.0"
 
-    //Exoplayer
-    implementation 'com.google.android.exoplayer:exoplayer:2.13.3'
-    implementation 'com.google.android.exoplayer:exoplayer-ui:2.13.3'
+    def media3_version = "1.4.1"
+    // Media Libraries - Exoplayer
+    implementation "androidx.media3:media3-common:${media3_version}"
+    // implementation "androidx.media3:media3-common-ktx:${media3_version}"
+    implementation "androidx.media3:media3-exoplayer:${media3_version}"
+    implementation "androidx.media3:media3-ui:${media3_version}"
+    implementation "androidx.media3:media3-transformer:${media3_version}"
 
     // CameraX dependencies (first release for video is: "1.1.0-alpha10")
-    def camerax_version = "1.1.0-beta01"
+    def camerax_version = "1.4.0" // "1.1.0-beta01" NB:https://github.com/android/camera-samples/issues/434
     // The following line is optional, as the core library is included indirectly by camera-camera2
     implementation "androidx.camera:camera-core:${camerax_version}"
     implementation "androidx.camera:camera-camera2:${camerax_version}"
@@ -143,7 +147,6 @@ dependencies {
     implementation "androidx.hilt:hilt-common:1.2.0"
     implementation "androidx.hilt:hilt-work:1.2.0"
     ksp 'com.google.dagger:hilt-compiler:2.52'
-    implementation "androidx.work:work-runtime-ktx:2.9.1"
 
     // For instrumentation tests
     androidTestImplementation  'com.google.dagger:hilt-android-testing:2.52'

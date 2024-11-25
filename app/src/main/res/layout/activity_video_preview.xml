@@ -11,12 +11,12 @@
         android:focusable="true"
         android:keepScreenOn="true">
 
-        <com.google.android.exoplayer2.ui.PlayerView
+        <androidx.media3.ui.PlayerView
             android:id="@+id/mPlayer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:show_buffering="when_playing"
-              app:use_sensor_rotation="false"
+
             app:use_controller="true"
             app:resize_mode="fill"/>
         <VideoView
