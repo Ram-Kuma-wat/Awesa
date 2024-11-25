@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.codersworld.awesalibs.database.dao.DBVideoUplaodDao;
 import com.codersworld.awesalibs.database.dao.GamesCategoryDAO;
 import com.codersworld.awesalibs.database.dao.InterviewsDAO;
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO;
@@ -12,7 +11,7 @@ import com.codersworld.awesalibs.database.dao.VideoMasterDAO;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "awesa_db_2024.db";
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     private Context mContext;
 
     public DatabaseHelper(Context context) {

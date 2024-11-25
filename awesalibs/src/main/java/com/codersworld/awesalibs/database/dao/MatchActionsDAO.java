@@ -4,17 +4,13 @@ import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
-import com.codersworld.awesalibs.beans.game.GameBean;
 import com.codersworld.awesalibs.beans.matches.ReactionsBean;
 import com.codersworld.awesalibs.database.DatabaseHelper;
 import com.codersworld.awesalibs.utils.CommonMethods;
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 public class MatchActionsDAO {
@@ -27,6 +23,7 @@ public class MatchActionsDAO {
     private static final String COLUMN_TEAM_ID = "team_id";
     private static final String COLUMN_HALF = "half";
     private static final String COLUMN_TIME = "time";
+    private static final String COLUMN_TIMESTAMP = "timestamp";
     private static final String COLUMN_REACTION = "reaction";
     private static final String COLUMN_VIDEO_NAME = "video_name";
     private static final String COLUMN_VIDEO_PATH = "video_path";
@@ -50,6 +47,7 @@ public class MatchActionsDAO {
                 + COLUMN_TEAM_ID + " INT ,"
                 + COLUMN_HALF + " INT ,"
                 + COLUMN_TIME + " TEXT ,"
+                + COLUMN_TIMESTAMP + " INTEGER ,"
                 + COLUMN_REACTION + " TEXT ,"
                 + COLUMN_VIDEO_NAME + " TEXT ,"
                 + COLUMN_VIDEO_PATH + " TEXT ,"
@@ -100,7 +98,7 @@ public class MatchActionsDAO {
                 delete_all += " AND half =" + half;
             }
             mDatabase.execSQL(delete_all);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             if (counter == 0) {
                 deleteByMatch(id, half, 1);
@@ -118,50 +116,65 @@ public class MatchActionsDAO {
         }
     }
 
-
     public void insert(ArrayList<ReactionsBean> arrayList) {
         initDBHelper();
         try {
             for (ReactionsBean mBean : arrayList) {
-                String[] bindArgs = {
-                        mBean.getMatch_id() + "",
-                        mBean.getTeam_id() + "",
-                        mBean.getHalf() + "",
-                        mBean.getTime() + "",
-                        mBean.getReaction() + "",
-                        "",
-                        "",
-                        "0",
-                        mBean.getCreated_date(),
-                        mBean.getTeam_name()
-                };
+//                String[] bindArgs = {
+//                        mBean.getMatch_id() + "",
+//                        mBean.getTeam_id() + "",
+//                        mBean.getHalf() + "",
+//                        mBean.getTime(),
+////                        mBean.getTimestamp(),
+//                        mBean.getReaction(),
+//                        "",
+//                        "",
+//                        "0",
+//                        mBean.getCreated_date(),
+//                        mBean.getTeam_name()
+//                };
 
-                String insertUser = " INSERT INTO "
-                        + TABLE_MATCH_REACTIONS
-                        + " ( "
-                        + COLUMN_MATCH_ID
-                        + " , "
-                        + COLUMN_TEAM_ID
-                        + " , "
-                        + COLUMN_HALF
-                        + " , "
-                        + COLUMN_TIME
-                        + " , "
-                        + COLUMN_REACTION
-                        + " , "
-                        + COLUMN_VIDEO_NAME
-                        + " , "
-                        + COLUMN_VIDEO_PATH
-                        + " , "
-                        + COLUMN_STATUS
-                        + " , "
-                        + COLUMN_CREATED_DATE
-                        + " , "
-                        + COLUMN_TEAM_NAME
-                        + " ) "
-                        + " VALUES "
-                        + " (?,?,?,?,?,?,?,?,?,?)";
-                mDatabase.execSQL(insertUser, bindArgs);
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(COLUMN_MATCH_ID, mBean.getMatch_id());
+                contentValues.put(COLUMN_TEAM_ID, mBean.getTeam_id());
+                contentValues.put(COLUMN_HALF, mBean.getHalf());
+                contentValues.put(COLUMN_TIME, mBean.getTime());
+                contentValues.put(COLUMN_TIMESTAMP, mBean.getTimestamp());
+                contentValues.put(COLUMN_REACTION, mBean.getReaction());
+                contentValues.put(COLUMN_VIDEO_NAME, mBean.getFile_name());
+                contentValues.put(COLUMN_VIDEO_PATH, mBean.getVideo());
+                contentValues.put(COLUMN_STATUS, 0);
+                contentValues.put(COLUMN_CREATED_DATE, mBean.getCreated_date());
+                contentValues.put(COLUMN_TEAM_NAME, mBean.getTeam_name());
+
+//                String insertUser = " INSERT INTO "
+//                        + TABLE_MATCH_REACTIONS
+//                        + " ( "
+//                        + COLUMN_MATCH_ID
+//                        + " , "
+//                        + COLUMN_TEAM_ID
+//                        + " , "
+//                        + COLUMN_HALF
+//                        + " , "
+//                        + COLUMN_TIME
+//                        + " , "
+//                        + COLUMN_REACTION
+//                        + " , "
+//                        + COLUMN_VIDEO_NAME
+//                        + " , "
+//                        + COLUMN_VIDEO_PATH
+//                        + " , "
+//                        + COLUMN_STATUS
+//                        + " , "
+//                        + COLUMN_CREATED_DATE
+//                        + " , "
+//                        + COLUMN_TEAM_NAME
+//                        + " ) "
+//                        + " VALUES "
+//                        + " (?,?,?,?,?,?,?,?,?,?)";
+
+//                mDatabase.execSQL(insertUser, bindArgs);
+                mDatabase.insert(TABLE_MATCH_REACTIONS, null, contentValues);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -220,9 +233,9 @@ public class MatchActionsDAO {
         return dataList;
     }
 
-    public ArrayList<ReactionsBean> selectAllForTrim(String match_id,int type) {
+    public ArrayList<ReactionsBean> selectAllForTrim(String matchId, int type) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where video_path='' " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + " order by half,time ASC "+((type==1)?"LIMIT 1":"");
+        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where video_path='' " + ((CommonMethods.isValidString(matchId)) ? " AND match_id=" + matchId : "") + " order by half, time ASC " + ((type==1) ? "LIMIT 1" : "");
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<ReactionsBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
@@ -243,6 +256,7 @@ public class MatchActionsDAO {
         closeCursor(cursor);
         return dataList;
     }
+
     public int getTotalCount(String match_id) {
         initDBHelper();
         int count = 0;
@@ -258,6 +272,7 @@ public class MatchActionsDAO {
         closeCursor(cursor);
         return count;
     }
+
     public ArrayList<ReactionsBean> selectSingle(int counter) {
         initDBHelper();
         try {
@@ -272,7 +287,6 @@ public class MatchActionsDAO {
         }
     }
 
-
     @SuppressLint("Range")
     protected ReactionsBean cursorToData(Cursor cursor) {
         ReactionsBean model = new ReactionsBean();
@@ -281,6 +295,7 @@ public class MatchActionsDAO {
         model.setTeam_id(cursor.getInt(cursor.getColumnIndex(COLUMN_TEAM_ID)));
         model.setHalf(cursor.getInt(cursor.getColumnIndex(COLUMN_HALF)));
         model.setTime(cursor.getString(cursor.getColumnIndex(COLUMN_TIME)));
+        model.setTimestamp(cursor.getLong(cursor.getColumnIndex(COLUMN_TIMESTAMP)));
         model.setReaction(cursor.getString(cursor.getColumnIndex(COLUMN_REACTION)));
         model.setFile_name(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_NAME)));
         model.setVideo(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_PATH)));
@@ -326,7 +341,8 @@ public class MatchActionsDAO {
                 + " = ? WHERE 1=1";
         mDatabase.execSQL(update, bindArgs);
     }
-    public void updateAction(String action,int id) {
+
+    public void updateAction(String action, int id) {
         initDBHelper();
         String[] bindArgs = {
                 String.valueOf(action),
@@ -363,7 +379,6 @@ public class MatchActionsDAO {
             closeCursor(cursor);
         }
         return maxid;
-        //return cursor.getCount();
     }
 
     protected ArrayList<ReactionsBean> manageCursor(Cursor cursor) {
