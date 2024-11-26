@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -14,31 +15,32 @@ import com.codersworld.awesalibs.beans.matches.ReactionsBean;
 import com.codersworld.awesalibs.listeners.OnMatchListener;
 import com.codersworld.awesalibs.utils.CommonMethods;
 import com.game.awesa.R;
-import com.game.awesa.databinding.HistoryItemLayoutBinding;
 import com.game.awesa.databinding.VideosItemLayoutBinding;
-import com.game.awesa.utils.DownloadImage;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VideosAdapter extends RecyclerView.Adapter {
+public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.GameHolder> {
     public Context context;
     public List<MatchesBean.VideosBean> list;
     OnMatchListener mListener;
+    String half = "";
 
-    public VideosAdapter(Context context2, List<MatchesBean.VideosBean> list, OnMatchListener mListener) {
-        this.context = context2;
+    public VideosAdapter(Context context, List<MatchesBean.VideosBean> list, OnMatchListener mListener) {
+        this.context = context;
         this.mListener = mListener;
         this.list = list;
     }
 
-    public VideosAdapter(Context context2, List<MatchesBean.VideosBean> list) {
-        this.context = context2;
+    public VideosAdapter(Context context, List<MatchesBean.VideosBean> list) {
+        this.context = context;
         this.list = list;
     }
 
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+    @NonNull
+    @Override
+    public GameHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         return new GameHolder(LayoutInflater.from(this.context).inflate(R.layout.videos_item_layout, viewGroup, false));
     }
 
@@ -55,61 +57,65 @@ public class VideosAdapter extends RecyclerView.Adapter {
             notifyDataSetChanged();
         }
     }
-    public void updateVideo(ReactionsBean mBean1, MatchesBean.VideosBean mBean2) {
-        if (mBean1 !=null && mBean2 !=null) {
-            for (int a =0;a<list.size();a++) {
-                if (list.get(a).getLocal_id()==mBean1.getId()){
-                    list.set(a,mBean2);
+    public void updateVideo(ReactionsBean localBean, MatchesBean.VideosBean remoteBean) {
+        if (localBean !=null && remoteBean !=null) {
+            for (int index =0; index < list.size(); index++) {
+                if (list.get(index).getLocal_id() == localBean.getId()) {
+                    list.set(index, remoteBean);
+                    notifyItemChanged(index);
+                    break;
                 }
             }
-            notifyDataSetChanged();
         }
     }
 
-    String half = "";
+    @Override
+    public void onBindViewHolder(@NonNull GameHolder holder, int position, @NonNull List<Object> payloads) {
+        super.onBindViewHolder(holder, position, payloads);
+    }
 
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int i) {
-        GameHolder mHolder = (GameHolder) viewHolder;
-        MatchesBean.VideosBean mBean = list.get(i);
-        mHolder.binding.txtHalf.setText((mBean.getHalf() == 1) ? context.getString(R.string.lbl_first_half) : context.getString(R.string.lbl_second_half));
+    @Override
+    public void onBindViewHolder(@NonNull VideosAdapter.GameHolder viewHolder, int position) {
+        MatchesBean.VideosBean mBean = list.get(position);
+        viewHolder.binding.txtHalf.setText((mBean.getHalf() == 1) ? context.getString(R.string.lbl_first_half) : context.getString(R.string.lbl_second_half));
         if (half.equalsIgnoreCase(mBean.getHalf() + "")) {
-            mHolder.binding.txtHalf.setVisibility(View.GONE);
+            viewHolder.binding.txtHalf.setVisibility(View.GONE);
         } else {
-            mHolder.binding.txtHalf.setVisibility(View.VISIBLE);
+            viewHolder.binding.txtHalf.setVisibility(View.VISIBLE);
         }
-        mHolder.binding.imgDelete.setVisibility(View.VISIBLE);
+        viewHolder.binding.imgDelete.setVisibility(View.VISIBLE);
 
         half = mBean.getHalf() + "";
-        CommonMethods.setTextWithHtml(mBean.getTitle(), mHolder.binding.txtTeam);
-//        mHolder.binding.txtTeam.setText(mBean.getTitle());
-        mHolder.binding.txtTime.setText(mBean.getTime());
-        try{
+        CommonMethods.setTextWithHtml(mBean.getTitle(), viewHolder.binding.txtTeam);
+        viewHolder.binding.txtTime.setText(mBean.getTime());
+        try {
             if(CommonMethods.isValidString(mBean.getLocal_video())) {
-                mHolder.binding.imgThumbnail.setImageBitmap(CommonMethods.createVideoThumb(context, Uri.fromFile(new File(mBean.getLocal_video()))));
-                mHolder.binding.imgDelete.setVisibility(View.GONE);
-                mHolder.binding.pbLoading.setVisibility(View.VISIBLE);
-            }else{
-                CommonMethods.loadImage(context, mBean.getThumbnail(), mHolder.binding.imgThumbnail);
-                mHolder.binding.imgDelete.setVisibility(View.VISIBLE);
-                mHolder.binding.pbLoading.setVisibility(View.GONE);
+                viewHolder.binding.imgThumbnail.setImageBitmap(CommonMethods.createVideoThumb(context, Uri.fromFile(new File(mBean.getLocal_video()))));
+                viewHolder.binding.imgDelete.setVisibility(View.GONE);
+                viewHolder.binding.pbLoading.setVisibility(View.VISIBLE);
+            } else {
+                CommonMethods.loadImage(context, mBean.getThumbnail(), viewHolder.binding.imgThumbnail);
+                viewHolder.binding.imgDelete.setVisibility(View.VISIBLE);
+                viewHolder.binding.pbLoading.setVisibility(View.GONE);
             }
-        } catch (Exception ex){
-            CommonMethods.loadImage(context, mBean.getThumbnail(), mHolder.binding.imgThumbnail);
+        } catch (Exception ex) {
+            CommonMethods.loadImage(context, mBean.getThumbnail(), viewHolder.binding.imgThumbnail);
             ex.printStackTrace();
         }
     }
 
-    public void deleteVideo(int position){
-        if (position>=0 && list.size()>position){
+    public void deleteVideo(int position) {
+        if (position >= 0 && list.size() > position) {
             list.remove(position);
-            notifyDataSetChanged();
+            notifyItemRemoved(position);
         }
     }
+
     public int getItemCount() {
         return this.list.size();
     }
 
-    class GameHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class GameHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         VideosItemLayoutBinding binding;
 
         public GameHolder(View view) {
@@ -121,11 +127,11 @@ public class VideosAdapter extends RecyclerView.Adapter {
 
         public void onClick(View view) {
             if (mListener != null) {
-                MatchesBean.VideosBean mBean = list.get(getAdapterPosition());
+                MatchesBean.VideosBean mBean = list.get(getBindingAdapterPosition());
                 if (mBean != null) {
                     if (view.getId() == R.id.imgDelete) {
                         mBean.setIsDelete("1");
-                        mListener.onVideoDelete(getAdapterPosition(),mBean);
+                        mListener.onVideoDelete(getBindingAdapterPosition(), mBean);
                     }else {
                         mListener.onVideoClick(mBean);
                     }

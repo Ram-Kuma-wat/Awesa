@@ -55,6 +55,50 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
     private lateinit var matchBean: MatchesBean.InfoBean
     var mAdapter: VideosAdapter? = null
     var matchId = ""
+    var totalCount = 0
+    private var uploadedCount = 0
+    private var mVideo: MatchesBean.VideosBean? = null
+    private var videoPosition: Int = -1
+    private var customDialog: CustomDialog? = null
+    private var isDialogOpen = false
+    private var deleteType = ""
+    private var mIntentFilter: IntentFilter? = null
+
+    private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            try {
+                if (intent.hasExtra("Data")) {
+                    val mBean: MatchesBean.VideosBean = Gson().fromJson(
+                        intent.getStringExtra("Data"),
+                        MatchesBean.VideosBean::class.java)
+                    if (intent.hasExtra("old_data")) {
+                        val mBeanOld: ReactionsBean? = Gson().fromJson(
+                            intent.getStringExtra("old_data"), ReactionsBean::class.java)
+                        if (mBeanOld != null) {
+                            mAdapter?.updateVideo(mBeanOld, mBean)
+                            databaseManager.executeQuery {
+                                val mMatchActionsDAO = MatchActionsDAO(it, this@MatchDetailActivity)
+                                val mActions = mMatchActionsDAO.getTotalCount(matchId);
+                                if (mActions > 0) {
+                                    binding.llUploadProgress.visibility = View.VISIBLE
+                                    binding.txtUploaded.text = getString(
+                                        R.string.lbl_videos_uploaded,
+                                        (totalCount - mActions).toString(),
+                                        totalCount.toString()
+                                    )
+                                    databaseManager.closeDatabase()
+                                } else {
+                                    binding.llUploadProgress.visibility = View.GONE
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: java.lang.Exception) {
+                Log.e("MatchDetailActivity", e.localizedMessage)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,8 +138,6 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             mApiCall = ApiCall(this@MatchDetailActivity)
         }
     }
-    var totalCount = 0
-    private var uploadedCount = 0
 
     @UnstableApi
     override fun onSuccess(response: UniversalObject) {
@@ -290,9 +332,6 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
         //
     }
 
-    private var mVideo: MatchesBean.VideosBean? = null
-    private var videoPosition: Int = -1
-
     @UnstableApi
     override fun onVideoClick(mBeanVideo: MatchesBean.VideosBean?) {
         if (mBeanVideo != null) {
@@ -326,8 +365,6 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
         }
     }
 
-    private var customDialog: CustomDialog? = null
-    private var isDialogOpen = false
     fun makeConfirmation(msg: String, type: String) {
         if (!isDialogOpen) {
             if (customDialog == null) {
@@ -348,7 +385,6 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
         }
     }
 
-    private var deleteType = ""
     override fun onConfirm(isTrue: Boolean, type: String) {
         isDialogOpen = false
         deleteType = ""
@@ -409,42 +445,6 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             }
         } catch (e: java.lang.Exception) {
             Log.e("MatchDetailActivity", e.localizedMessage)
-        }
-    }
-    private var mIntentFilter: IntentFilter? = null
-    private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            try {
-                if (intent.hasExtra("Data")) {
-                    val mBn:MatchesBean.VideosBean = Gson().fromJson(
-                        intent.getStringExtra("Data"),
-                        MatchesBean.VideosBean::class.java)
-                    if (intent.hasExtra("old_data")) {
-                        val mBn1:ReactionsBean? = Gson().fromJson(
-                            intent.getStringExtra("old_data"), ReactionsBean::class.java)
-                        if (mBn1 != null) {
-                            mAdapter?.updateVideo(mBn1,mBn)
-                            databaseManager.executeQuery {
-                                val mMatchActionsDAO = MatchActionsDAO(it, this@MatchDetailActivity)
-                                val mActions = mMatchActionsDAO.getTotalCount(matchId);
-                                if (mActions > 0) {
-                                    binding.llUploadProgress.visibility = View.VISIBLE
-                                    binding.txtUploaded.text = getString(
-                                        R.string.lbl_videos_uploaded,
-                                        (totalCount - mActions).toString(),
-                                        totalCount.toString()
-                                    )
-                                    databaseManager.closeDatabase()
-                                } else {
-                                    binding.llUploadProgress.visibility = View.GONE
-                                }
-                            }
-                        }
-                    }
-                 }
-            } catch (e: java.lang.Exception) {
-                Log.e("MatchDetailActivity", e.localizedMessage)
-            }
         }
     }
 
