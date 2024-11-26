@@ -4,15 +4,16 @@ import android.util.Log
 import androidx.camera.camera2.Camera2Config
 import androidx.camera.core.CameraXConfig
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import com.game.awesa.utils.AndroidNetworkObservingStrategy
 import com.game.awesa.utils.AppInitializer
 import com.game.awesa.utils.VideoUploadsWorker
 import com.game.awesa.utils.VideosNotificationHandler
-import com.google.android.exoplayer2.database.ExoDatabaseProvider
-import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
-import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import dagger.Lazy
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
@@ -20,6 +21,7 @@ import dagger.android.HasAndroidInjector
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
+@UnstableApi
 @HiltAndroidApp
 open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Provider, Configuration.Provider {
     @Inject
@@ -36,7 +38,7 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
         lateinit var simpleCache: SimpleCache
         const val exoPlayerCacheSize: Long = 90 * 1024 * 1024
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
-        lateinit var exoDatabaseProvider: ExoDatabaseProvider
+        lateinit var exoDatabaseProvider: StandaloneDatabaseProvider
     }
 
     private val networkObserver = AndroidNetworkObservingStrategy()
@@ -44,7 +46,7 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
     override fun onCreate() {
         super.onCreate()
         leastRecentlyUsedCacheEvictor = LeastRecentlyUsedCacheEvictor(exoPlayerCacheSize)
-        exoDatabaseProvider = ExoDatabaseProvider(this.applicationContext)
+        exoDatabaseProvider = StandaloneDatabaseProvider(this.applicationContext)
         simpleCache = SimpleCache(cacheDir, leastRecentlyUsedCacheEvictor, exoDatabaseProvider)
 
         networkObserver.observeNetworkConnectivity(this)
