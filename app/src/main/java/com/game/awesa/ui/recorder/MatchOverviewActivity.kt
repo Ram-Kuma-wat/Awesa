@@ -173,7 +173,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
                 }else{
                     val file: File = File(mListData[a].video)
                     val fileSize = (((file.length() / 1024).toString().toInt()) / 1024).toString().toInt()
-                    if (fileSize < 4){
+                    if (fileSize < 4) {
                         counter++
                         databaseManager.executeQuery {
                             val mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
