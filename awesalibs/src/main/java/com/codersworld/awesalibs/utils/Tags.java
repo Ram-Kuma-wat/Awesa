@@ -1,9 +1,9 @@
 package com.codersworld.awesalibs.utils;
 
 public class Tags {
-    public static long recording_duration=2700000;//60000
-    public static long interview_duration=120000;//60000
-    //public static long recording_duration = 1000;//60000
+    public static long recording_duration = 2700000; // 60000
+    public static long interview_duration = 120000; // 60000
+    // public static long recording_duration = 1000;
 
     public static final String GOOGLE_KEY = "AIzaSyBHlj_3vbQjmDegKLf7ABYmx9nN3lcnWjQ";
     public static final String SB_ACCESS_TOKEN = "tokenval";
@@ -17,10 +17,10 @@ public class Tags {
     public static final String SB_LANGUAGE = "aw_select_language";
     public static final String TAG = "Awesa";
     public static final String tag = "Awesa";
-//https://sportapp.boonoserver.de/admin/games
-     //public static final String SERVER_MID_PATH = "sportapp.boonoserver.de";
-     public static final String SERVER_MID_PATH = "www.awesa-vereins.tv";
-    //public static final String SERVER_MID_PATH = "dev.inventiveinfosys.com/awesa";
+    // https://sportapp.boonoserver.de/admin/games
+    // public static final String SERVER_MID_PATH = "sportapp.boonoserver.de";
+    public static final String SERVER_MID_PATH = "www.awesa-vereins.tv";
+    // public static final String SERVER_MID_PATH = "dev.inventiveinfosys.com/awesa";
     public static final String SERVER_API_PATH = "restapi";
     public static final String SERVER_SLASH = "/";
     public static final String SB_LOGIN_API = "action-login";
@@ -45,10 +45,10 @@ public class Tags {
     public static final String SB_FORGOT_PASSWORD_RESET_API = "action-update-password";
     public static final String SB_UPDATE_PROFILE_API = "update-profile";
     public static final String SB_CHECK_SIGNUP_API = "check-data";
-    //https://sportapp.boonoserver.de/page/terms-and-condition
-    public static final String SB_PRIVACY_POLICY =   "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH +"page/privacy-policy";
-    public static final String SB_ABOUT_US =   "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH +"page/about-us";
-    public static final String SB_TERMS_CONDITION =   "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH +"page/terms-and-condition";
+    // https://sportapp.boonoserver.de/page/terms-and-condition
+    public static final String SB_PRIVACY_POLICY = "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH + "page/privacy-policy";
+    public static final String SB_ABOUT_US = "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH + "page/about-us";
+    public static final String SB_TERMS_CONDITION = "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH + "page/terms-and-condition";
     public static final String SB_API_SUPPORT = "create-support-ticket";
     public static final String BASE_URL_APP = "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH + SERVER_API_PATH + SERVER_SLASH;
 
