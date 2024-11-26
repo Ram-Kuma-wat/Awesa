@@ -260,19 +260,19 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     private suspend fun uploadMedia(work: Work.UploadInterviewVideo) {
-//        mutex.withLock {
-//            Log.d(TAG, "-> start uploading interview ${work.localUri}")
-//
-//            // Update notification safely
-//            val doneUploads = uploadList.count { it.isDone }
-//            notificationHandler.update(doneUploads + 1, uploadList.size)
-//        }
-
         mutex.withLock {
-            Log.d(TAG, "VideoUploadsWorker -> start uploading interview ${work.localUri}")
+            Log.d(TAG, "-> start uploading interview ${work.localUri}")
 
+            // Update notification safely
             val doneUploads = uploadList.count { it.isDone }
             notificationHandler.update(doneUploads + 1, uploadList.size)
+        }
+
+//        mutex.withLock {
+//            Log.d(TAG, "VideoUploadsWorker -> start uploading interview ${work.localUri}")
+//
+//            val doneUploads = uploadList.count { it.isDone }
+//            notificationHandler.update(doneUploads + 1, uploadList.size)
             videoUploadsRepository.uploadMedia(work.interviewModel).collect {
                 when (it) {
                     is UploadFailure -> {
@@ -284,20 +284,20 @@ class VideoUploadsWorker @Inject constructor(
                         Log.d(TAG, "-> Upload interview succeeded for ${work.localUri}")
                         notificationHandler.setProgress(1f)
                         handleResponse(response = it.response, interviewModel = it.interview)
-                        val index =
-                            uploadList.indexOfFirst {
-                                item -> item.videoId == work.videoId && item.localUri == work.localUri
-                            }
-                        uploadList[index] = uploadList[index].copy(isDone = true)
+//                        val index =
+//                            uploadList.indexOfFirst {
+//                                item -> item.videoId == work.videoId && item.localUri == work.localUri
+//                            }
+//                        uploadList[index] = uploadList[index].copy(isDone = true)
                         // Safely update shared list inside lock
-//                        mutex.withLock {
-//                            val index = uploadList.indexOfFirst {
-//                                    item -> item.videoId == work.videoId && item.localUri == work.localUri
-//                            }
-//                            if (index >= 0) {
-//                                uploadList[index] = uploadList[index].copy(isDone = true)
-//                            }
-//                        }
+                        mutex.withLock {
+                            val index = uploadList.indexOfFirst {
+                                    item -> item.videoId == work.videoId && item.localUri == work.localUri
+                            }
+                            if (index >= 0) {
+                                uploadList[index] = uploadList[index].copy(isDone = true)
+                            }
+                        }
                     }
 
                     is UploadSuccess -> {}
@@ -310,7 +310,7 @@ class VideoUploadsWorker @Inject constructor(
             if (!hasMoreUploads) {
                 Log.d(TAG, "-> All uploads are done")
             }
-        }
+//        }
     }
 
     private fun handleResponse(response: UniversalObject?, reactionModel: ReactionsBean?) {
