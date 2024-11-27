@@ -13,7 +13,6 @@ class NetworkConnectivityReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         context?.let { ConnectivityUtils.notifyNetworkStatus(it) }
     }
-
 }
 
 // States represented as enums
@@ -24,7 +23,6 @@ enum class NetworkState(val isConnected : Boolean) {
     DISCONNECTED(false),
 
     UNINITIALIZED(false)
-
 }
 
 object ConnectivityUtils {
