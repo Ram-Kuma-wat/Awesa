@@ -1,5 +1,6 @@
 package com.game.awesa.ui
 
+import android.content.Intent
 import android.util.Log
 import androidx.camera.camera2.Camera2Config
 import androidx.camera.core.CameraXConfig
@@ -10,10 +11,15 @@ import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
+import com.codersworld.awesalibs.database.DatabaseManager
+import com.codersworld.awesalibs.database.dao.DBVideoUploadDao
+import com.codersworld.awesalibs.database.dao.MatchActionsDAO
+import com.codersworld.awesalibs.database.dao.VideoMasterDAO
+import com.codersworld.awesalibs.utils.CommonMethods
+import com.game.awesa.services.TrimService
 import com.game.awesa.utils.AndroidNetworkObservingStrategy
 import com.game.awesa.utils.AppInitializer
 import com.game.awesa.utils.VideoUploadsWorker
-import com.game.awesa.utils.VideosNotificationHandler
 import dagger.Lazy
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
@@ -22,7 +28,6 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @UnstableApi
-@HiltAndroidApp
 open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Provider, Configuration.Provider {
     @Inject
     lateinit var androidInjector: DispatchingAndroidInjector<Any>
@@ -33,10 +38,12 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
 
     @Inject lateinit var videoUploadsWorker: VideoUploadsWorker
 
+    @Inject lateinit var databaseManager: DatabaseManager
+
     companion object {
         const val TAG = "MyApp"
         lateinit var simpleCache: SimpleCache
-        const val exoPlayerCacheSize: Long = 90 * 1024 * 1024
+        const val EXO_PLAYER_CACHE_SIZE: Long = 90 * 1024 * 1024
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
         lateinit var exoDatabaseProvider: StandaloneDatabaseProvider
     }
@@ -45,14 +52,17 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
 
     override fun onCreate() {
         super.onCreate()
-        leastRecentlyUsedCacheEvictor = LeastRecentlyUsedCacheEvictor(exoPlayerCacheSize)
+        leastRecentlyUsedCacheEvictor = LeastRecentlyUsedCacheEvictor(EXO_PLAYER_CACHE_SIZE)
         exoDatabaseProvider = StandaloneDatabaseProvider(this.applicationContext)
         simpleCache = SimpleCache(cacheDir, leastRecentlyUsedCacheEvictor, exoDatabaseProvider)
 
         networkObserver.observeNetworkConnectivity(this)
 
-        networkObserver.getLiveConnectivityState().observeForever { connectivity -> // .distinctUntilChanged()
+        startTrimService()
+
+        networkObserver.getLiveConnectivityState().observeForever { connectivity ->
             if (connectivity.networkState!!.isConnected) {
+                // TODO: Disable for Testing Match Details Screen
                 videoUploadsWorker.fetchVideos(matchId = null)
             } else {
                 videoUploadsWorker.cancelUploads()
@@ -60,6 +70,21 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
         }
 
         appInitializer.get().init(this)
+    }
+
+    private fun startTrimService() {
+        databaseManager.executeQuery { database ->
+            val mVideoMasterDAO = VideoMasterDAO(database, applicationContext)
+            val mList = mVideoMasterDAO.selectAll() as ArrayList<DBVideoUploadDao>
+            if (CommonMethods.isValidArrayList(mList)) {
+                loop@ for (index in mList.indices) {
+                    val mIntent = Intent(this, TrimService::class.java)
+                    mIntent.putExtra("matchId", mList[index].match_id)
+                    this.startService(mIntent)
+                    break@loop
+                }
+            }
+        }
     }
 
     override fun getCameraXConfig(): CameraXConfig {
