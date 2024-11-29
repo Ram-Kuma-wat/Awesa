@@ -230,7 +230,6 @@
                                         <LinearLayout
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_toStartOf="@+id/imgDelete"
                                             android:orientation="vertical">
 
                                             <LinearLayout
@@ -247,16 +246,20 @@
                                                         android:id="@+id/imgThumbnail"
                                                         android:layout_width="match_parent"
                                                         android:layout_height="match_parent"
+                                                        android:contentDescription="Interview thumbnail"
                                                         android:scaleType="centerCrop"
-                                                        android:src="@drawable/login_bg" />
+                                                        android:src="@drawable/login_bg"
+                                                        tools:ignore="HardcodedText" />
 
                                                     <ImageView
                                                         android:id="@+id/imgPlay"
                                                         android:layout_width="@dimen/_30dp"
                                                         android:layout_height="@dimen/_30dp"
                                                         android:layout_centerInParent="true"
+                                                        android:contentDescription="Interview play button"
                                                         android:src="@drawable/ic_play"
-                                                        app:tint="@color/colorAccent" />
+                                                        app:tint="@color/colorAccent"
+                                                        tools:ignore="HardcodedText"/>
                                                 </RelativeLayout>
 
                                                 <LinearLayout
@@ -281,17 +284,31 @@
                                             </LinearLayout>
                                         </LinearLayout>
 
-                                        <ImageView
-                                            android:id="@+id/imgDelete"
-                                            android:layout_width="40dp"
-                                            android:layout_height="40dp"
-                                            android:layout_alignParentEnd="true"
-                                            android:background="?attr/selectableItemBackground"
-                                            android:padding="@dimen/_5dp"
-                                            android:src="@drawable/ic_delete"
-                                            android:visibility="visible"
-                                            app:tint="@color/red" />
+                                        <RelativeLayout
+                                            android:id="@+id/deleteLayout"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_alignParentEnd="true">
+                                            <ImageView
+                                                android:id="@+id/imgDelete"
+                                                android:layout_width="40dp"
+                                                android:layout_height="40dp"
+                                                android:layout_alignParentEnd="true"
+                                                android:background="?attr/selectableItemBackground"
+                                                android:padding="@dimen/_5dp"
+                                                android:src="@drawable/ic_delete"
+                                                android:visibility="visible"
+                                                app:tint="@color/red" />
+                                            <ProgressBar
 
+                                                android:id="@+id/pbLoading"
+                                                android:layout_width="35dp"
+                                                android:layout_height="35dp"
+                                                android:background="@drawable/dialog_shape"
+                                                android:padding="@dimen/_5dp"
+                                                android:visibility="gone"
+                                                app:tint="@color/red" />
+                                        </RelativeLayout>
                                     </RelativeLayout>
                                 </androidx.cardview.widget.CardView>
                             </LinearLayout>

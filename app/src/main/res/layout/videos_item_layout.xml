@@ -15,6 +15,7 @@
             android:background="@color/light_txt_bg"
             android:gravity="center_vertical"
             android:paddingStart="@dimen/_10dp"
+            android:paddingEnd="@dimen/_10dp"
             android:text="@string/select_opponent"
             android:textColor="@color/black" />
 
@@ -53,16 +54,20 @@
                                 android:id="@+id/imgThumbnail"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
+                                android:contentDescription="Video thumbnail"
                                 android:scaleType="centerCrop"
-                                android:src="@drawable/login_bg" />
+                                android:src="@drawable/login_bg"
+                                tools:ignore="HardcodedText" />
 
                             <ImageView
                                 android:id="@+id/imgPlay"
                                 android:layout_width="@dimen/_30dp"
                                 android:layout_height="@dimen/_30dp"
                                 android:layout_centerInParent="true"
+                                android:contentDescription="Play button"
                                 android:src="@drawable/ic_play"
-                                app:tint="@color/colorAccent" />
+                                app:tint="@color/colorAccent"
+                                tools:ignore="HardcodedText"/>
                         </RelativeLayout>
 
                         <LinearLayout
@@ -81,7 +86,8 @@
                                 android:gravity="center_vertical"
                                 android:maxLines="2"
                                 android:text="Team 1"
-                                android:textColor="@color/black" />
+                                android:textColor="@color/black"
+                                tools:ignore="HardcodedText"/>
 
                             <com.codersworld.awesalibs.customFonts.SBTextViewRegular
                                 android:id="@+id/txtReaction"
@@ -92,7 +98,8 @@
                                 android:gravity="center_vertical"
                                 android:maxLines="2"
                                 android:text="Team 1"
-                                android:visibility="gone" />
+                                android:visibility="gone"
+                                tools:ignore="HardcodedText"/>
 
                             <com.codersworld.awesalibs.customFonts.SBTextViewRegular
                                 android:id="@+id/txtTime"
@@ -102,18 +109,8 @@
                                 android:ellipsize="end"
                                 android:gravity="center_vertical"
                                 android:maxLines="2"
-                                android:text="Team 1" />
-
-                            <com.codersworld.awesalibs.customFonts.SBTextViewRegular
-                                android:id="@+id/txtMsg"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/_5dp"
-                                android:ellipsize="end"
-                                android:gravity="center_vertical"
-                                android:maxLines="2"
-                                android:text="@string/msg_uploading"
-                                android:visibility="gone" />
+                                android:text="Team 1"
+                                tools:ignore="HardcodedText" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
