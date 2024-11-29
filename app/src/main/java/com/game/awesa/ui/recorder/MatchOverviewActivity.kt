@@ -195,13 +195,13 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
             actionPosition = position
             mBeanReaction = mReactionsBean
         }
-        if (type == 1){
+        if (type == 1) {
             if (mReactionsBean !=null && CommonMethods.isValidString(mReactionsBean.video)) {
                 val intent = Intent(this@MatchOverviewActivity, VideoPreviewActivity::class.java)
                 intent.putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, mReactionsBean.video)
                 startActivity(intent)
             }
-        }else if (type == 99) {
+        } else if (type == 99) {
             if (mReactionsBean !=null && CommonMethods.isValidString(mReactionsBean.video)) {
                 databaseManager.executeQuery {
                     databaseManager.openDatabase()
@@ -215,10 +215,10 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
                     mAdapter!!.update(mBeanReaction,actionPosition)
                 }
             }
-        }else if(type == 3) {
+        } else if(type == 3) {
             val pn = EditActionDialog(mBeanReaction,this)
             pn.show(supportFragmentManager, pn.tag)
-        }else{
+        } else {
             makeConfirmation(getString(R.string.msg_delete_action),"1")
         }
     }
@@ -226,18 +226,18 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
     override fun onConfirm(isTrue: Boolean, type: String) {
         isDialogOpen = false
         if (isTrue) {
-            if (type.equals("1")) {
+            if (type == "1") {
                 if (mAdapter != null && actionPosition >= 0) {
                     mAdapter!!.delete(actionPosition)
                     databaseManager.executeQuery {
                         val mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
-                        mMatchActionsDAO.deleteAll(mBeanReaction!!.id.toString(), 0)
+                        mMatchActionsDAO.deleteAll(mBeanReaction!!.id)
                     }
                 }
-            }else if (type.equals("2")) {
+            } else if (type == "2") {
                 databaseManager.executeQuery {
                     val mInterviewsDAO = InterviewsDAO(it, this@MatchOverviewActivity)
-                    mInterviewsDAO.deleteAll(strInterviewId.toString(), 0)
+                    mInterviewsDAO.deleteAll(strInterviewId)
 
                     binding.llInterview.visibility = View.GONE
                 }
@@ -294,7 +294,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
             Logs.e(response.methodName)
             when (response.methodName) {
                 Tags.SB_UPDATE_MATCH_COUNT_API -> {
-                    var mCommonBean: CommonBean = response.response as CommonBean
+                    val mCommonBean: CommonBean = response.response as CommonBean
                     if (mCommonBean.status == 1) {
                         CommonMethods.successToast(this@MatchOverviewActivity,getString(R.string.msg_video_upload))
 
@@ -305,8 +305,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
                         // Clear the current task stack and start a new task
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         startActivity(intent)
-                        // Optionally, you can kill the current process to ensure a clean restart
-//                        Process.killProcess(Process.myPid())
                     } else if (CommonMethods.isValidString(mCommonBean.msg)) {
                         errorMsg(mCommonBean.msg);
                     } else {
@@ -318,7 +316,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
             ex.printStackTrace()
             errorMsg(getResources().getString(R.string.something_wrong));
         }
-        //method body
     }
 
     fun errorMsg(strMsg: String) {
@@ -332,7 +329,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
 
     override fun onError(type: String, error: String) {
         errorMsg(error)
-        //method body
     }
 
     override fun onBackPressed() {
