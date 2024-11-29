@@ -7,7 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.codersworld.awesalibs.beans.matches.MatchesBean;
@@ -20,6 +22,7 @@ import com.game.awesa.databinding.VideosItemLayoutBinding;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.GameHolder> {
     public Context context;
@@ -40,15 +43,13 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.GameHolder
 
     @NonNull
     @Override
-    public GameHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+    public GameHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         return new GameHolder(LayoutInflater.from(this.context).inflate(R.layout.videos_item_layout, viewGroup, false));
     }
 
     public void addAll(ArrayList<MatchesBean.VideosBean> mList) {
-        if (CommonMethods.isValidArrayList(mList)) {
-            list = mList;
-            notifyDataSetChanged();
-        }
+        list = mList;
+        notifyItemRangeInserted(0, list.size());
     }
 
     public void addOne(ArrayList<MatchesBean.VideosBean> mList) {
@@ -57,6 +58,69 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.GameHolder
             notifyDataSetChanged();
         }
     }
+
+    class VideosCallback extends DiffUtil.Callback {
+        List<MatchesBean.VideosBean> oldList;
+        List<MatchesBean.VideosBean> newList;
+
+        public VideosCallback(List<MatchesBean.VideosBean> oldList, List<MatchesBean.VideosBean> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override
+        public int getOldListSize() {
+            return oldList.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newList.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldList.get(oldItemPosition).getLocal_id() == newList.get(
+                    newItemPosition).getLocal_id();
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            final MatchesBean.VideosBean oldVideo = oldList.get(oldItemPosition);
+            final MatchesBean.VideosBean newVideo = newList.get(newItemPosition);
+
+            return Objects.equals(oldVideo.getVideo(), newVideo.getVideo()) &&
+                    oldVideo.getLocal_id() == (newVideo.getLocal_id()) &&
+                    oldVideo.getHalf() == (newVideo.getHalf()) &&
+                    oldVideo.getVideo().equals(newVideo.getVideo()) &&
+                    oldVideo.getMatch_id() == newVideo.getMatch_id() &&
+                    oldVideo.getReaction().equals(newVideo.getReaction()) &&
+                    oldVideo.getThumbnail().equals(newVideo.getThumbnail()) &&
+                    oldVideo.getTime().equals(newVideo.getTime());
+        }
+
+        @Nullable
+        @Override
+        public MatchesBean.VideosBean getChangePayload(int oldItemPosition, int newItemPosition) {
+            return newList.get(newItemPosition);
+        }
+    }
+
+    public void updateVideos(List<MatchesBean.VideosBean> newVideos) {
+//        this.list.addAll(0, newVideos);
+//        notifyItemRangeInserted(0, newVideos.size());
+
+        final VideosCallback diffCallBack = new VideosCallback(this.list, newVideos);
+        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallBack);
+        if(this.list.isEmpty()) {
+            this.list = newVideos;
+        } else {
+            this.list.addAll(0, newVideos);
+        }
+
+        diffResult.dispatchUpdatesTo(this);
+    }
+
     public void updateVideo(ReactionsBean localBean, MatchesBean.VideosBean remoteBean) {
         if (localBean !=null && remoteBean !=null) {
             for (int index =0; index < list.size(); index++) {
@@ -67,11 +131,6 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.GameHolder
                 }
             }
         }
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull GameHolder holder, int position, @NonNull List<Object> payloads) {
-        super.onBindViewHolder(holder, position, payloads);
     }
 
     @Override
@@ -109,6 +168,11 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.GameHolder
             list.remove(position);
             notifyItemRemoved(position);
         }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return super.getItemViewType(position);
     }
 
     public int getItemCount() {
