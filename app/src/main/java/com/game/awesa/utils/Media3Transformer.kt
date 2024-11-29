@@ -3,22 +3,34 @@ package com.game.awesa.utils
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.util.Log
-import androidx.media3.common.MediaItem
+import android.widget.Toast
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.transformer.Composition
-import androidx.media3.transformer.EditedMediaItem
-import androidx.media3.transformer.ExportException
-import androidx.media3.transformer.ExportResult
-import androidx.media3.transformer.Transformer
-import com.codersworld.awesalibs.beans.matches.MatchesBean
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.FFmpegSession
+import com.arthenica.ffmpegkit.ReturnCode
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
+import com.codersworld.awesalibs.database.dao.VideoMasterDAO
 import com.game.awesa.di.AppCoroutineScope
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
+import java.io.IOException
+import java.lang.IllegalStateException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 @UnstableApi
 class Media3Transformer @Inject constructor(
@@ -28,66 +40,135 @@ class Media3Transformer @Inject constructor(
 ) {
 
     companion object {
-        private const val TAG = "Media3Transformer"
+        private val TAG = Media3Transformer::class.java.simpleName
         private const val BYTE = 1_000
+        private const val MILLISECONDS = 1_000
         private const val TRIM_START_SECONDS = 12 // -12 seconds
         private const val TRIM_END_SECONDS = 3 // +3 seconds
     }
 
-    private val transformer: Transformer = Transformer.Builder(context).build()
+    private val currentJobs = mutableListOf<Job>()
 
     @SuppressLint("UnusedParameter")
     fun trimVideo(
+        matchId: Int,
         inputUri: Uri,
-        outputDir: File,
         actions: List<ReactionsBean>
     ) {
-        actions.forEachIndexed { _, reaction ->
-            val startTime = maxOf(reaction.timestamp - TRIM_START_SECONDS, 0L) // -12 seconds
-            val endTime = reaction.timestamp + TRIM_END_SECONDS // +3 seconds
 
-            // Define output file for the trimmed segment
-            val trimmedFileName = "m_" + reaction.match_id + "_a_" + reaction.id.toString() + "_h_" + reaction.half + ".mp4"
-            val outputFile = File(outputDir, trimmedFileName)
-            // For unique video file name appending current timeStamp with file name
-            val fileName = outputFile.toString()
-                .substring(outputFile.toString().lastIndexOf('/') + 1, outputFile.toString().length)
-            val outputUri = Uri.fromFile(outputFile)
+        val handler = CoroutineExceptionHandler { _, exception ->
+            Log.d(TAG, "exception: ${exception.localizedMessage}")
+        }
 
-            // Prepare an MediaItem
-            val editedMediaItem = MediaItem.Builder()
-                .setUri(inputUri)
-                .setClippingConfiguration(
-                    MediaItem.ClippingConfiguration.Builder()
-                        .setStartPositionMs(startTime)
-                        .setEndPositionMs(endTime)
-                        .build())
-                .build()
+        var actionCount: Int = actions.size
 
-            val trimmingListener = object : Transformer.Listener {
-                override fun onCompleted(composition: Composition, exportResult: ExportResult) {
-                    val size = exportResult.fileSizeBytes / BYTE
-                    val time = java.util.concurrent.TimeUnit.MILLISECONDS.toSeconds(exportResult.durationMs)
-                    Log.e(TAG,"Trimmed Video ${reaction.file_name} is ${size}KB, and ${time}seconds long")
+        appCoroutineScope.launch(handler) {
+            actions.forEachIndexed { _, reaction ->
+                try {
+                    val exported = exportVideo(reaction, inputUri)
 
-                    databaseManager.executeQuery { database ->
-                        val actionDao = MatchActionsDAO(database, context)
-                        actionDao.updateVideo(fileName, outputFile.toString(), reaction.id)
+                    if (exported) {
+                        actionCount -= 1
                     }
-                }
 
-                override fun onError(
-                    composition: Composition,
-                    exportResult: ExportResult,
-                    exportException: ExportException
-                ) {
-                    Log.e(TAG, "Error trimming video: ${exportException.message}")
+                } catch (ex: CancellationException) {
+                    Log.e(TAG, "Error trimming video: ${ex.localizedMessage}")
+                } catch (ex: IllegalStateException) {
+                    Log.e(TAG, "Error trimming video: ${ex.localizedMessage}")
+                } catch (ex: IOException) {
+                    Log.e(TAG, "Error trimming video: ${ex.localizedMessage}")
+//                    throw ex
                 }
             }
-
-            transformer.addListener(trimmingListener)
-            // Start the transformation
-            transformer.start(editedMediaItem, outputUri.path.toString())
+        }.invokeOnCompletion { error ->
+            if (actionCount == 0) {
+                val videoFile = File(inputUri.path)
+                if (videoFile.exists()) {
+                    databaseManager.executeQuery { database ->
+                        val dao = VideoMasterDAO(database, context)
+                        dao.deleteVideoById(matchId)
+                        videoFile.delete()
+                    }
+                }
+                return@invokeOnCompletion
+            }
+            Log.i(TAG, "${error?.localizedMessage}")
         }
+    }
+
+    /**
+     * Trims a video segment synchronously.
+     */
+    private suspend fun exportVideo(
+        reaction: ReactionsBean,
+        inputUri: Uri
+    ): Boolean {
+        val startTime = maxOf(reaction.timestamp - TRIM_START_SECONDS, 0L) // -12 seconds
+        val endTime = reaction.timestamp + TRIM_END_SECONDS // +3 seconds
+
+        val outputDir = createMediaFolder()
+
+        // Define output file for the trimmed segment
+        val trimmedFileName = StringBuilder()
+        trimmedFileName.append(outputDir.path + File.separator)
+        trimmedFileName.append("m_" + reaction.match_id + "_a_")
+        trimmedFileName.append(reaction.id.toString() + "_h_" + reaction.half + ".mp4")
+
+        val outputFile = File(trimmedFileName.toString())
+        // For unique video file name appending current timeStamp with file name
+        val fileName = outputFile.toString()
+            .substring(outputFile.toString().lastIndexOf('/') + 1, outputFile.toString().length)
+
+        // Start the transformation and wait for it to complete
+        return suspendCancellableCoroutine<Boolean> { continuation ->
+            val duration = ((endTime - startTime)).toString()
+            val cmd = arrayOf(
+                "-i", inputUri.path,
+                "-y",
+                "-ss", startTime.toString(),
+//                "-t", duration,
+                "-to", endTime.toString(),
+                "-c", "copy",
+                outputFile.absolutePath
+            )
+
+            val session: FFmpegSession = FFmpegKit.executeWithArguments(cmd)
+
+            if (ReturnCode.isSuccess(session.returnCode)) {
+                databaseManager.executeQuery { database ->
+                    val actionDao = MatchActionsDAO(database, context)
+                    actionDao.updateVideo(fileName, outputFile.toString(), reaction.id)
+                }
+                continuation.resume(true)
+            } else if (ReturnCode.isCancel(session.returnCode)) {
+                continuation.resumeWithException(IOException("Export canceled"))
+            } else {
+                continuation.resumeWithException(IOException(String.format("Command failed with state %s and rc %s.%s", session.state, session.returnCode, session.failStackTrace)))
+            }
+
+        }
+    }
+
+    private fun createMediaFolder(): File {
+        val timeStamp = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date())
+        var mediaStorageDir: File? = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mediaStorageDir = File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                "/Awesa/trim/$timeStamp"
+            )
+        } else {
+            mediaStorageDir = context.getExternalFilesDir("/Awesa/trim/$timeStamp")
+        }
+        if (!mediaStorageDir!!.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Toast.makeText(
+                    context,
+                    "Please Allow Storage Permission.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+        return mediaStorageDir
     }
 }
