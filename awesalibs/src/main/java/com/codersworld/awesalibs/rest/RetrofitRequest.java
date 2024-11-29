@@ -54,41 +54,8 @@ public class RetrofitRequest {
         }
         return retrofit;
     }
-    private static OkHttpClient getOkHttpClient1() {
-        OkHttpClient.Builder okClientBuilder = new OkHttpClient.Builder();
-        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
-            @Override
-            public void log(String message) {
-            //    Log.e("APIresponse", "" + message);
-            }
-        });
-        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        okClientBuilder.addInterceptor(new RetryInterceptor(300));
-        okClientBuilder.addInterceptor(httpLoggingInterceptor);
-        okClientBuilder.addNetworkInterceptor(new ProgressInterceptor());
-//        okClientBuilder.connectTimeout(2000, TimeUnit.SECONDS);
-//        okClientBuilder.readTimeout(2000, TimeUnit.SECONDS);
-//        okClientBuilder.writeTimeout(2000, TimeUnit.SECONDS);
-       /* okClientBuilder.addInterceptor(new Interceptor() {
-            @Override
-            public Response intercept(Chain chain) throws IOException {
-                Request request = chain.request().newBuilder().addHeader("token", "" + token).build();
-                return chain.proceed(request);
-            }
-        });*/
-        return okClientBuilder.build();
-    }
-    public  static void logLongMessage(String tag, String message) {
 
-     /*   try {
-            File file = mFile;//new File(mContext.getExternalFilesDir(null), "response.txt");
-            FileWriter writer = new FileWriter(file);
-            writer.append(message);
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
+    public  static void logLongMessage(String tag, String message) {
         if (message.length() > 4000) {
             for (int i = 0; i < message.length(); i += 4000) {
                 if (i + 4000 < message.length()) {
@@ -105,7 +72,7 @@ public class RetrofitRequest {
     public static OkHttpClient getUnsafeOkHttpClient() {
         try {
             // Create a trust manager that does not validate certificate chains
-            final TrustManager[] trustAllCerts = new TrustManager[]{
+            final TrustManager[] trustAllCerts = new TrustManager[] {
                     new X509TrustManager() {
                         @Override
                         public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
@@ -137,8 +104,7 @@ public class RetrofitRequest {
             builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
             builder.retryOnConnectionFailure(true);
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-//            builder.addInterceptor(httpLoggingInterceptor);
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
             builder.addInterceptor(interceptor);
             builder.hostnameVerifier(new HostnameVerifier() {
                 @Override
@@ -148,8 +114,7 @@ public class RetrofitRequest {
             });
 
             builder.addNetworkInterceptor(new ProgressInterceptor());
-            OkHttpClient okHttpClient = builder.build();
-            return okHttpClient;
+            return builder.build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -165,7 +130,7 @@ public class RetrofitRequest {
                // Log.e("ApiResponse1", message);
             }
         });
-        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
         okClientBuilder.addInterceptor(httpLoggingInterceptor);
         okClientBuilder.connectTimeout(2000, TimeUnit.SECONDS);
         okClientBuilder.readTimeout(2000, TimeUnit.SECONDS);

@@ -13,12 +13,12 @@ public class ProcessMainClass {
     public ProcessMainClass() {
     }
 
-
     private void setServiceIntent(Context context) {
         if (serviceIntent == null) {
             //serviceIntent = new Intent(context, SendLocationService.class);
         }
     }
+
     /**
      * launching the service
      */

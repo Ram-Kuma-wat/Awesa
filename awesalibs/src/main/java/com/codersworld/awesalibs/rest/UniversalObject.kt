@@ -2,10 +2,10 @@ package com.codersworld.awesalibs.rest
 
 class UniversalObject {
 
-    var  response:Any
-    var  methodName:String
-    var  status:String
-    var  msg:String
+    var response:Any
+    var methodName:String
+    var status:String
+    var msg:String
     var daos: Any
 
     constructor(result: Any?, methodName: String, status: String, msg: String) {

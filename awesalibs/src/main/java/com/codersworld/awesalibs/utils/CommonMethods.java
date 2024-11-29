@@ -115,16 +115,13 @@ public class CommonMethods {
         return false;
     }
 
-    public static Bitmap createVideoThumb(Context context, Uri uri) {
-        try {
-            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+    public static Bitmap createVideoThumb(Context context, Uri uri) throws IOException {
+        try (MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever()) {
             mediaMetadataRetriever.setDataSource(context, uri);
             return mediaMetadataRetriever.getFrameAtTime();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw ex;
         }
-        return null;
-
     }
 
 
@@ -141,7 +138,7 @@ public class CommonMethods {
                 try{
                     device_unique_id = Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID);
 
-                }catch (Exception e){}
+                } catch (Exception ignored){}
             }
         }
         return device_unique_id;

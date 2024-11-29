@@ -12,11 +12,9 @@ import com.codersworld.awesalibs.database.dao.VideoMasterDAO;
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "awesa_db_2024.db";
     public static final int DATABASE_VERSION = 2;
-    private Context mContext;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        mContext = context;
     }
 
     @Override
@@ -26,9 +24,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(GamesCategoryDAO.getCreateTable());
         sqLiteDatabase.execSQL(MatchActionsDAO.getCreateTable());
         sqLiteDatabase.execSQL(InterviewsDAO.getCreateTable());
-      /*  sqLiteDatabase.execSQL(BusRoutesDao.getCreateTableHindi());
-        sqLiteDatabase.execSQL(PlaceCategoryDao.getCreateTable());
-        sqLiteDatabase.execSQL(PlacesDao.getCreateTable());*/
     }
 
     public void drop(SQLiteDatabase sqLiteDatabase) {
@@ -37,10 +32,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(GamesCategoryDAO.getDropTable());
         sqLiteDatabase.execSQL(MatchActionsDAO.getDropTable());
         sqLiteDatabase.execSQL(InterviewsDAO.getDropTable());
-        /*
-        sqLiteDatabase.execSQL(BusRoutesDao.getDropTableHindi());
-        sqLiteDatabase.execSQL(PlaceCategoryDao.getDropTable());
-        sqLiteDatabase.execSQL(PlacesDao.getDropTable());*/
     }
 
     @Override
