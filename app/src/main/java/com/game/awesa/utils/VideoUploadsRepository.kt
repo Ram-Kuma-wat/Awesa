@@ -37,6 +37,7 @@ import retrofit2.Callback
 import retrofit2.Response
 //import okhttp3.Response
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 
 class VideoUploadsRepository @Inject constructor(
@@ -50,11 +51,10 @@ class VideoUploadsRepository @Inject constructor(
 
     fun uploadMedia(reactionModel: ReactionsBean): Flow<UploadResult> {
         return callbackFlow {
-            Log.d(TAG, "VideoUploadsRepository > Dispatching request to upload ${reactionModel.video}")
+            Log.d(TAG, "Dispatching request to upload ${reactionModel.video}")
 
-            if (!CommonMethods.isValidString(reactionModel.video)) {
-                trySend(UploadFailure(
-                    error = MediaUploadException(
+            if (reactionModel.video.isNullOrEmpty()) {
+                trySend(UploadFailure(error = MediaUploadException(
                         model = reactionModel,
                         errorMessage = "Missing video url")
                     )
@@ -64,6 +64,8 @@ class VideoUploadsRepository @Inject constructor(
             }
 
             val userId = UserSessions.getUserInfo(context).id.toString()
+                .toRequestBody("multipart/form-data".toMediaTypeOrNull())
+            val reactionId = reactionModel.id.toString()
                 .toRequestBody("multipart/form-data".toMediaTypeOrNull())
             val matchId = reactionModel.match_id.toString()
                 .toRequestBody("multipart/form-data".toMediaTypeOrNull())
@@ -89,6 +91,7 @@ class VideoUploadsRepository @Inject constructor(
             try {
                 mRequest.makeActions(
                     userId,
+                    reactionId,
                     matchId,
                     teamId,
                     time,
@@ -147,7 +150,7 @@ class VideoUploadsRepository @Inject constructor(
                         }
                     }
                 })
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 this@VideoUploadsRepository.onError(
                     Tags.SB_CREATE_MATCH_ACTION_API,
                     e.localizedMessage
@@ -163,12 +166,14 @@ class VideoUploadsRepository @Inject constructor(
             }
         }.onEach {
             if (it is UploadSuccess) {
-                Log.d(TAG, "UploadSuccess for ${reactionModel.video}")
-                // Remove local file if it's in cache directory
-//                val filePath = localMediaModel.filePath
-//                if (filePath != null && filePath.contains(context.cacheDir.absolutePath)) {
-//                    File(filePath).delete()
-//                }
+                try {
+                    Log.d(TAG, "UploadSuccess for ${reactionModel.video}")
+                    if (File(reactionModel.video).exists()) {
+                        File(reactionModel.video).delete()
+                    }
+                } catch (e: NullPointerException) {
+                    Log.d(TAG, "UploadSuccess for ${e.localizedMessage}")
+                }
             }
 
             if (it is UploadFailure) {
@@ -281,7 +286,7 @@ class VideoUploadsRepository @Inject constructor(
             }
         }.onEach {
             if (it is UploadInterviewSuccess) {
-                Log.d(TAG, "VideoUploadsRepository > UploadSuccess for ${interviewModel.video}")
+
             }
 
             if (it is UploadFailure) {
@@ -294,7 +299,6 @@ class VideoUploadsRepository @Inject constructor(
         return callbackFlow {
             databaseManager.executeQuery { database ->
                 val dao = MatchActionsDAO(database, context)
-                // mListReaction = dao.selectAll(mDao.getMatch_id() + "",  "2")
                 val list = dao.selectAllUploaded(matchId, "", 1)
                 trySend(list)
                 close()

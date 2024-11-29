@@ -788,7 +788,7 @@ public class ApiCall {
         });
     }
 
-    public void makeActions(OnResponse<UniversalObject> onResponse, Boolean isTrue, RequestBody user_id, RequestBody match_id,
+    public void makeActions(OnResponse<UniversalObject> onResponse, Boolean isTrue, RequestBody user_id, RequestBody reaction_id, RequestBody match_id,
                             RequestBody team_id, RequestBody time, RequestBody reaction, RequestBody half, MultipartBody.Part mVideo, ReactionsBean mReactionsBean) {
          if (isTrue) {
             try {
@@ -797,7 +797,7 @@ public class ApiCall {
             }
         }
         ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
-        mRequest.makeActions(user_id,match_id, team_id,time,reaction,half,mVideo, null).enqueue(new Callback<CommonBean>() {
+        mRequest.makeActions(user_id, reaction_id, match_id, team_id, time, reaction, half, mVideo, null).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(Call<CommonBean> call, Response<CommonBean> response) {
                 if (isTrue) {

@@ -33,7 +33,6 @@ import retrofit2.http.Tag;
 
 public interface ApiRequest {
 
-
     @POST(Tags.SB_LOGIN_API)
     @FormUrlEncoded
     Call<CommonBean> userLogin(@Field("username") String strUsername, @Field("password") String strPassword, @Field("device_id") String strFCMCode, @Field("version") String strVersion, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
@@ -149,6 +148,7 @@ public interface ApiRequest {
     @Multipart
     @POST(Tags.SB_CREATE_MATCH_ACTION_API)
     Call<CommonBean> makeActions(@Part("user_id") RequestBody user_id,
+                                 @Part("local_id") RequestBody local_id,
                                  @Part("match_id") RequestBody match_id,
                                  @Part("team_id") RequestBody team_id,
                                  @Part("time") RequestBody time,
@@ -166,8 +166,14 @@ public interface ApiRequest {
 
     @POST(Tags.SB_CREATE_MATCH_ACTION_API)
     @FormUrlEncoded
-    Call<CommonBean> makeActions1(@Field("user_id") String user_id, @Field("match_id") String match_id
-            , @Field("team_id") String team_id, @Field("time") String time
-            , @Field("reaction") String reaction, @Field("half") String half, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<CommonBean> makeActions1(@Field("user_id") String user_id,
+                                  @Field("match_id") String match_id,
+                                  @Field("team_id") String team_id,
+                                  @Field("time") String time,
+                                  @Field("reaction") String reaction,
+                                  @Field("half") String half,
+                                  @Field("login_id") String login_id,
+                                  @Field("device_type") String device_type,
+                                  @Field("device_model") String device_model);
 
 }
