@@ -13,6 +13,7 @@ import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.di.AppCoroutineScope
+import com.game.awesa.utils.VideoUploadsRepository.Companion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -33,6 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
+import java.io.Serializable
 import java.lang.IllegalStateException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -150,10 +152,10 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     fun fetchVideos(matchId: String?) {
-        cancelUploads()
         Log.d(TAG, "-> fetch videos for upload")
 
         appCoroutineScope.launch {
+            cancelUploads()
             videoUploadsRepository.getMatchReactions(matchId = matchId).collect {
                 it?.forEach { reaction -> enqueueWork(
                     Work.UploadVideo(
@@ -210,7 +212,7 @@ class VideoUploadsWorker @Inject constructor(
 //        }
 
         mutex.withLock {
-            Log.d(TAG, "VideoUploadsWorker -> start uploading media ${work.localUri}")
+            Log.d(TAG, "-> start uploading media ${work.localUri}")
 
             val doneUploads = uploadList.count { it.isDone }
             notificationHandler.update(doneUploads + 1, uploadList.size)
@@ -236,7 +238,16 @@ class VideoUploadsWorker @Inject constructor(
                             }
                         uploadList[index] = uploadList[index].copy(isDone = true)
 
-                        //  Safely update shared list inside lock
+                        try {
+                            Log.d(TAG, "-> Deleting file for action ${work.videoId} @ ${work.localUri}")
+                            if (File(work.localUri).exists()) {
+                                File(work.localUri).delete()
+                            }
+                        } catch (e: NullPointerException) {
+                            Log.e(TAG, "-> Failed Deleting file for action ${work.videoId} @ ${work.localUri}", e)
+                        }
+
+//                        //  Safely update shared list inside lock
 //                        mutex.withLock {
 //                            val index =
 //                                uploadList.indexOfFirst {
@@ -260,19 +271,19 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     private suspend fun uploadMedia(work: Work.UploadInterviewVideo) {
-        mutex.withLock {
-            Log.d(TAG, "-> start uploading interview ${work.localUri}")
-
-            // Update notification safely
-            val doneUploads = uploadList.count { it.isDone }
-            notificationHandler.update(doneUploads + 1, uploadList.size)
-        }
-
 //        mutex.withLock {
-//            Log.d(TAG, "VideoUploadsWorker -> start uploading interview ${work.localUri}")
+//            Log.d(TAG, "-> start uploading interview ${work.localUri}")
 //
+//            // Update notification safely
 //            val doneUploads = uploadList.count { it.isDone }
 //            notificationHandler.update(doneUploads + 1, uploadList.size)
+//        }
+
+        mutex.withLock {
+            Log.d(TAG, "-> Start uploading interview ${work.localUri}")
+
+            val doneUploads = uploadList.count { it.isDone }
+            notificationHandler.update(doneUploads + 1, uploadList.size)
             videoUploadsRepository.uploadMedia(work.interviewModel).collect {
                 when (it) {
                     is UploadFailure -> {
@@ -284,22 +295,30 @@ class VideoUploadsWorker @Inject constructor(
                         Log.d(TAG, "-> Upload interview succeeded for ${work.localUri}")
                         notificationHandler.setProgress(1f)
                         handleResponse(response = it.response, interviewModel = it.interview)
-//                        val index =
-//                            uploadList.indexOfFirst {
-//                                item -> item.videoId == work.videoId && item.localUri == work.localUri
-//                            }
-//                        uploadList[index] = uploadList[index].copy(isDone = true)
-                        // Safely update shared list inside lock
-                        mutex.withLock {
-                            val index = uploadList.indexOfFirst {
-                                    item -> item.videoId == work.videoId && item.localUri == work.localUri
+                        val index =
+                            uploadList.indexOfFirst {
+                                item -> item.videoId == work.videoId && item.localUri == work.localUri
                             }
-                            if (index >= 0) {
-                                uploadList[index] = uploadList[index].copy(isDone = true)
-                            }
-                        }
-                    }
+                        uploadList[index] = uploadList[index].copy(isDone = true)
 
+                        try {
+                            Log.d(TAG, "-> Deleting file for interview ${work.videoId} @ ${work.localUri}")
+                            if (File(work.localUri).exists()) {
+                                File(work.localUri).delete()
+                            }
+                        } catch (e: NullPointerException) {
+                            Log.e(TAG, "-> Failed Deleting file for interview ${work.videoId} @ ${work.localUri}", e)
+                        }
+                        // Safely update shared list inside lock
+//                        mutex.withLock {
+//                            val index = uploadList.indexOfFirst {
+//                                    item -> item.videoId == work.videoId && item.localUri == work.localUri
+//                            }
+//                            if (index >= 0) {
+//                                uploadList[index] = uploadList[index].copy(isDone = true)
+//                            }
+//                        }
+                    }
                     is UploadSuccess -> {}
                 }
             }
@@ -310,7 +329,7 @@ class VideoUploadsWorker @Inject constructor(
             if (!hasMoreUploads) {
                 Log.d(TAG, "-> All uploads are done")
             }
-//        }
+        }
     }
 
     private fun handleResponse(response: UniversalObject?, reactionModel: ReactionsBean?) {
@@ -318,8 +337,9 @@ class VideoUploadsWorker @Inject constructor(
             val mBean = response?.response as? CommonBean
             if (mBean != null && mBean.videos != null) {
                 val broadcastIntent = Intent("videoUpload")
-                broadcastIntent.putExtra("Data", Gson().toJson(mBean.videos))
-                broadcastIntent.putExtra("old_data", Gson().toJson(reactionModel))
+                broadcastIntent.putExtra("data", mBean.videos)
+                broadcastIntent.putExtra("type", VideoType.reaction)
+                broadcastIntent.putExtra("old_data", reactionModel)
 
                 context.sendBroadcast(broadcastIntent)
 
@@ -328,8 +348,7 @@ class VideoUploadsWorker @Inject constructor(
                 if (mBean.status == 1 && CommonMethods.isValidString(response.msg)) {
                     databaseManager.executeQuery { database ->
                         val dao = MatchActionsDAO(database, context)
-                        dao.deleteAll(reactionModel.id.toString(), 0)
-                        File(reactionModel.video).delete()
+                        dao.deleteAll(reactionModel.id)
                     }
                 }
             }
@@ -348,13 +367,18 @@ class VideoUploadsWorker @Inject constructor(
     private  fun handleResponse(response: UniversalObject?, interviewModel: InterviewBean?) {
         try {
             val mBean = response?.response as? CommonBean
+            val broadcastIntent = Intent("videoUpload")
+            broadcastIntent.putExtra("data", mBean)
+            broadcastIntent.putExtra("type", VideoType.interview)
+            broadcastIntent.putExtra("old_data", interviewModel)
+
+            context.sendBroadcast(broadcastIntent)
 
             if (mBean != null &&  mBean.status == 1) {
                 if (interviewModel != null) {
                     databaseManager.executeQuery { database ->
                         val dao = InterviewsDAO(database, context)
-                        dao.deleteAll(interviewModel.id.toString(),0)
-                        File(interviewModel.video).delete()
+                        dao.deleteAll(interviewModel.id)
                     }
                 }
             }
@@ -393,4 +417,9 @@ class VideoUploadsWorker @Inject constructor(
         val localUri: String,
         val isDone: Boolean = false
     )
+
+    enum class VideoType: Serializable {
+        reaction,
+        interview
+    }
 }
