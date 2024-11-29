@@ -23,8 +23,8 @@ public class GamesCategoryDAO {
     private static final String COLUMN_COUNTY = "county";
     private static final String COLUMN_COUNTY_ID = "county_id";
 
-    private SQLiteDatabase mDatabase;
-    private Context mContext;
+    private final SQLiteDatabase mDatabase;
+    final private Context mContext;
 
     public GamesCategoryDAO(SQLiteDatabase database, Context context) {
         mDatabase = database;
@@ -32,7 +32,7 @@ public class GamesCategoryDAO {
     }
 
     public static String getCreateTable() {
-        String CREATE_TABLE = "CREATE TABLE " + TABLE_GAME_CATEGORY
+        return "CREATE TABLE " + TABLE_GAME_CATEGORY
                 + "("
                 + COLUMN_KEY_ID + " INTEGER PRIMARY KEY,"
                 + COLUMN_GAME_CAT_ID + " INT ,"
@@ -40,8 +40,6 @@ public class GamesCategoryDAO {
                 + COLUMN_IMAGE + " TEXT ,"
                 + COLUMN_COUNTY + " INT ,"
                 + COLUMN_COUNTY_ID + " INT)";
-
-        return CREATE_TABLE;
     }
 
     public static String getDropTable() {
