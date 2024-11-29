@@ -16,9 +16,11 @@
 
 package com.game.awesa.ui.recorder
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
@@ -35,9 +37,12 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.ScaleAnimation
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.ExperimentalPersistentRecording
 import androidx.camera.video.MediaStoreOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -49,9 +54,9 @@ import androidx.concurrent.futures.await
 import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenCreated
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.beans.matches.MatchesBean
@@ -60,7 +65,6 @@ import com.codersworld.awesalibs.database.dao.InterviewsDAO
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
-import com.codersworld.awesalibs.listeners.QueryExecutor
 import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
@@ -68,6 +72,7 @@ import com.codersworld.awesalibs.utils.Tags
 import com.game.awesa.databinding.FragmentInterviewBinding
 import com.game.awesa.services.TrimService
 import com.game.awesa.ui.LoginActivity
+import com.game.awesa.ui.recorder.CaptureFragment.Companion.SIXTY
 import com.game.awesa.ui.recorder.extensions.getAspectRatio
 import com.game.awesa.ui.recorder.extensions.getNameString
 import com.game.awesa.utils.GenericListAdapter
@@ -80,16 +85,26 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>,
     OnConfirmListener {
+
+    companion object {
+        const val EXTRA_MATCH_BEAN = "mMatchBean"
+        private const val BYTE = 1_000L
+        const val INTERVIEW_TIME = 1200L
+        // default Quality selection if no input from UI
+        const val DEFAULT_QUALITY_IDX = 0
+        val TAG: String = InterviewFragment::class.java.simpleName
+    }
+
     @Inject
     lateinit var databaseManager: DatabaseManager
     // UI with ViewBinding
     private lateinit var captureViewBinding: FragmentInterviewBinding
-    private val captureLiveStatus = MutableLiveData<String>()
 
     /** Host's navigation controller */
 
@@ -111,8 +126,59 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
     private var qualityIndex = DEFAULT_QUALITY_IDX
     private var audioEnabled = true
 
+    // from camera activity
+    var isStart = false
+    private var secondsPassed = 0
+    var mTimer: CountDownTimer? = null
+    private var strUserId = ""
+    private var mMatchBean: MatchesBean.InfoBean? = null
+    private var mediaFile: File? = null
+
+    private var matchId = ""
+
     private val mainThreadExecutor by lazy { ContextCompat.getMainExecutor(requireContext()) }
     private var enumerationDeferred: Deferred<Unit>? = null
+
+    private val requestAudioPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                audioEnabled = true
+            } else {
+                audioEnabled = false
+                // Explain to the user that the feature is unavailable because the
+                // feature requires a permission that the user has denied. At the
+                // same time, respect the user's decision. Don't link to system
+                // settings in an effort to convince the user to change their
+                // decision.
+            }
+        }
+
+    /**
+     * CaptureEvent listener.
+     */
+    private val captureListener = Consumer<VideoRecordEvent> { event ->
+        // cache the recording state
+        recordingState = event
+
+        updateUI(event)
+
+        if (event is VideoRecordEvent.Finalize && !event.hasError()) {
+            // display the captured video
+            // Video record completed
+            mediaFile = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                File(getAbsolutePathFromUri(event.outputResults.outputUri))
+            } else {
+                // force MediaScanner to re-scan the media file.
+                File(getAbsolutePathFromUri(event.outputResults.outputUri))
+            }
+            saveVideo()
+            captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
+            captureViewBinding.llUpload.visibility = View.VISIBLE
+            captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
+        }
+    }
 
     // main cameraX capture functions
     /**
@@ -130,18 +196,10 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
         val quality = cameraCapabilities[cameraIndex].qualities[qualityIndex]
         val qualitySelector = QualitySelector.from(quality)
 
-        /* captureViewBinding.previewView.updateLayoutParams<ConstraintLayout.LayoutParams> {
-             val orientation = this@CaptureFragment.resources.configuration.orientation
-             dimensionRatio = quality.getAspectRatioString(
-                 quality,
-                 (orientation == Configuration.ORIENTATION_PORTRAIT)
-             )
-         }*/
-
         val preview = Preview.Builder()
             .setTargetAspectRatio(quality.getAspectRatio(quality))
             .build().apply {
-                setSurfaceProvider(captureViewBinding.previewView.surfaceProvider)
+                surfaceProvider = captureViewBinding.previewView.surfaceProvider
             }
 
         // build a recorder, which can:
@@ -160,7 +218,7 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
                 videoCapture,
                 preview
             )
-        } catch (exc: Exception) {
+        } catch (exc: UnsupportedOperationException) {
             // we are on main thread, let's reset the controls on the UI.
             Log.e(TAG, "Use case binding failed", exc)
             resetUIandState("bindToLifecycle failed: $exc")
@@ -177,18 +235,10 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
      * After this function, user could start/pause/resume/stop recording and application listens
      * to VideoRecordEvent for the current recording status.
      */
-    @SuppressLint("MissingPermission")
+    @OptIn(ExperimentalPersistentRecording::class)
     private fun startRecording() {
-        /*      var timeStamp = SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Date())
-              mediaFile = File(
-                  mediaStorageDir.path + File.separator +
-                          "match_" + "_" + timeStamp + "_half_" + mHalf + ".mp4"
-              )*/
         // create MediaStoreOutputOptions for our recorder: resulting our recording!
-        val name = /*"match_" +
-                SimpleDateFormat(FILENAME_FORMAT, Locale.US)
-                    .format(System.currentTimeMillis()) +*/
-            "match_" + match_id + "_interview_" + ".mp4"
+        val name = "match_" + matchId + "_interview_" + ".mp4"
         val contentValues = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, name)
         }
@@ -200,56 +250,21 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
         // configure Recorder and Start recording to the mediaStoreOutput.
         currentRecording = videoCapture.output
             .prepareRecording(requireActivity(), mediaStoreOutput)
-            .apply { if (audioEnabled) withAudioEnabled() }
+            .asPersistentRecording() // Audio data is recorded after the VideoCapture is unbound
+            .apply {
+                if (ContextCompat.checkSelfPermission(
+                        this@InterviewFragment.requireContext(),
+                        Manifest.permission.RECORD_AUDIO
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    requestAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    return
+                }
+                if (audioEnabled) withAudioEnabled()
+            }
             .start(mainThreadExecutor, captureListener)
 
         Log.i(TAG, "Recording started")
-    }
-
-    /**
-     * CaptureEvent listener.
-     */
-    private val captureListener = Consumer<VideoRecordEvent> { event ->
-        // cache the recording state
-        if (event !is VideoRecordEvent.Status)
-            recordingState = event
-
-        updateUI(event)
-
-        if (event is VideoRecordEvent.Finalize) {
-            // display the captured video
-
-            //video record completed
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                mediaFile =
-                    File(getAbsolutePathFromUri(event.outputResults.outputUri))//File( event.outputResults.outputUri.path)
-            } else {
-                // force MediaScanner to re-scan the media file.
-                mediaFile = File(getAbsolutePathFromUri(event.outputResults.outputUri))
-                /*     MediaScannerConnection.scanFile(
-                         context, arrayOf(path), null
-                     ) { _, uri ->
-                         // playback video on main thread with VideoView
-                         if (uri != null) {
-                             lifecycleScope.launch {
-                                 showVideo(uri)
-                             }
-                         }
-                     }*/
-            }
-            saveVideo()
-            captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
-            captureViewBinding.llUpload.visibility = View.VISIBLE
-            captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
-
-            /*       lifecycleScope.launch {
-                       navController.navigate(
-                           CaptureFragmentDirections.actionCaptureToVideoViewer(
-                               event.outputResults.outputUri
-                           )
-                       )
-                   }*/
-        }
     }
 
     private fun getAbsolutePathFromUri(contentUri: Uri): String {
@@ -264,9 +279,9 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
             val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
             cursor.moveToFirst()
             cursor.getString(columnIndex)
-        } catch (e: RuntimeException) {
+        } catch (e: IllegalArgumentException) {
             Log.e(
-                "VideoViewerFragment", String.format(
+                "VideoViewerFragment", String.format(Locale.getDefault(),
                     "Failed in getting absolute path for Uri %s with Exception %s",
                     contentUri.toString(), e.toString()
                 )
@@ -313,14 +328,16 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
                             QualitySelector
                                 .getSupportedQualities(camera.cameraInfo)
                                 .filter { quality ->
-                                    listOf(/*Quality.UHD,*/ Quality.FHD/*, Quality.HD, Quality.SD*/)
+                                    listOf(Quality.HD)
                                         .contains(quality)
                                 }.also {
                                     cameraCapabilities.add(CameraCapability(camSelector, it))
                                 }
                         }
-                    } catch (exc: java.lang.Exception) {
-                        Log.e(TAG, "Camera Face $camSelector is not supported")
+                    } catch (ex: IllegalArgumentException) {
+                        Log.e(TAG, "Camera Face $camSelector is not supported ${ex.localizedMessage}")
+                    } catch (ex: UnsupportedOperationException) {
+                        Log.e(TAG, "Camera Face $camSelector is not supported ${ex.localizedMessage}")
                     }
                 }
             }
@@ -364,22 +381,19 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
                 mMatchBean =
                     arguments.getSerializable("MatchBean", MatchesBean.InfoBean::class.java)
             } else {
-                try {
-                    mMatchBean = arguments!!.getSerializable("MatchBean") as MatchesBean.InfoBean?
-                } catch (ignored: Throwable) {
-                }
+                mMatchBean = arguments.getSerializable("MatchBean") as MatchesBean.InfoBean?
             }
         }
         if (mMatchBean != null) {
-            match_id = mMatchBean!!.id.toString()
-            captureViewBinding.tvTeamOneName.setText(mMatchBean!!.team1)
-            captureViewBinding.tvTeamTwoName.setText(mMatchBean!!.team2)
+            matchId = mMatchBean!!.id.toString()
+            captureViewBinding.tvTeamOneName.text = mMatchBean!!.team1
+            captureViewBinding.tvTeamTwoName.text = mMatchBean!!.team2
         }
 
         captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
         captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
         captureViewBinding.llUpload.visibility = View.GONE
-        captureViewBinding.btnReTakeVideo.setText(getString(com.game.awesa.R.string.lbl_start_interview1))
+        captureViewBinding.btnReTakeVideo.text = getString(com.game.awesa.R.string.lbl_start_interview1)
         captureViewBinding.btnReTakeVideo.setOnClickListener {
             captureViewBinding.btnReTakeVideo.visibility = View.GONE
             captureViewBinding.rlAnotherVideo.visibility = View.GONE
@@ -387,17 +401,19 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
             initVideo()
             startTimerCounter()
         }
-        databaseManager.executeQuery(QueryExecutor {
+        databaseManager.executeQuery {
             val dao = MatchActionsDAO(it, requireActivity())
-            val mCOUNT: Int =
-                dao.getRowCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
-            val mCOUNT1: Int = dao.getRowCount(
+            val teamOneScore: Int =
+                dao.getGoalCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
+            val teamTwoScore: Int = dao.getGoalCount(
                 mMatchBean!!.opponent_team_id.toString(),
                 mMatchBean!!.id.toString()
             )
-            captureViewBinding.tvTeamOneScore.setText(mCOUNT.toString())
-            captureViewBinding.tvTeamTwoScore.setText(mCOUNT1.toString())
-        })
+            captureViewBinding.tvTeamOneScore.text =
+                String.format(Locale.getDefault(), "%d", teamOneScore)
+            captureViewBinding.tvTeamTwoScore.text =
+                String.format(Locale.getDefault(), "%d", teamTwoScore)
+        }
         captureViewBinding.ivStop.setOnClickListener(this)
 
         // audioEnabled by default is disabled.
@@ -405,34 +421,6 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
         captureViewBinding.audioSelection.setOnClickListener {
             audioEnabled = captureViewBinding.audioSelection.isChecked
         }
-
-
-        /*     captureViewBinding.stopButton.apply {
-                 setOnClickListener {
-                     // stopping: hide it after getting a click before we go to viewing fragment
-                     captureViewBinding.stopButton.visibility = View.INVISIBLE
-                     if (currentRecording == null || recordingState is VideoRecordEvent.Finalize) {
-                         return@setOnClickListener
-                     }
-
-                     val recording = currentRecording
-                     if (recording != null) {
-                         recording.stop()
-                         currentRecording = null
-                     }
-                     captureViewBinding.captureButton.setImageResource(R.drawable.ic_start)
-                 }
-                 // ensure the stop button is initialized disabled & invisible
-                 visibility = View.INVISIBLE
-                 isEnabled = false
-             }*/
-
-        /*       captureLiveStatus.observe(viewLifecycleOwner) {
-                   captureViewBinding.captureStatus.apply {
-                       post { text = it }
-                   }
-               }
-               captureLiveStatus.value = getString(R.string.Idle)*/
     }
 
     /**
@@ -446,42 +434,36 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
      *   - this app starts VideoViewer fragment to view the captured result.
      */
     private fun updateUI(event: VideoRecordEvent) {
-        val state = if (event is VideoRecordEvent.Status) recordingState.getNameString()
-        else event.getNameString()
         when (event) {
             is VideoRecordEvent.Status -> {
-                // placeholder: we update the UI with new status after this when() block,
-                // nothing needs to do here.
+                val recordedSeconds = TimeUnit.NANOSECONDS.toSeconds(event.recordingStats.recordedDurationNanos)
+                val time = convertRecordedTime(recordedSeconds)
+                captureViewBinding.tvTimer.text = time
+
+                if (isStart && recordedSeconds >= INTERVIEW_TIME) {
+                    stopRecording()
+                    return
+                }
             }
 
             is VideoRecordEvent.Start -> {
-                showUI(UiState.RECORDING, event.getNameString())
+                showUI(UiState.RECORDING)
             }
 
-            is VideoRecordEvent.Finalize -> {
-                showUI(UiState.FINALIZED, event.getNameString())
+            is VideoRecordEvent.Finalize -> if(event.hasError()) {
+                Log.i(CaptureFragment.TAG, event.error.toString(), event.cause)
+            } else {
+                showUI(UiState.FINALIZED)
             }
-
-            /*    is VideoRecordEvent.Pause -> {
-                    captureViewBinding.captureButton.setImageResource(R.drawable.ic_resume)
-                }
-
-                is VideoRecordEvent.Resume -> {
-                    captureViewBinding.captureButton.setImageResource(R.drawable.ic_pause)
-                }*/
         }
-
-        val stats = event.recordingStats
-        val size = stats.numBytesRecorded / 1000
-        val time = java.util.concurrent.TimeUnit.NANOSECONDS.toSeconds(stats.recordedDurationNanos)
-        var text = "${state}: recorded ${size}KB, in ${time}second"
-        if (event is VideoRecordEvent.Finalize)
-            text = "${text}\nFile saved to: ${event.outputResults.outputUri}"
-
-        // captureLiveStatus.value = text
-        Log.i(TAG, "recording event: $text")
     }
 
+    private fun convertRecordedTime(recordedSeconds: Long): String {
+        val minutes = recordedSeconds / SIXTY
+        val secs = recordedSeconds % SIXTY
+        val time = String.format(Locale.getDefault(), "%02d:%02d", minutes, secs)
+        return time
+    }
 
     /**
      * Enable/disable UI:
@@ -510,38 +492,20 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
      *  - at recording: hide audio, qualitySelection,change camera UI; enable stop button
      *  - otherwise: show all except the stop button
      */
-    private fun showUI(state: UiState, status: String = "idle") {
+    private fun showUI(state: UiState) {
         captureViewBinding.let {
             when (state) {
                 UiState.IDLE -> {
-                    /*
-                                        it.captureButton.setImageResource(R.drawable.ic_start)
-                                        it.stopButton.visibility = View.INVISIBLE
-
-                                        it.cameraButton.visibility = View.VISIBLE
-                    */
                     it.audioSelection.visibility = View.VISIBLE
                     it.qualitySelection.visibility = View.VISIBLE
                 }
 
                 UiState.RECORDING -> {
-                    //it.cameraButton.visibility = View.INVISIBLE
                     it.audioSelection.visibility = View.INVISIBLE
                     it.qualitySelection.visibility = View.INVISIBLE
-
-                    /*
-                                        it.captureButton.setImageResource(R.drawable.ic_pause)
-                                        it.captureButton.isEnabled = true
-                                        it.stopButton.visibility = View.VISIBLE
-                                        it.stopButton.isEnabled = true
-                    */
                 }
 
                 UiState.FINALIZED -> {
-                    /*
-                                        it.captureButton.setImageResource(R.drawable.ic_start)
-                                        it.stopButton.visibility = View.INVISIBLE
-                    */
                 }
 
                 else -> {
@@ -550,7 +514,6 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
                     return
                 }
             }
-            // it.captureStatus.text = status
         }
     }
 
@@ -561,7 +524,7 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
      */
     private fun resetUIandState(reason: String) {
         enableUI(true)
-        showUI(UiState.IDLE, reason)
+        showUI(UiState.IDLE)
 
         cameraIndex = 0
         qualityIndex = DEFAULT_QUALITY_IDX
@@ -635,18 +598,6 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
         initCameraFragment()
     }
 
-    override fun onDestroyView() {
-        //_captureViewBinding = null
-        super.onDestroyView()
-    }
-
-    companion object {
-        // default Quality selection if no input from UI
-        const val DEFAULT_QUALITY_IDX = 0
-        val TAG: String = InterviewFragment::class.java.simpleName
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
-    }
-
     override fun onResume() {
         super.onResume()
         if (currentRecording != null) {
@@ -661,32 +612,10 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
         }
     }
 
-    // from camera activity
-    var isClicked = false
-    var isStart = false
-    var strTime = "00:00"
-    var strTeam_id = ""
-    var sec_passed = 0
-    var seconds = 0;
-    var mTimer: CountDownTimer? = null
-    var actionTimer: CountDownTimer? = null
-    var strUserId = "";
-    var mMatchBean: MatchesBean.InfoBean? = null;
-    var seconds1 = 0;
-    var handler = Handler()
-    var mediaFile: File? = null
-
-    var match_id = ""
-
-
-    fun stopRecording() {
-       try {
-           if (currentRecording == null || recordingState is VideoRecordEvent.Finalize) {
-               return;
-           }
-       }catch (ex1:Exception){
-           ex1.printStackTrace()
-       }
+    private fun stopRecording() {
+        if (currentRecording == null || recordingState is VideoRecordEvent.Finalize) {
+            return
+        }
 
         val recording = currentRecording
         if (recording != null && isStart) {
@@ -705,9 +634,9 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
     }
 
     private fun startTimerCounter() {
-        if (sec_passed + 1 < Tags.recording_duration / 1000) {
-            captureViewBinding.countdownTimerTxt.setText("3")
-            captureViewBinding.countdownTimerTxt.setVisibility(View.VISIBLE)
+        if (secondsPassed + 1 < Tags.recording_duration / BYTE) {
+            captureViewBinding.countdownTimerTxt.text = "3"
+            captureViewBinding.countdownTimerTxt.visibility = View.VISIBLE
             val scaleAnimation: Animation = ScaleAnimation(
                 1.0f,
                 0.0f,
@@ -720,54 +649,46 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
             )
             mTimer = object : CountDownTimer(5000, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
-                    captureViewBinding.countdownTimerTxt.setText("" + millisUntilFinished / 1000)
+                    captureViewBinding.countdownTimerTxt.text = "" + millisUntilFinished / 1000
                     captureViewBinding.countdownTimerTxt.setAnimation(scaleAnimation)
-                    captureViewBinding.tvHalfStatus.setText(getString(com.game.awesa.R.string.lbl_interview1))
+                    captureViewBinding.tvHalfStatus.text = getString(com.game.awesa.R.string.lbl_interview1)
                 }
 
                 override fun onFinish() {
-                    captureViewBinding.countdownTimerTxt.setVisibility(View.GONE)
+                    captureViewBinding.countdownTimerTxt.visibility = View.GONE
                     isStart = true
-                    runTimer()
-                    //Start_or_Stop_Recording()
                     captureVideo()
                     mTimer!!.cancel()
                 }
-            }//.start()
-            mTimer!!.start()
+            }.start()
         }
     }
 
-
-    fun saveVideo() {
-        var fileName = mediaFile.toString()
+    @OptIn(UnstableApi::class)
+    private fun saveVideo() {
+        val fileName = mediaFile.toString()
             .substring(mediaFile.toString().lastIndexOf('/') + 1, mediaFile.toString().length)
-        var extension = "mp4"//mediaFile.toString().substring(mediaFile.toString().lastIndexOf("."))
-        var timeStamp = SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Date())
 
+        val timeStamp = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(Date())
 
-        databaseManager.executeQuery(QueryExecutor {
+        databaseManager.executeQuery {
             val dao = InterviewsDAO(it, requireActivity())
-            var match_id = if(mMatchBean !=null && mMatchBean!!.id>0) mMatchBean!!.id.toString() else ""
-            dao.insert(match_id,fileName,mediaFile.toString(),"0",timeStamp)
+            val matchId =
+                if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id.toString() else ""
+            dao.insert(matchId, fileName, mediaFile.toString(), "0", timeStamp)
 
-            var masterDataBaseId = dao.lastInsertedId
-            val mCOUNT: Int = dao.getRowCount("")
-            // binding.llUpload.visibility=View.GONE
-            CommonMethods.checkServiceWIthData(requireActivity(), TrimService::class.java,match_id)
-           // CommonMethods.checkService(requireActivity(), TrimService::class.java)
-//            CommonMethods.checkService(requireActivity(), InterviewUploadService::class.java)
-           // val intent = Intent(requireActivity(), MatchOverviewActivity::class.java)
+            CommonMethods.checkTrimServiceWithData(requireActivity(), TrimService::class.java, matchId)
+
             val intent = Intent(requireActivity(), ProcessingActivity::class.java)
-            intent.putExtra("mMatchBean",mMatchBean)
+            intent.putExtra(EXTRA_MATCH_BEAN, mMatchBean)
             startActivity(intent)
             requireActivity().finish()
-        })
+        }
     }
 
     override fun onConfirm(isTrue: Boolean, type: String) {
          if (isTrue) {
-            if (type.equals("99")) {
+            if (type == "99") {
                 UserSessions.clearUserInfo(requireActivity())
                 startActivity(
                     Intent(
@@ -778,18 +699,17 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
                 )
                 requireActivity().finishAffinity()
             } else {
-                //overview
+                // Overview
                 val intent = Intent(requireActivity(), MatchOverviewActivity::class.java)
-               // val intent = Intent(requireActivity(), ProcessingActivity::class.java)
-                intent.putExtra("mMatchBean", mMatchBean)
+                intent.putExtra(MatchOverviewActivity.EXTRA_MATCH_BEAN, mMatchBean)
                 startActivity(intent)
                 requireActivity().finish()
             }
-            //CommonMethods.moveWithClear(requireActivity(), LoginActivity::class.java)
+            // CommonMethods.moveWithClear(requireActivity(), LoginActivity::class.java)
         } else {
             //interview
             val intent = Intent(requireActivity(), InterviewActivityNew::class.java)
-            intent.putExtra("mMatchBean", mMatchBean)
+            intent.putExtra(InterviewActivityNew.EXTRA_MATCH_BEAN, mMatchBean)
             startActivity(intent)
             requireActivity().finish()
         }
@@ -800,21 +720,25 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
             when (response.methodName) {
                 Tags.SB_CREATE_MATCH_ACTION_API -> {
                     try {
-                        var mBean = response.response as CommonBean
+                        val mBean = response.response as CommonBean
                         if (mBean.status == 1 && CommonMethods.isValidArrayList(mBean.scores)) {
-                            captureViewBinding.tvTeamOneScore.setText(mBean.scores[0].team1_score.toString())
-                            captureViewBinding.tvTeamTwoScore.setText(mBean.scores[0].team2_score.toString())
+                            captureViewBinding.tvTeamOneScore.text = String.format(
+                                Locale.getDefault(), "%d", mBean.scores[0].team1_score
+                            )
+                            captureViewBinding.tvTeamTwoScore.text = String.format(
+                                Locale.getDefault(),"%d", mBean.scores[0].team2_score
+                            )
                         } else if (mBean.status == 99) {
                             UserSessions.clearUserInfo(requireActivity())
                             Global().makeConfirmation(mBean.msg, requireActivity(), this)
                         }
-                    } catch (ex1: Exception) {
-                        ex1.printStackTrace()
+                    } catch (ex: Exception) {
+                        Log.e(TAG, ex.localizedMessage)
                     }
                 }
             }
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Log.e(TAG, ex.localizedMessage)
             errorMsg(getString(com.game.awesa.R.string.something_wrong))
         }
     }
@@ -832,39 +756,7 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
             strMsg,
             getResources().getString(com.game.awesa.R.string.app_name),
             getResources().getString(com.game.awesa.R.string.lbl_ok)
-        );
-    }
-
-    private fun runTimer() {
-        seconds = 0;
-        seconds1 = 45 * 60;
-        handler.post(object : java.lang.Runnable {
-            override fun run() {
-                var minutes = seconds / 60
-                var secs = seconds % 60
-                var time = String.format(Locale.getDefault(), "%02d:%02d", minutes, secs)
-/*
-                if (mHalf == 2) {
-                    val minutes1 = seconds1 / 60
-                    val secs1 = seconds1 % 60
-                    var time1 = String.format(Locale.getDefault(), "%02d:%02d", minutes1, secs1)
-                    captureViewBinding.tvTimer.setText(time1)
-                } else {
-*/
-                    captureViewBinding.tvTimer.setText(time)
-//                }
-                strTime = time;
-                if (isStart) {
-                    seconds++
-                    seconds1++
-                    if (seconds >= Tags.interview_duration) {
-                        stopRecording()
-                        return;
-                    }
-                }
-                handler.postDelayed(this, 1000)
-            }
-        })
+        )
     }
 
     private fun captureVideo() {
@@ -885,59 +777,43 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
 
                 is VideoRecordEvent.Pause -> currentRecording?.resume()
                 is VideoRecordEvent.Resume -> currentRecording?.pause()
-                else -> throw IllegalStateException("recordingState in unknown state")
+                else -> error("recordingState in unknown state")
             }
         }
     }
 
-    fun initVideo() {
-        databaseManager.executeQuery(QueryExecutor {
+    private fun initVideo() {
+        databaseManager.executeQuery {
             val dao = MatchActionsDAO(it, requireActivity())
 
             try {
-                val mCOUNT: Int =
-                    dao.getRowCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
-                val mCOUNT1: Int = dao.getRowCount(
+                val teamOneScore: Int =
+                    dao.getGoalCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
+                val teamTwoScore: Int = dao.getGoalCount(
                     mMatchBean!!.opponent_team_id.toString(),
                     mMatchBean!!.id.toString()
                 )
-                captureViewBinding.tvTeamOneScore.setText(mCOUNT.toString())
-                captureViewBinding.tvTeamTwoScore.setText(mCOUNT1.toString())
-            } catch (Ex: Exception) {
-                Ex.printStackTrace()
+                captureViewBinding.tvTeamOneScore.text = teamOneScore.toString()
+                captureViewBinding.tvTeamTwoScore.text = teamTwoScore.toString()
+            } catch (ex: Exception) {
+                Log.e(TAG, ex.localizedMessage)
             }
-        })
-
+        }
     }
 
-    var animation1: Animation? = null;
-    fun makeAnimation(type: Int) {
-        if (animation1 == null) {
-            animation1 = AnimationUtils.loadAnimation(
+    private var animation: Animation? = null
+    private fun makeAnimation(type: Int) {
+        if (animation == null) {
+            animation = AnimationUtils.loadAnimation(
                 requireActivity(),
                 com.game.awesa.R.anim.blink
             )
         }
         if (type == 0) {
-            captureViewBinding.ivRec.startAnimation(animation1)
+            captureViewBinding.ivRec.startAnimation(animation)
         } else {
-            animation1!!.cancel()
-            animation1!!.reset()
+            animation!!.cancel()
+            animation!!.reset()
         }
-    }
-
-    var isActionClick = true
-    fun actionTimer() {
-        actionTimer = object : CountDownTimer(5000, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                isActionClick = false
-            }
-
-            override fun onFinish() {
-                isActionClick = true
-                actionTimer!!.cancel()
-            }
-        }//.start()
-        actionTimer!!.start()
     }
 }
