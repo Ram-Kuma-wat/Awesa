@@ -6,8 +6,6 @@ plugins {
     id 'com.google.firebase.crashlytics'
     id 'com.google.devtools.ksp'
     id 'com.google.dagger.hilt.android'
-
-    // id 'com.google.firebase.crashlytics'
 }
 
 android {
@@ -53,14 +51,12 @@ android {
     }*/
     signingConfigs {
         release {
-          //  storeFile file('D:\\projects\\Awesa2\\awesa.jks')
             storeFile file('../keystore/awesa.jks')
             keyAlias 'awesa'
             storePassword 'awesa2023'
             keyPassword 'awesa2023'
         }
         debug {
-//            storeFile file('D:\\projects\\Awesa2\\awesa.jks')
             storeFile file('../keystore/awesa.jks')
             keyAlias 'awesa'
             storePassword 'awesa2023'
@@ -69,12 +65,26 @@ android {
     }
     buildTypes {
         release {
-          //  debuggable false
-            shrinkResources false
-            minifyEnabled false
+            signingConfig signingConfigs.release
+            shrinkResources true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
+        debug {
+            applicationIdSuffix ".debug"
+            minifyEnabled false
+            debuggable = true
+            pseudoLocalesEnabled true
+            isDefault true
+        }
     }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/java'
+        debug.java.srcDirs += 'src/debug/java'
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -133,14 +143,15 @@ dependencies {
     implementation "androidx.camera:camera-lifecycle:${camerax_version}"
     implementation "androidx.camera:camera-video:${camerax_version}"
     implementation "androidx.camera:camera-view:${camerax_version}"
-    implementation 'com.arthenica:mobile-ffmpeg-full:4.4.LTS'
+    implementation 'com.arthenica:ffmpeg-kit-full:6.0.LTS'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    /*
-    implementation(platform("com.google.firebase:firebase-bom:32.4.0"))
+
+    def firebase_version = "33.6.0"
+
+    implementation(platform("com.google.firebase:firebase-bom:${firebase_version}"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
-    */
 
     // Dependency Injection
     implementation 'com.google.dagger:hilt-android:2.52'
