@@ -18,3 +18,4 @@ local.properties
 # Project exclude paths
 /awesalibs/build/
 /awesalibs/build/intermediates/javac/debug/classes/
+.idea/appInsightsSettings.xml
