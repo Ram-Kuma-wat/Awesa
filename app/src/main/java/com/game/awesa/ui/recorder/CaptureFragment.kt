@@ -49,6 +49,7 @@ import androidx.camera.core.Preview
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.ExperimentalPersistentRecording
 import androidx.camera.video.MediaStoreOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -188,20 +189,18 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
      */
     private val captureListener = Consumer<VideoRecordEvent> { event ->
         // Cache the recording state
-//        if (event !is VideoRecordEvent.Status)
         recordingState = event
 
         updateUI(event)
 
-        if (event is VideoRecordEvent.Finalize) {
+        if (event is VideoRecordEvent.Finalize && !event.hasError()) {
             // Display the captured video
-
             // Video record completed
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                mediaFile = File(getAbsolutePathFromUri(event.outputResults.outputUri))
+            mediaFile = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                File(getAbsolutePathFromUri(event.outputResults.outputUri))
             } else {
                 // force MediaScanner to re-scan the media file.
-                mediaFile = File(getAbsolutePathFromUri(event.outputResults.outputUri))
+                File(getAbsolutePathFromUri(event.outputResults.outputUri))
             }
             saveVideo()
             captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
@@ -285,7 +284,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             cameraControl.setLinearZoom(mArrayZoom[zoomRatio])
             captureViewBinding.txtZoom.text = String.format(Locale.getDefault(), "%dx", mArrayZoom1[zoomRatio])
         }
-
     }
 
     /**
@@ -297,7 +295,8 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
      * After this function, user could start/pause/resume/stop recording and application listens
      * to VideoRecordEvent for the current recording status.
      */
-//    @SuppressLint("MissingPermission")
+
+    @OptIn(ExperimentalPersistentRecording::class)
     private fun startRecording() {
         val name = "match_" + matchId + "_half_" + mHalf + ".mp4"
         val contentValues = ContentValues().apply {
@@ -311,6 +310,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         // configure Recorder and Start recording to the mediaStoreOutput.
         currentRecording = videoCapture.output
             .prepareRecording(requireActivity(), mediaStoreOutput)
+            .asPersistentRecording() // Audio data is recorded after the VideoCapture is unbound
             .apply {
                 if (ContextCompat.checkSelfPermission(
                     this@CaptureFragment.requireContext(),
@@ -340,7 +340,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             cursor.getString(columnIndex)
         } catch (e: IllegalArgumentException) {
             Log.e(
-                "CaptureFragment", String.format(Locale.getDefault(),
+                TAG, String.format(Locale.getDefault(),
                     "Failed in getting absolute path for Uri %s with Exception %s",
                     contentUri.toString(), e.localizedMessage
                 )
@@ -395,14 +395,14 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                             QualitySelector
                                 .getSupportedQualities(camera.cameraInfo)
                                 .filter { quality ->
-                                    listOf(/*Quality.UHD,*/ Quality.FHD/*, Quality.HD, Quality.SD*/)
+                                    listOf(Quality.HD)
                                         .contains(quality)
                                 }.also {
                                     cameraCapabilities.add(CameraCapability(camSelector, it))
                                 }
                         }
                     } catch (ex: UnsupportedOperationException) {
-                        Log.e(TAG, "${ex.localizedMessage}")
+                        Log.e(TAG, ex.localizedMessage)
                     }
                 }
             }
@@ -491,8 +491,8 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                  databaseManager.executeQuery {
                      val dao = MatchActionsDAO(it, requireActivity())
                      val teamOneScore: Int =
-                         dao.getRowCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
-                     val teamTwoScore: Int = dao.getRowCount(
+                         dao.getGoalCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
+                     val teamTwoScore: Int = dao.getGoalCount(
                          mMatchBean!!.opponent_team_id.toString(),
                          mMatchBean!!.id.toString()
                      )
@@ -520,16 +520,12 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
     /**
      * UpdateUI according to CameraX VideoRecordEvent type:
      *   - user starts capture.
-     *   - this app disables all UI selections.
      *   - this app enables capture run-time UI (pause/resume/stop).
      *   - user controls recording with run-time UI, eventually tap "stop" to end.
      *   - this app informs CameraX recording to stop with recording.stop() (or recording.close()).
      *   - CameraX notify this app that the recording is indeed stopped, with the Finalize event.
-     *   - this app starts VideoViewer fragment to view the captured result.
      */
     private fun updateUI(event: VideoRecordEvent) {
-        val state = if (event is VideoRecordEvent.Status) recordingState.getNameString()
-        else event.getNameString()
         when (event) {
             is VideoRecordEvent.Status -> {
                 var recordedSeconds = TimeUnit.NANOSECONDS.toSeconds(event.recordingStats.recordedDurationNanos)
@@ -537,8 +533,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                     recordedSeconds += SECOND_HALF_TIME
                 }
                 val time = convertRecordedTime(recordedSeconds)
-                Log.i(TAG, "Recording at $time")
-                Log.i(TAG, "=================================")
                 captureViewBinding.tvTimer.text = time
 
                 when(mHalf) {
@@ -561,24 +555,11 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 showUI(UiState.RECORDING)
             }
 
-            is VideoRecordEvent.Finalize -> {
+            is VideoRecordEvent.Finalize -> if(event.hasError()) {
+                Log.i(TAG, event.error.toString(), event.cause)
+            } else {
                 showUI(UiState.FINALIZED)
-                val stats = event.recordingStats
-                val size = stats.numBytesRecorded / BYTE
-                val time = TimeUnit.NANOSECONDS.toSeconds(stats.recordedDurationNanos)
-                val text = "${state}: recorded ${size}KB, in ${time}second"
-                Log.i(TAG, text)
             }
-
-            /*
-            is VideoRecordEvent.Pause -> {
-                captureViewBinding.captureButton.setImageResource(R.drawable.ic_resume)
-            }
-
-            is VideoRecordEvent.Resume -> {
-                captureViewBinding.captureButton.setImageResource(R.drawable.ic_pause)
-            }
-            */
         }
     }
 
@@ -853,7 +834,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         }
     }
 
-    fun stopRecording() {
+    private fun stopRecording() {
         if (currentRecording == null || recordingState is VideoRecordEvent.Finalize) {
             return
         }
@@ -953,7 +934,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 override fun onFinish() {
                     captureViewBinding.countdownTimerTxt.visibility = View.GONE
                     isStart = true
-//                    runTimer()
                     captureVideo()
                     mTimer!!.cancel()
                 }
@@ -1002,8 +982,8 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             mList.add(mBean)
             dao.insert(mList)
             val teamOneScore: Int =
-                dao.getRowCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
-            val teamTwoScore: Int = dao.getRowCount(
+                dao.getGoalCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
+            val teamTwoScore: Int = dao.getGoalCount(
                 mMatchBean!!.opponent_team_id.toString(),
                 mMatchBean!!.id.toString()
             )
@@ -1040,7 +1020,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             val mList: ArrayList<DBVideoUploadDao> = ArrayList()
             mList.add(mBean)
             dao.insert(mList)
-            val mCOUNT: Int = dao.getTodoItemCount()
             captureViewBinding.llUpload.visibility = View.GONE
             CommonMethods.checkTrimServiceWithData(requireActivity(), TrimService::class.java, matchId)
             when (mHalf) {
@@ -1165,36 +1144,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         );
     }
 
-    private fun runTimer() {
-        seconds = 0
-        seconds1 = 45 * SIXTY
-        handler.post(object : java.lang.Runnable {
-            override fun run() {
-                val minutes = seconds / SIXTY
-                val secs = seconds % SIXTY
-                val time = String.format(Locale.getDefault(), "%02d:%02d", minutes, secs)
-                if (mHalf == 2) {
-                    val minutes1 = seconds1 / SIXTY
-                    val secs1 = seconds1 % SIXTY
-                    val time1 = String.format(Locale.getDefault(), "%02d:%02d", minutes1, secs1)
-                    captureViewBinding.tvTimer.text = time1
-                } else {
-                    captureViewBinding.tvTimer.text = time
-                }
-                strTime = time
-                if (isStart) {
-                    seconds++
-                    seconds1++
-                    if (seconds >= Tags.recording_duration) {
-                        stopRecording()
-                        return;
-                    }
-                }
-                handler.postDelayed(this, BYTE)
-            }
-        })
-    }
-
     private fun captureVideo() {
         if (!this@CaptureFragment::recordingState.isInitialized ||
             recordingState is VideoRecordEvent.Finalize
@@ -1241,8 +1190,8 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
             try {
                 val teamOneScore: Int =
-                    dao.getRowCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
-                val teamTwoScore: Int = dao.getRowCount(
+                    dao.getGoalCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
+                val teamTwoScore: Int = dao.getGoalCount(
                     mMatchBean!!.opponent_team_id.toString(),
                     mMatchBean!!.id.toString()
                 )
@@ -1282,7 +1231,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 isActionClick = true
                 actionTimer!!.cancel()
             }
-        }//.start()
-        actionTimer!!.start()
+        }.start()
     }
 }
