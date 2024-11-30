@@ -583,7 +583,7 @@ public class ApiCall {
             SFProgress.showProgressDialog(mContext, true);
         }
         ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
-        mRequest.getMatchDetail(params[0],params[1] ,CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<MatchesBean>() {
+        mRequest.getMatchDetail(params[0], params[1], CommonMethods.getIMEI(mContext), "android", CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<MatchesBean>() {
             @Override
             public void onResponse(@NonNull Call<MatchesBean> call, @NonNull Response<MatchesBean> response) {
                 if (isTrue) {
@@ -612,7 +612,7 @@ public class ApiCall {
             }
         }
         ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
-        mRequest.deleteVideos(params[0],params[1] ,params[2] ,params[3] ,CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
+        mRequest.deleteVideos(params[0], params[1], params[2], params[3], CommonMethods.getIMEI(mContext), "android", CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(Call<CommonBean> call, Response<CommonBean> response) {
                 if (isTrue) {
@@ -652,10 +652,7 @@ public class ApiCall {
 
     public void getCounty(OnResponse<UniversalObject> onResponse, Boolean isTrue, String... params) {
         if (isTrue) {
-            try {
-                SFProgress.showProgressDialog(mContext, true);
-            } catch (Exception e) {
-            }
+            SFProgress.showProgressDialog(mContext, true);
         }
         ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
         mRequest.getCounty(params[0],params[1],params[2],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CountyBean>() {
@@ -685,10 +682,7 @@ public class ApiCall {
             @Override
             public void onFailure(Call<CountyBean> call, Throwable t) {
                 if (isTrue) {
-                    try {
-                        SFProgress.hideProgressDialog(mContext);
-                    } catch (Exception e) {
-                    }
+                    SFProgress.hideProgressDialog(mContext);
                 }
                 t.printStackTrace();
                 onResponse.onError(Tags.SB_COUNTY_API, mContext.getResources().getString(R.string.something_wrong));
@@ -698,21 +692,16 @@ public class ApiCall {
 
     public void getSubjects(OnResponse<UniversalObject> onResponse, Boolean isTrue, String... params) {
         if (isTrue) {
-            try {
-                SFProgress.showProgressDialog(mContext, true);
-            } catch (Exception e) {
-            }
+            SFProgress.showProgressDialog(mContext, true);
         }
         ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
         mRequest.getSubjects("1",CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<SubjectsBean>() {
             @Override
             public void onResponse(Call<SubjectsBean> call, Response<SubjectsBean> response) {
                 if (isTrue) {
-                    try {
-                        SFProgress.hideProgressDialog(mContext);
-                    } catch (Exception e) {
-                    }
+                    SFProgress.hideProgressDialog(mContext);
                 }
+
                 try {
                     if (response != null) {
                         try {
@@ -731,11 +720,9 @@ public class ApiCall {
             @Override
             public void onFailure(Call<SubjectsBean> call, Throwable t) {
                 if (isTrue) {
-                    try {
-                        SFProgress.hideProgressDialog(mContext);
-                    } catch (Exception e) {
-                    }
+                    SFProgress.hideProgressDialog(mContext);
                 }
+
                 t.printStackTrace();
                 onResponse.onError(Tags.SB_SUPPORT_SUBJECTS_API, mContext.getResources().getString(R.string.something_wrong));
             }
@@ -744,21 +731,16 @@ public class ApiCall {
 
     public void createMatch(OnResponse<UniversalObject> onResponse, Boolean isTrue, String... params) {
         if (isTrue) {
-            try {
-                SFProgress.showProgressDialog(mContext, true);
-            } catch (Exception e) {
-            }
+            SFProgress.showProgressDialog(mContext, true);
         }
         ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
         mRequest.createMatch(params[0],params[1],params[2],params[3],params[4],params[5],params[6],params[7],params[8],params[9],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<MatchesBean>() {
             @Override
             public void onResponse(Call<MatchesBean> call, Response<MatchesBean> response) {
                 if (isTrue) {
-                    try {
-                        SFProgress.hideProgressDialog(mContext);
-                    } catch (Exception e) {
-                    }
+                    SFProgress.hideProgressDialog(mContext);
                 }
+
                 try {
                     if (response != null) {
                         try {
@@ -777,10 +759,7 @@ public class ApiCall {
             @Override
             public void onFailure(Call<MatchesBean> call, Throwable t) {
                 if (isTrue) {
-                    try {
-                        SFProgress.hideProgressDialog(mContext);
-                    } catch (Exception e) {
-                    }
+                    SFProgress.hideProgressDialog(mContext);
                 }
                 t.printStackTrace();
                 onResponse.onError(Tags.SB_CREATE_MATCH_API, mContext.getResources().getString(R.string.something_wrong));
