@@ -19,9 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class HistoryAdapter extends RecyclerView.Adapter {
-     public Context context;
-     public List<MatchesBean.InfoBean> list;
+public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.GameHolder> {
+    public Context context;
+    public List<MatchesBean.InfoBean> list;
+
     OnMatchListener mListener;
     public HistoryAdapter(Context context, List<MatchesBean.InfoBean> list, OnMatchListener mListener) {
         this.context = context;
@@ -29,20 +30,15 @@ public class HistoryAdapter extends RecyclerView.Adapter {
         this.list = list;
     }
 
-    public HistoryAdapter(Context context, List<MatchesBean.InfoBean> list ) {
-        this.context = context;
-         this.list = list;
-    }
-
     @NonNull
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+    public HistoryAdapter.GameHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int position) {
         return new GameHolder(LayoutInflater.from(this.context).inflate(R.layout.history_item_layout, viewGroup, false));
     }
 
     public void addAll(ArrayList<MatchesBean.InfoBean> mList) {
         if (CommonMethods.isValidArrayList(mList)){
             list = mList;
-            notifyDataSetChanged();
+            notifyItemRangeChanged(0, list.size());
         }
     }
 
@@ -50,7 +46,7 @@ public class HistoryAdapter extends RecyclerView.Adapter {
             return list.size();
     }
 
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
+    public void onBindViewHolder(@NonNull HistoryAdapter.GameHolder viewHolder, int i) {
         GameHolder mHolder = (GameHolder) viewHolder;
         MatchesBean.InfoBean mBean = list.get(i);
         mHolder.binding.tvTeam1.setText(mBean.getTeam1());
@@ -75,8 +71,8 @@ public class HistoryAdapter extends RecyclerView.Adapter {
         }
 
         public void onClick(View view) {
-            if (mListener != null){
-                mListener.onMatchClick(list.get(getAdapterPosition()));
+            if (mListener != null) {
+                mListener.onMatchClick(list.get(getBindingAdapterPosition()));
             }
         }
     }
