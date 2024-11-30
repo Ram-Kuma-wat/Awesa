@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
@@ -29,7 +28,6 @@ import com.codersworld.awesalibs.utils.CommonMethods;
 import com.codersworld.awesalibs.utils.Tags;
 import com.game.awesa.R;
 import com.game.awesa.databinding.FragmentHistoryBinding;
-import com.game.awesa.services.VideoUploadService;
 import com.game.awesa.ui.LoginActivity;
 import com.game.awesa.ui.dashboard.adapter.HistoryAdapter;
 import com.game.awesa.ui.matches.MatchDetailActivity;
@@ -38,7 +36,6 @@ import com.game.awesa.utils.Global;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRefreshListener, OnResponse<UniversalObject>, OnMatchListener, OnConfirmListener {
     ArrayList<MatchesBean.InfoBean> mListMatches = new ArrayList<>();
@@ -46,12 +43,10 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
     @NotNull
     public static final String TAG = FragmentHistory.class.getSimpleName();
 
-    public FragmentHistory() {
-        //if required
-    }
+    public FragmentHistory() {}
 
-    String game_category = "";
-    String game_id = "";
+    String gameCategory = "";
+    String gameId = "";
 
     public void getMatches(int page) {
         if (page == 1) {
@@ -60,11 +55,12 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
             binding.loadingProgress.setVisibility(View.VISIBLE);
         }
 
-        String user_id =  Objects.requireNonNull(UserSessions.getUserInfo(requireActivity())).getId()+"";
-//        String user_id =  "72";
-        // search user_id game_category  game_id
-        new ApiCall(requireActivity()).getMatches(this, page == 1, page + "", "",
-                user_id, game_category, game_id);
+        Integer userId = UserSessions.getUserInfo(requireActivity()).getId();
+
+        if(userId != null) {
+            new ApiCall(requireActivity()).getMatches(this, !binding.swRefresh.isRefreshing(), page + "", "",
+                    userId.toString(), gameCategory, gameId);
+        }
     }
 
     @Override
