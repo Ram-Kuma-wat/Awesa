@@ -11,6 +11,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnPageChangeListener
+import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityMainBinding
@@ -24,15 +25,36 @@ import com.game.awesa.ui.dashboard.extension.findNavigationPositionById
 import com.game.awesa.ui.dashboard.extension.getTag
 import com.game.awesa.ui.dashboard.extension.switchFragment
 import com.game.awesa.ui.dialogs.CustomDialog
+import com.game.awesa.utils.AndroidNetworkObservingStrategy
 import com.game.awesa.utils.ErrorReporter
+import com.game.awesa.utils.VideoUploadsWorker
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
-    lateinit var binding:ActivityMainBinding
+    lateinit var binding: ActivityMainBinding
     private var navPosition: JBNavigationPosition = JBNavigationPosition.HOME
 
+    @Inject
+    lateinit var networkObserver: AndroidNetworkObservingStrategy
+    @Inject lateinit var videoUploadsWorker: VideoUploadsWorker
+
+    override fun onStart() {
+        super.onStart()
+        networkObserver.getLiveConnectivityState().observeForever { connectivity ->
+            if (connectivity.networkState!!.isConnected) {
+                // TODO: Disable for Testing Match Details Screen
+                if(UserSessions.getUserInfo(applicationContext) != null) {
+                    videoUploadsWorker.fetchVideos(matchId = null)
+                }
+
+            } else {
+                videoUploadsWorker.cancelUploads()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +75,7 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
 
 
     }
+
     private fun switchFragment(navPosition: JBNavigationPosition): Boolean {
         return findFragment(navPosition).let {
             supportFragmentManager.switchFragment(it, navPosition.getTag()) // Extension function
@@ -67,7 +90,8 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
     override fun onPageChange(mPage: String?) {
         makePageChange(mPage)
     }
-    fun makePageChange(mPage: String?) {
+
+    private fun makePageChange(mPage: String?) {
         binding.llHeader.visibility = View.VISIBLE
         try {
             when (mPage) {
@@ -91,29 +115,29 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
             makePageChange(mPage)
         }
     }
+
     override fun onBackPressed() {
         if (!navPosition.getTag().equals("FragmentHome", true)) {
             binding.bottomNavigation.selectedItemId = R.id.navHome
-            //switchFragment(BBNavigationPosition.HOME)
         } else {
-            val customDialog = CustomDialog(this@MainActivity, resources.getString(R.string.lbl_exit_app_msg),resources.getString(R.string.lbl_cancel) ,this, "2")
+            val customDialog = CustomDialog(
+                this@MainActivity,
+                resources.getString(R.string.lbl_exit_app_msg),
+                resources.getString(R.string.lbl_cancel) ,
+                this,
+                "2")
             customDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             customDialog.show()
         }
     }
+
     override fun onConfirm(isTrue: Boolean, type: String) {
         if (isTrue) {
-            when(type){
-                "2"->{
+            when(type) {
+                "2"-> {
                     finishAffinity()
                 }
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-//        CommonMethods.checkForegroundService(this@MainActivity, VideoUploadService::class.java) TODO: Refactor
-//        CommonMethods.checkService(this@MainActivity, InterviewUploadService::class.java)
     }
 }
