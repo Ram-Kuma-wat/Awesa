@@ -10,16 +10,16 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.codersworld.awesalibs.beans.matches.MatchesBean.VideosBean
-import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.codersworld.awesalibs.listeners.OnMatchListener
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.R
 import com.game.awesa.databinding.ItemVideoBinding
 import java.io.File
 
-class VideoAdapter : ListAdapter<VideosBean, VideoAdapter.GameHolder>(VideoDiffCallback()) {
+class VideoAdapter(onActonActionMatchListener: OnMatchListener) :
+    ListAdapter<VideosBean, VideoAdapter.GameHolder>(VideoDiffCallback()) {
     var context: Context? = null
-    var mListener: OnMatchListener? = null
+    var mListener: OnMatchListener? = onActonActionMatchListener
     var half: String = ""
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameHolder {
@@ -31,30 +31,10 @@ class VideoAdapter : ListAdapter<VideosBean, VideoAdapter.GameHolder>(VideoDiffC
         holder.bind(getItem(position))
     }
 
-    fun updateVideo(localBean: ReactionsBean?, remoteBean: VideosBean?) {
-        if (localBean != null && remoteBean != null) {
-            for (index in currentList.indices) {
-                if (currentList[index].local_id == localBean.id) {
-                    currentList[index] = remoteBean
-                    notifyItemChanged(index)
-                    break
-                }
-            }
-        }
-    }
-
-    fun deleteVideo(position: Int) {
-        if (position >= 0 && currentList.size > position) {
-            currentList.removeAt(position)
-            notifyItemRemoved(position)
-        }
-    }
-
     inner class GameHolder(
         private val binding: ItemVideoBinding,
         private val context: Context) : RecyclerView.ViewHolder(binding.root),
         View.OnClickListener {
-
         lateinit var video: VideosBean
 
         init {
@@ -64,19 +44,22 @@ class VideoAdapter : ListAdapter<VideosBean, VideoAdapter.GameHolder>(VideoDiffC
 
         fun bind(video: VideosBean) {
             this.video = video
-            binding.txtHalf.setText(
-                if ((video.half == 1)) context.getString(R.string.lbl_first_half) else context.getString(
+            binding.txtHalf.text = if ((video.half == 1)) {
+                context.getString(R.string.lbl_first_half)
+            } else {
+                context.getString(
                     R.string.lbl_second_half
                 )
-            )
-            if (half.equals(video.half.toString() + "", ignoreCase = true)) {
+            }
+
+            if (half.equals(video.half.toString(), ignoreCase = true)) {
                 binding.txtHalf.visibility = View.GONE
             } else {
                 binding.txtHalf.visibility = View.VISIBLE
             }
             binding.imgDelete.setVisibility(View.VISIBLE)
 
-            half = video.half.toString() + ""
+            half = video.half.toString()
             CommonMethods.setTextWithHtml(video.title, binding.txtTeam)
             binding.txtTime.text = video.time
             try {
@@ -122,13 +105,12 @@ class VideoDiffCallback : DiffUtil.ItemCallback<VideosBean?>() {
     }
 
     override fun areContentsTheSame(oldItem: VideosBean, newItem: VideosBean): Boolean {
-        return oldItem.video == newItem.video &&
-                oldItem.local_id == (newItem.local_id) &&
+        return oldItem.local_id == (newItem.local_id) &&
                 oldItem.half == (newItem.half) &&
                 oldItem.match_id == newItem.match_id &&
                 oldItem.reaction == newItem.reaction &&
-//                oldItem.thumbnail == newItem.thumbnail &&
-                oldItem.time == newItem.time
+                oldItem.time == newItem.time &&
+                oldItem.video == newItem.video
     }
 
     override fun getChangePayload(oldItem: VideosBean, newItem: VideosBean): VideosBean {
