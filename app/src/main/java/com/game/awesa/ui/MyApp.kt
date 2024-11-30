@@ -15,10 +15,12 @@ import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.database.dao.DBVideoUploadDao
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO
+import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.services.TrimService
 import com.game.awesa.utils.AndroidNetworkObservingStrategy
 import com.game.awesa.utils.AppInitializer
+import com.game.awesa.utils.NetworkObservingStrategy
 import com.game.awesa.utils.VideoUploadsWorker
 import dagger.Lazy
 import dagger.android.AndroidInjector
@@ -48,7 +50,7 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
         lateinit var exoDatabaseProvider: StandaloneDatabaseProvider
     }
 
-    private val networkObserver = AndroidNetworkObservingStrategy()
+    @Inject lateinit var networkObserver: AndroidNetworkObservingStrategy
 
     override fun onCreate() {
         super.onCreate()
@@ -63,7 +65,10 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
         networkObserver.getLiveConnectivityState().observeForever { connectivity ->
             if (connectivity.networkState!!.isConnected) {
                 // TODO: Disable for Testing Match Details Screen
-                videoUploadsWorker.fetchVideos(matchId = null)
+                if(UserSessions.getUserInfo(applicationContext) != null) {
+                    videoUploadsWorker.fetchVideos(matchId = null)
+                }
+
             } else {
                 videoUploadsWorker.cancelUploads()
             }
