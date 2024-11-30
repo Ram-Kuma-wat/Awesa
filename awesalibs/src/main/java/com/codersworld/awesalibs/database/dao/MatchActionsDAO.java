@@ -204,17 +204,15 @@ public class MatchActionsDAO {
 
     public int getTotalCount(String match_id) {
         initDBHelper();
-        int count = 0;
-        String query = "SELECT COUNT(*) FROM " + TABLE_MATCH_REACTIONS + " where 1=1";
-        if (CommonMethods.isValidString(match_id)){
-            query +=" AND match_id = "+match_id;
-        }
 
-        Cursor cursor = mDatabase.rawQuery(query, null);
-        if (cursor.moveToNext()) {
-            count = cursor.getInt(0);
-        }
-        closeCursor(cursor);
+        String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
+        String[] selectionArgs = {match_id};
+
+        Cursor cursor = mDatabase.query(TABLE_MATCH_REACTIONS, new String[] {"*"}, selection, selectionArgs, "", "", "");
+
+        int count = cursor.getCount(); // getInt(0);
+        cursor.close();
+
         return count;
     }
 

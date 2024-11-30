@@ -94,16 +94,15 @@ public class InterviewsDAO {
 
     public int getRowCount( String match_id) {
         initDBHelper();
-        int count = 0;
-        String query = "SELECT COUNT(*) FROM " + TABLE_INTERVIEWS + " where 1=1";
-        if (CommonMethods.isValidString(match_id)) {
-            query += " AND match_id = " + match_id;
-        }
-        Cursor cursor = mDatabase.rawQuery(query, null);
-        if (cursor.moveToNext()) {
-            count = cursor.getInt(0);
-        }
-        closeCursor(cursor);
+
+        String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
+        String[] selectionArgs = {match_id};
+
+        Cursor cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, selection, selectionArgs, "", "", "");
+
+        int count = cursor.getCount(); // getInt(0);
+        cursor.close();
+
         return count;
     }
 
@@ -118,10 +117,13 @@ public class InterviewsDAO {
 
     public ArrayList<InterviewBean> selectAllUploaded(String match_id) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + " order by id DESC";
-        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
+
+        String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
+        String[] selectionArgs = {match_id};
+
+        Cursor cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, selection, selectionArgs, null, null,  COLUMN_KEY_ID + " DESC");
         ArrayList<InterviewBean> dataList = manageCursor(cursor);
-        closeCursor(cursor);
+        cursor.close();
         return dataList;
     }
 
