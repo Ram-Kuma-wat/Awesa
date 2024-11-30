@@ -12,7 +12,6 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class MyAppDebug: MyApp() {
     override fun onCreate() {
-
         super.onCreate()
         enableStrictMode()
     }
