@@ -13,6 +13,7 @@ import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.di.AppCoroutineScope
+import com.game.awesa.ui.matches.MatchDetailActivity
 import com.game.awesa.utils.VideoUploadsRepository.Companion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -336,10 +337,11 @@ class VideoUploadsWorker @Inject constructor(
         try {
             val mBean = response?.response as? CommonBean
             if (mBean != null && mBean.videos != null) {
-                val broadcastIntent = Intent("videoUpload")
-                broadcastIntent.putExtra("data", mBean.videos)
-                broadcastIntent.putExtra("type", VideoType.reaction)
-                broadcastIntent.putExtra("old_data", reactionModel)
+                val broadcastIntent = Intent(MatchDetailActivity.INTENT_UPLOAD_VIDEO)
+                broadcastIntent.action = MatchDetailActivity.INTENT_ACTION_UPLOAD
+                broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, mBean.videos)
+                broadcastIntent.putExtra(MatchDetailActivity.TYPE_PARAMETER, VideoType.reaction)
+                broadcastIntent.putExtra(MatchDetailActivity.LOCAL_VIDEO_PARAMETER, reactionModel)
 
                 context.sendBroadcast(broadcastIntent)
 
@@ -367,10 +369,11 @@ class VideoUploadsWorker @Inject constructor(
     private  fun handleResponse(response: UniversalObject?, interviewModel: InterviewBean?) {
         try {
             val mBean = response?.response as? CommonBean
-            val broadcastIntent = Intent("videoUpload")
-            broadcastIntent.putExtra("data", mBean)
-            broadcastIntent.putExtra("type", VideoType.interview)
-            broadcastIntent.putExtra("old_data", interviewModel)
+            val broadcastIntent = Intent(MatchDetailActivity.INTENT_UPLOAD_VIDEO)
+            broadcastIntent.action = MatchDetailActivity.INTENT_ACTION_UPLOAD
+            broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, mBean)
+            broadcastIntent.putExtra(MatchDetailActivity.TYPE_PARAMETER, VideoType.interview)
+            broadcastIntent.putExtra(MatchDetailActivity.LOCAL_VIDEO_PARAMETER, interviewModel)
 
             context.sendBroadcast(broadcastIntent)
 
