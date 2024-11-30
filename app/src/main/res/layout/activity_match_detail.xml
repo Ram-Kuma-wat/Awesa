@@ -191,7 +191,7 @@
                                 android:nestedScrollingEnabled="false"
                                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                                 tools:itemCount="6"
-                                tools:listitem="@layout/videos_item_layout" />
+                                tools:listitem="@layout/item_video" />
 
                             <LinearLayout
                                 android:id="@+id/llInterview"
