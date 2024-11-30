@@ -15,6 +15,8 @@ public class CommonBean implements Serializable {
     int app_signup_allowed;
     @SerializedName("msg")
     String msg;
+    @SerializedName("local_id")
+    String localId;
     @SerializedName("info")
     UserBean info;
     @SerializedName("ticket")
@@ -80,6 +82,14 @@ public class CommonBean implements Serializable {
 
     public void setInfo(UserBean info) {
         this.info = info;
+    }
+
+    public int getLocalId() {
+        return Integer.parseInt(localId);
+    }
+
+    public void setLocalId(String localId) {
+        this.localId = localId;
     }
 
     public int getStatus() {
