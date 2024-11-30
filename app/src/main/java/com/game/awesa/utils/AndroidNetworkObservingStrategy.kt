@@ -3,16 +3,17 @@ package com.game.awesa.utils
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
-import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import javax.inject.Inject
+import javax.inject.Singleton
 
-
-class AndroidNetworkObservingStrategy : NetworkObservingStrategy {
+@Singleton
+class AndroidNetworkObservingStrategy @Inject constructor() : NetworkObservingStrategy {
 
     companion object {
         const val LOG = "AndroidNetworkObservingStrategy"
