@@ -35,8 +35,6 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
     lateinit var binding: ActivityLoginNewBinding
     var mApiCall: ApiCall? = null
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_login_new)
@@ -53,11 +51,11 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
     var isClicked=false
     override fun onResume() {
         super.onResume()
-        if(UserSessions.getUserInfo(this@LoginActivity) !=null && CommonMethods.isValidString(UserSessions.getUserInfo(this@LoginActivity).login_username) && CommonMethods.isValidString(UserSessions.getUserInfo(this@LoginActivity).password)){
+        if (UserSessions.getUserInfo(this@LoginActivity) != null && CommonMethods.isValidString(UserSessions.getUserInfo(this@LoginActivity).login_username) && CommonMethods.isValidString(UserSessions.getUserInfo(this@LoginActivity).password)) {
             binding.etUsername.setText(UserSessions.getUserInfo(this@LoginActivity).login_username.toString());
             binding.etPassword.setText(UserSessions.getUserInfo(this@LoginActivity).password.toString());
             isClicked=false
-            /*binding.btnLogin.*/validateLogin()
+            validateLogin()
         }
         checkSignup()
         clicked=1
@@ -97,17 +95,20 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
             customDialog!!.show()
         }
     }
-    fun makeLogin(vararg strParams: String) {
-        var versionName = BuildConfig.VERSION_NAME + "/" + BuildConfig.VERSION_CODE.toString()
+
+    private fun makeLogin(vararg strParams: String) {
+        val versionName = BuildConfig.VERSION_NAME + "/" + BuildConfig.VERSION_CODE.toString()
         if (CommonMethods.isNetworkAvailable(this@LoginActivity)) {
             mApiCall!!.userLogin(this, true,strParams[0],strParams[1],UserSessions.getFcmToken(this@LoginActivity),versionName)
         } else {
             CommonMethods.errorDialog(this@LoginActivity,getResources().getString(R.string.error_internet),getResources().getString(R.string.app_name),getResources().getString(R.string.lbl_ok),);
         }
     }
+
     var strUsername =""
     var strPassword = ""
-    fun validateLogin() {
+
+    private fun validateLogin() {
           strUsername =/* "kumawat";*/binding.etUsername.text.toString()
           strPassword = /*"Ram@8824";*/binding.etPassword.text.toString()
         if (!CommonMethods.isValidString(strUsername)) {
@@ -122,7 +123,8 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
             }
         }
     }
-    fun checkSignup() {
+
+    private fun checkSignup() {
          if (CommonMethods.isNetworkAvailable(this@LoginActivity)) {
             mApiCall!!.checkSignup(
                 this,
@@ -137,13 +139,14 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
             );
         }
     }
+
     override fun onConfirm(isTrue: Boolean, type: String) {
         isDialogOpen = false
         if (isTrue) {
-            if (type.equals("1")){
+            if (type.equals("1")) {
                 makeLogin(strUsername, strPassword)
-            }else{
-                var mCommonBean: CommonBean = Gson().fromJson(type,CommonBean::class.java)
+            } else {
+                val mCommonBean: CommonBean = Gson().fromJson(type,CommonBean::class.java)
                 startActivity(Intent(this@LoginActivity, VerifyActivity::class.java).putExtra("mCommonBean",mCommonBean).putExtra("strEmail",binding.etUsername.text.toString()).putExtra("strPassword",binding.etPassword.text.toString()).putExtra("from","0"))
             }
         }
@@ -151,10 +154,9 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
 
     override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodName.toString())
             when (response.methodName) {
                 Tags.SB_LOGIN_API -> {
-                    var mLoginBean: CommonBean = response.response as CommonBean
+                    val mLoginBean: CommonBean = response.response as CommonBean
                    // Log.e("mLoginBean",Gson().toJson(mLoginBean))
                     if (mLoginBean.status == 1) {
                         moveToNext(mLoginBean.info)
@@ -167,7 +169,7 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
                     }
                 }
                 Tags.SB_CHECK_SIGNUP_API -> {
-                    var mCommonBean: CommonBean = response.response as CommonBean
+                    val mCommonBean: CommonBean = response.response as CommonBean
                     if (mCommonBean.status == 1) {
                         if (mCommonBean.app_signup_allowed==1){
                             binding.llSignup.visibility=View.VISIBLE
@@ -198,7 +200,7 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
         //method body
     }
 
-    fun moveToDashboard(mLoginBean: UserBean) {
+    private fun moveToDashboard(mLoginBean: UserBean) {
         UserSessions.saveUserInfo(this@LoginActivity,mLoginBean)
         val hs = Handler()
         hs.postDelayed({
@@ -208,7 +210,7 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
     fun moveToNext(mLoginBean:UserBean) {
         mLoginBean.login_username = binding.etUsername.text!!.trim().toString()
         mLoginBean.password = binding.etPassword.text!!.trim().toString()
-        moveToDashboard(mLoginBean);
+        moveToDashboard(mLoginBean)
     }
 
 
