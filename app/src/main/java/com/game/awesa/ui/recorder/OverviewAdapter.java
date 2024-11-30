@@ -2,7 +2,6 @@ package com.game.awesa.ui.recorder;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,15 +9,11 @@ import android.view.ViewGroup;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.codersworld.awesalibs.beans.matches.MatchesBean;
 import com.codersworld.awesalibs.beans.matches.ReactionsBean;
-import com.codersworld.awesalibs.listeners.OnMatchListener;
 import com.codersworld.awesalibs.listeners.OnReactionListener;
 import com.codersworld.awesalibs.utils.CommonMethods;
 import com.game.awesa.R;
-import com.game.awesa.databinding.VideosItemLayoutBinding;
-import com.game.awesa.utils.DownloadImage;
-import com.google.gson.Gson;
+import com.game.awesa.databinding.ItemVideoBinding;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -39,7 +34,7 @@ public class OverviewAdapter extends RecyclerView.Adapter {
     }
 
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        return new GameHolder(LayoutInflater.from(this.context).inflate(R.layout.videos_item_layout, viewGroup, false));
+        return new GameHolder(LayoutInflater.from(this.context).inflate(R.layout.item_video, viewGroup, false));
     }
 
     public void addAll(ArrayList<ReactionsBean> mList){
@@ -104,7 +99,7 @@ public class OverviewAdapter extends RecyclerView.Adapter {
     }
 
     class GameHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        VideosItemLayoutBinding binding;
+        ItemVideoBinding binding;
 
         public GameHolder(View view) {
             super(view);
