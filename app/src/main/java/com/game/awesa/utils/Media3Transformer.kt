@@ -47,8 +47,6 @@ class Media3Transformer @Inject constructor(
         private const val TRIM_END_SECONDS = 3 // +3 seconds
     }
 
-    private val currentJobs = mutableListOf<Job>()
-
     @SuppressLint("UnusedParameter")
     fun trimVideo(
         matchId: Int,
@@ -61,6 +59,18 @@ class Media3Transformer @Inject constructor(
         }
 
         var actionCount: Int = actions.size
+
+        if (actionCount == 0) {
+            val videoFile = File(inputUri.path)
+            if (videoFile.exists()) {
+                databaseManager.executeQuery { database ->
+                    val dao = VideoMasterDAO(database, context)
+                    dao.deleteVideoById(matchId)
+                    videoFile.delete()
+                }
+            }
+            return
+        }
 
         appCoroutineScope.launch(handler) {
             actions.forEachIndexed { _, reaction ->
