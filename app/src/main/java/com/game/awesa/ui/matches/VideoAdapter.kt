@@ -110,6 +110,7 @@ class VideoDiffCallback : DiffUtil.ItemCallback<VideosBean?>() {
                 oldItem.match_id == newItem.match_id &&
                 oldItem.reaction == newItem.reaction &&
                 oldItem.time == newItem.time &&
+                oldItem.thumbnail == newItem.thumbnail &&
                 oldItem.video == newItem.video
     }
 
