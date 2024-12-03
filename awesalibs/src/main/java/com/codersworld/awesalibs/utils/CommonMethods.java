@@ -119,8 +119,6 @@ public class CommonMethods {
         try (MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever()) {
             mediaMetadataRetriever.setDataSource(context, uri);
             return mediaMetadataRetriever.getFrameAtTime();
-        } catch (Exception ex) {
-            throw ex;
         }
     }
 
@@ -204,7 +202,7 @@ public class CommonMethods {
         if (isValidString(img)) {
             Glide.with(context)
                     .load(img)
-                    .apply(new RequestOptions().centerCropTransform())
+                    .apply(RequestOptions.centerCropTransform())
                     .placeholder(R.drawable.app_icon)
                     .error(R.drawable.app_icon)
                     .into(imageView);
@@ -224,7 +222,7 @@ public class CommonMethods {
     public static JSONObject getDevieDetails(Context ctx) {
         try {
             JSONObject mainjsonOBj = new JSONObject();
-            mainjsonOBj.put("browser", Build.MANUFACTURER + "");
+            mainjsonOBj.put("browser", Build.MANUFACTURER);
             mainjsonOBj.put("version", Build.MODEL + "(" + Build.VERSION.RELEASE + ")");
             mainjsonOBj.put("ip", "android app");
             return mainjsonOBj;
@@ -282,11 +280,7 @@ public class CommonMethods {
     }
 
     public static void textWithHtml(TextView mTextView, String msg) {
-        if (Build.VERSION.SDK_INT >= 24) {
-            mTextView.setText(Html.fromHtml(msg, 63));
-        } else {
-            mTextView.setText(Html.fromHtml(msg));
-        }
+        mTextView.setText(Html.fromHtml(msg, 63));
     }
 
     public static Boolean isValidString(String str) {
