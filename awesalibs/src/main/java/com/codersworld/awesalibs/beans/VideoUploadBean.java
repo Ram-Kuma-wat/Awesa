@@ -1,9 +1,9 @@
-package com.codersworld.awesalibs.database.dao;
+package com.codersworld.awesalibs.beans;
 
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
-public class DBVideoUploadDao implements Serializable {
+public class VideoUploadBean implements Serializable {
     @SerializedName("_id")
     private int mId;
     @SerializedName("video_name")
@@ -21,11 +21,11 @@ public class DBVideoUploadDao implements Serializable {
     @SerializedName("date")
     private String date;
 
-    public int getmId() {
+    public int getId() {
         return mId;
     }
 
-    public void setmId(int mId) {
+    public void setId(int mId) {
         this.mId = mId;
     }
 
