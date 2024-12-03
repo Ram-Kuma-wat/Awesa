@@ -44,7 +44,7 @@ public class ApiCall {
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_LOGIN_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_LOGIN_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_LOGIN_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -72,7 +72,7 @@ public class ApiCall {
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_SIGNUP_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_SIGNUP_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_SIGNUP_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -99,7 +99,7 @@ public class ApiCall {
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_RESEND_OTP_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_RESEND_OTP_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_RESEND_OTP_API, mContext.getResources().getString(R.string.something_wrong));
 
@@ -128,7 +128,7 @@ public class ApiCall {
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_SIGNUP_VERIFY_OTP_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_SIGNUP_VERIFY_OTP_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_SIGNUP_VERIFY_OTP_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -151,7 +151,7 @@ public class ApiCall {
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
             SFProgress.hideProgressDialog(mContext);
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_FORGOT_PASSWORD_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_FORGOT_PASSWORD_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_FORGOT_PASSWORD_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -173,7 +173,7 @@ public class ApiCall {
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
 SFProgress.hideProgressDialog(mContext);
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_FORGOT_PASSWORD_RESET_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_FORGOT_PASSWORD_RESET_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_FORGOT_PASSWORD_RESET_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -199,7 +199,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_API_SUPPORT, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_API_SUPPORT, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_API_SUPPORT, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -226,7 +226,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_GAME_CATEGORY_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_GAME_CATEGORY_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_GAME_CATEGORY_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -253,7 +253,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_TEAMS_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_TEAMS_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_TEAMS_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -280,7 +280,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_OPPONENT_TEAMS_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_OPPONENT_TEAMS_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_OPPONENT_TEAMS_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -307,7 +307,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_LEAGUE_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_LEAGUE_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_LEAGUE_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -336,7 +336,7 @@ SFProgress.hideProgressDialog(mContext);
                 }
 
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_USER_MATCHES_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_USER_MATCHES_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_USER_MATCHES_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -365,7 +365,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_MATCH_DETAIL_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_MATCH_DETAIL_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_MATCH_DETAIL_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -391,7 +391,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_DELETE_VIDEO_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_DELETE_VIDEO_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_DELETE_VIDEO_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -419,7 +419,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_COUNTY_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_COUNTY_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_COUNTY_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -447,7 +447,7 @@ SFProgress.hideProgressDialog(mContext);
                 }
 
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_SUPPORT_SUBJECTS_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_SUPPORT_SUBJECTS_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_SUPPORT_SUBJECTS_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -476,7 +476,7 @@ SFProgress.hideProgressDialog(mContext);
                 }
 
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_CREATE_MATCH_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_CREATE_MATCH_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_CREATE_MATCH_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -505,7 +505,7 @@ SFProgress.hideProgressDialog(mContext);
                      SFProgress.hideProgressDialog(mContext);
 
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_UPDATE_PROFILE_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_UPDATE_PROFILE_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_UPDATE_PROFILE_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -530,7 +530,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_DELETE_ACCOUNT_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_DELETE_ACCOUNT_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_DELETE_ACCOUNT_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -556,7 +556,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_UPDATE_MATCH_COUNT_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_UPDATE_MATCH_COUNT_API, true, ""));
                 } catch (Exception e) {
                 onResponse.onError(Tags.SB_UPDATE_MATCH_COUNT_API, mContext.getResources().getString(R.string.something_wrong));
                 }
@@ -582,7 +582,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_CHECK_SIGNUP_API, "true", ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_CHECK_SIGNUP_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_CHECK_SIGNUP_API, mContext.getResources().getString(R.string.something_wrong));
                 }
