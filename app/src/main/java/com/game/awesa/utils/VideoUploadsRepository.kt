@@ -104,7 +104,7 @@ class VideoUploadsRepository @Inject constructor(
                         }
 
                         override fun onError(error: Exception) {
-                            Log.d(TAG, error.localizedMessage)
+                            Log.d(TAG, error.localizedMessage, error)
                         }
 
                         override fun onProgress(progress: Long) {
@@ -125,9 +125,9 @@ class VideoUploadsRepository @Inject constructor(
                             try {
                                 Log.d(TAG, response.body().toString())
                                 val responseObject = UniversalObject(
-                                    result = response.body()!!,
+                                    result = response.body(),
                                     methodName = Tags.SB_CREATE_MATCH_ACTION_API,
-                                    status =  "true",
+                                    status =  true,
                                     msg = Gson().toJson(reactionModel)
                                 )
 
@@ -224,7 +224,7 @@ class VideoUploadsRepository @Inject constructor(
                         }
 
                         override fun onError(error: Exception) {
-                            Log.d(TAG, error.localizedMessage)
+                            Log.d(TAG, error.localizedMessage, error)
                         }
 
                         override fun onProgress(progress: Long) {
@@ -244,9 +244,9 @@ class VideoUploadsRepository @Inject constructor(
                             Log.d(TAG,"Video uploaded successfully")
                             try {
                                 val responseObject = UniversalObject(
-                                    result = response.body()!!,
+                                    result = response.body(),
                                     methodName = Tags.SB_UPLOAD_INTERVIEW_API,
-                                    status =  "true",
+                                    status =  true,
                                     msg = Gson().toJson(interviewModel)
                                 )
 

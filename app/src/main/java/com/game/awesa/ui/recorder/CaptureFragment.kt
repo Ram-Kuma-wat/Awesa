@@ -69,7 +69,7 @@ import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.beans.matches.MatchesBean
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.codersworld.awesalibs.database.DatabaseManager
-import com.codersworld.awesalibs.database.dao.DBVideoUploadDao
+import com.codersworld.awesalibs.beans.VideoUploadBean
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO
 import com.codersworld.awesalibs.listeners.OnConfirmListener
@@ -1009,7 +1009,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         ).format(Date())
         databaseManager.executeQuery {
             val dao = VideoMasterDAO(it, requireActivity())
-            val mBean = DBVideoUploadDao()
+            val mBean = VideoUploadBean()
             mBean.match_id = mMatchBean?.id.toString()
             mBean.video_name = fileName
             mBean.video_ext = extension
@@ -1017,7 +1017,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             mBean.video_half = mHalf.toString()
             mBean.upload_status = 0
             mBean.date = timeStamp
-            val mList: ArrayList<DBVideoUploadDao> = ArrayList()
+            val mList: ArrayList<VideoUploadBean> = ArrayList()
             mList.add(mBean)
             dao.insert(mList)
             captureViewBinding.llUpload.visibility = View.GONE

@@ -6,6 +6,7 @@ import android.database.SQLException
 import android.util.Log
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.beans.matches.InterviewBean
+import com.codersworld.awesalibs.beans.matches.MatchesBean.VideosBean
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.database.dao.InterviewsDAO
@@ -14,7 +15,6 @@ import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.di.AppCoroutineScope
 import com.game.awesa.ui.matches.MatchDetailActivity
-import com.game.awesa.utils.VideoUploadsRepository.Companion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -22,7 +22,6 @@ import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadFailure
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadSuccess
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadProgress
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadInterviewSuccess
-import com.google.gson.Gson
 import com.google.gson.JsonIOException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -152,7 +151,7 @@ class VideoUploadsWorker @Inject constructor(
         }
     }
 
-    fun fetchVideos(matchId: String?) {
+    fun fetchVideos(matchId: String? = null) {
         Log.d(TAG, "-> fetch videos for upload")
 
         appCoroutineScope.launch {
@@ -225,7 +224,11 @@ class VideoUploadsWorker @Inject constructor(
                             uploadList.indexOfFirst {
                                 item -> item.videoId == work.videoId && item.localUri == work.localUri
                             }
-                        uploadList[index] = uploadList[index].copy(isDone = true)
+                        try {
+                            uploadList[index] = uploadList[index].copy(isDone = true)
+                        } catch (e: ConcurrentModificationException) {
+                            Log.e(TAG, e.localizedMessage, e)
+                        }
                     }
                     is UploadProgress -> notificationHandler.setProgress(it.progress)
                     is UploadSuccess -> {
@@ -237,7 +240,12 @@ class VideoUploadsWorker @Inject constructor(
                             uploadList.indexOfFirst {
                                     item -> item.videoId == work.videoId && item.localUri == work.localUri
                             }
-                        uploadList[index] = uploadList[index].copy(isDone = true)
+
+                        try {
+                            uploadList[index] = uploadList[index].copy(isDone = true)
+                        } catch (e: ConcurrentModificationException) {
+                            Log.e(TAG, e.localizedMessage, e)
+                        }
 
                         try {
                             Log.d(TAG, "-> Deleting file for action ${work.videoId} @ ${work.localUri}")
@@ -300,7 +308,12 @@ class VideoUploadsWorker @Inject constructor(
                             uploadList.indexOfFirst {
                                 item -> item.videoId == work.videoId && item.localUri == work.localUri
                             }
-                        uploadList[index] = uploadList[index].copy(isDone = true)
+
+                        try {
+                            uploadList[index] = uploadList[index].copy(isDone = true)
+                        } catch (e: ConcurrentModificationException) {
+                            Log.e(TAG, e.localizedMessage, e)
+                        }
 
                         try {
                             Log.d(TAG, "-> Deleting file for interview ${work.videoId} @ ${work.localUri}")
@@ -347,11 +360,9 @@ class VideoUploadsWorker @Inject constructor(
 
                 if (reactionModel == null) return
 
-                if (mBean.status == 1 && CommonMethods.isValidString(response.msg)) {
-                    databaseManager.executeQuery { database ->
-                        val dao = MatchActionsDAO(database, context)
-                        dao.deleteAll(reactionModel.id)
-                    }
+                databaseManager.executeQuery { database ->
+                    val dao = MatchActionsDAO(database, context)
+                    dao.deleteAll(reactionModel.id)
                 }
             }
 
@@ -369,20 +380,25 @@ class VideoUploadsWorker @Inject constructor(
     private  fun handleResponse(response: UniversalObject?, interviewModel: InterviewBean?) {
         try {
             val mBean = response?.response as? CommonBean
-            val broadcastIntent = Intent(MatchDetailActivity.INTENT_UPLOAD_VIDEO)
-            broadcastIntent.action = MatchDetailActivity.INTENT_ACTION_UPLOAD
-            broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, mBean)
-            broadcastIntent.putExtra(MatchDetailActivity.TYPE_PARAMETER, VideoType.interview)
-            broadcastIntent.putExtra(MatchDetailActivity.LOCAL_VIDEO_PARAMETER, interviewModel)
+            if (mBean != null && mBean.status == 1) {
+                val broadcastIntent = Intent(MatchDetailActivity.INTENT_UPLOAD_VIDEO)
+                broadcastIntent.action = MatchDetailActivity.INTENT_ACTION_UPLOAD
+                val interviewVideoBean = VideosBean()
+                interviewVideoBean.video = interviewModel?.video
+                val interViewVideosBean = VideosBean()
+                interViewVideosBean.video = mBean.videos?.video
+                interViewVideosBean.thumbnail = mBean.videos?.thumbnail
+                broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, interViewVideosBean)
+                broadcastIntent.putExtra(MatchDetailActivity.TYPE_PARAMETER, VideoType.interview)
+                broadcastIntent.putExtra(MatchDetailActivity.LOCAL_VIDEO_PARAMETER, interviewModel)
 
-            context.sendBroadcast(broadcastIntent)
+                context.sendBroadcast(broadcastIntent)
 
-            if (mBean != null &&  mBean.status == 1) {
-                if (interviewModel != null) {
-                    databaseManager.executeQuery { database ->
-                        val dao = InterviewsDAO(database, context)
-                        dao.deleteAll(interviewModel.id)
-                    }
+                if (interviewModel == null) return
+
+                databaseManager.executeQuery { database ->
+                    val dao = InterviewsDAO(database, context)
+                    dao.deleteAll(interviewModel.id)
                 }
             }
         } catch (ex: IllegalStateException) {

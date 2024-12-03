@@ -1,6 +1,7 @@
 package com.game.awesa.ui.matches
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -52,6 +53,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
     OnMatchListener {
 
     companion object {
+        val TAG = MatchDetailActivity::class.java.simpleName
         const val INTENT_UPLOAD_VIDEO = "com.game.awesa.UPLOAD_VIDEO"
         const val INTENT_ACTION_UPLOAD = "videoUpload"
         const val VIDEO_PARAMETER = "remote_video"
@@ -129,8 +131,10 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
 
                     null -> {}
                 }
+            } catch (ex: TypeCastException) {
+                Log.e(TAG, ex.localizedMessage, ex)
             } catch (ex: java.lang.Exception) {
-                Log.e("MatchDetailActivity", ex.localizedMessage, ex)
+                Log.e(TAG, ex.localizedMessage, ex)
             }
         }
     }
@@ -262,7 +266,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                 }
             }
         } catch (ex: Exception) {
-            Log.e("MatchDetailActivity", ex.localizedMessage, ex)
+            Log.e(TAG, ex.localizedMessage, ex)
             errorMsg(getResources().getString(R.string.something_wrong));
         }
     }
@@ -335,18 +339,16 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             binding.pbLoading.visibility = View.GONE
         }
 
-        if (CommonMethods.isValidString(interview.video)) {
-            if (File(interview.video).exists()) {
-                binding.imgThumbnail.setImageBitmap(
-                    CommonMethods.createVideoThumb(
-                        this, Uri.fromFile(
-                            File(interview.video)
-                        )
+        if (File(interview.video).exists()) {
+            binding.imgThumbnail.setImageBitmap(
+                CommonMethods.createVideoThumb(
+                    this, Uri.fromFile(
+                        File(interview.video)
                     )
                 )
-            } else {
-                CommonMethods.loadImage(this@MatchDetailActivity, interview.thumbnail, binding.imgThumbnail)
-            }
+            )
+        } else {
+            CommonMethods.loadImage(this@MatchDetailActivity, interview.thumbnail, binding.imgThumbnail)
         }
 
         binding.rlPlay.setOnClickListener {
@@ -404,7 +406,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             )
         }
 
-        videoUploadsWorker.fetchVideos(matchId = matchId)
+//        videoUploadsWorker.fetchVideos(matchId = matchId)
     }
 
     private fun deleteVideos() {

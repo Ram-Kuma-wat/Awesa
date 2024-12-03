@@ -7,7 +7,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import com.codersworld.awesalibs.database.DatabaseManager
-import com.codersworld.awesalibs.database.dao.DBVideoUploadDao
+import com.codersworld.awesalibs.beans.VideoUploadBean
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO
 import com.game.awesa.utils.Media3Transformer
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @UnstableApi
 @AndroidEntryPoint
 class TrimService : Service() {
-    var list: ArrayList<DBVideoUploadDao> = ArrayList()
+    var list: ArrayList<VideoUploadBean> = ArrayList()
     private var strMatchId = ""
 
     companion object {

@@ -41,21 +41,6 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
     lateinit var networkObserver: AndroidNetworkObservingStrategy
     @Inject lateinit var videoUploadsWorker: VideoUploadsWorker
 
-    override fun onStart() {
-        super.onStart()
-        networkObserver.getLiveConnectivityState().observeForever { connectivity ->
-            if (connectivity.networkState!!.isConnected) {
-                // TODO: Disable for Testing Match Details Screen
-                if(UserSessions.getUserInfo(applicationContext) != null) {
-                    videoUploadsWorker.fetchVideos(matchId = null)
-                }
-
-            } else {
-                videoUploadsWorker.cancelUploads()
-            }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this@MainActivity,R.layout.activity_main)

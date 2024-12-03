@@ -24,6 +24,7 @@ public class Global {
 
     var customDialog: CustomDialog? = null
     var isDialogOpen = false
+
     fun makeConfirmation(msg: String, mActivity: Activity, mListener: OnConfirmListener) {
         if (!isDialogOpen) {
             if (customDialog == null) {

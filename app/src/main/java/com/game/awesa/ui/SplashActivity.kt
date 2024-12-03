@@ -10,8 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.codersworld.awesalibs.database.DatabaseManager
-import com.codersworld.awesalibs.database.dao.DBVideoUploadDao
-import com.codersworld.awesalibs.database.dao.InterviewsDAO
+import com.codersworld.awesalibs.beans.VideoUploadBean
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO
 import com.codersworld.awesalibs.storage.UserSessions
@@ -49,7 +48,7 @@ class SplashActivity : AppCompatActivity() {
 
             //actionDao.deleteUploadedVideos();
             val mVideoMasterDAO = VideoMasterDAO(database, applicationContext)
-            var mList = mVideoMasterDAO.selectAll() as ArrayList<DBVideoUploadDao>
+            var mList = mVideoMasterDAO.selectAll() as ArrayList<VideoUploadBean>
             //Log.e("mList",Gson().toJson(mList))
             if (CommonMethods.isValidArrayList(mList)) {
                 for (a in mList.indices) {
@@ -69,7 +68,7 @@ class SplashActivity : AppCompatActivity() {
                               } catch (ex: Exception) {
                                   ex.printStackTrace()
                               }*/
-                            mVideoMasterDAO.deleteVideoById(mList[a].getmId())
+                            mVideoMasterDAO.deleteVideoById(mList[a].getId())
                         }
                     }
                 }

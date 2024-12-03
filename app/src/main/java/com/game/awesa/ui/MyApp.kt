@@ -12,21 +12,17 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import com.codersworld.awesalibs.database.DatabaseManager
-import com.codersworld.awesalibs.database.dao.DBVideoUploadDao
-import com.codersworld.awesalibs.database.dao.MatchActionsDAO
+import com.codersworld.awesalibs.beans.VideoUploadBean
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO
-import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.services.TrimService
 import com.game.awesa.utils.AndroidNetworkObservingStrategy
 import com.game.awesa.utils.AppInitializer
-import com.game.awesa.utils.NetworkObservingStrategy
 import com.game.awesa.utils.VideoUploadsWorker
 import dagger.Lazy
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
-import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @UnstableApi
@@ -64,11 +60,7 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
 
         networkObserver.getLiveConnectivityState().observeForever { connectivity ->
             if (connectivity.networkState!!.isConnected) {
-                // TODO: Disable for Testing Match Details Screen
-                if(UserSessions.getUserInfo(applicationContext) != null) {
-                    videoUploadsWorker.fetchVideos(matchId = null)
-                }
-
+                videoUploadsWorker.fetchVideos()
             } else {
                 videoUploadsWorker.cancelUploads()
             }
@@ -80,7 +72,7 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
     private fun startTrimService() {
         databaseManager.executeQuery { database ->
             val mVideoMasterDAO = VideoMasterDAO(database, applicationContext)
-            val mList = mVideoMasterDAO.selectAll() as ArrayList<DBVideoUploadDao>
+            val mList = mVideoMasterDAO.selectAll() as ArrayList<VideoUploadBean>
             if (CommonMethods.isValidArrayList(mList)) {
                 loop@ for (index in mList.indices) {
                     val mIntent = Intent(this, TrimService::class.java)
