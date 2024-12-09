@@ -39,7 +39,7 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
     @Inject lateinit var databaseManager: DatabaseManager
 
     companion object {
-        const val TAG = "MyApp"
+        val TAG: String = MyApp::class.java.simpleName
         lateinit var simpleCache: SimpleCache
         const val EXO_PLAYER_CACHE_SIZE: Long = 90 * 1024 * 1024
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
