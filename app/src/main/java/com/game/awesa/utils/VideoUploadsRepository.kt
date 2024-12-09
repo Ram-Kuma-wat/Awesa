@@ -5,7 +5,6 @@ import android.util.Log
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.beans.matches.InterviewBean
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
-import com.codersworld.awesalibs.database.DatabaseHelper
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.database.dao.InterviewsDAO
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
@@ -28,14 +27,11 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.onEach
-//import okhttp3.Call
-//import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-//import okhttp3.Response
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
@@ -104,7 +100,7 @@ class VideoUploadsRepository @Inject constructor(
                         }
 
                         override fun onError(error: Exception) {
-                            Log.d(TAG, error.localizedMessage, error)
+                            Log.e(TAG, error.localizedMessage, error)
                         }
 
                         override fun onProgress(progress: Long) {
@@ -157,13 +153,7 @@ class VideoUploadsRepository @Inject constructor(
                 )
             }
 
-            awaitClose {
-                // Cancel upload if the collection was cancelled before completion
-                if (!isClosedForSend) {
-//                    val cancelPayload = MediaStore.CancelMediaPayload(selectedSite.get(), localMediaModel, true)
-//                    dispatcher.dispatch(MediaActionBuilder.newCancelMediaUploadAction(cancelPayload))
-                }
-            }
+            awaitClose {}
         }.onEach {
             if (it is UploadSuccess) {
                 try {
@@ -171,8 +161,10 @@ class VideoUploadsRepository @Inject constructor(
                     if (File(reactionModel.video).exists()) {
                         File(reactionModel.video).delete()
                     }
-                } catch (e: NullPointerException) {
-                    Log.d(TAG, "UploadSuccess for ${e.localizedMessage}")
+                } catch (e: SecurityException) {
+                    Log.e(TAG, "Permission denied for file ${e.localizedMessage}", e)
+                } catch (e: java.lang.NullPointerException) {
+                    Log.e(TAG, "UploadSuccess for ${e.localizedMessage}", e)
                 }
             }
 
@@ -182,7 +174,6 @@ class VideoUploadsRepository @Inject constructor(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun uploadMedia(interviewModel: InterviewBean): Flow<UploadResult> {
         return callbackFlow {
             Log.d(TAG, "Dispatching request to upload ${interviewModel.video}")
@@ -277,18 +268,8 @@ class VideoUploadsRepository @Inject constructor(
                 )
             }
 
-            awaitClose {
-                // Cancel upload if the collection was cancelled before completion
-                if (!isClosedForSend) {
-//                    val cancelPayload = MediaStore.CancelMediaPayload(selectedSite.get(), localMediaModel, true)
-//                    dispatcher.dispatch(MediaActionBuilder.newCancelMediaUploadAction(cancelPayload))
-                }
-            }
+            awaitClose {}
         }.onEach {
-            if (it is UploadInterviewSuccess) {
-
-            }
-
             if (it is UploadFailure) {
                 Log.d(TAG, "UploadFailure for ${interviewModel.video}")
             }

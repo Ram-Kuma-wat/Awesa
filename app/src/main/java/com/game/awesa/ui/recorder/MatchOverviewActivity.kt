@@ -41,6 +41,7 @@ import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@Suppress("TooManyFunctions")
 class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmListener,
     OnResponse<UniversalObject> {
 
@@ -57,14 +58,13 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
     lateinit var binding:ActivityMatchOverviewBinding
     private var mMatchBean : MatchesBean.InfoBean? = null
     private var matchId: String? = null
-    private var mActions = 0
     private var mAdapter: OverviewAdapter?=null
     private var mListData: ArrayList<ReactionsBean> = ArrayList()
     private var mBeanReaction: ReactionsBean? = null
     private var actionPosition =-1
 
-    var strInterview = ""
-    var strInterviewId = 0
+    private var strInterview = ""
+    private var strInterviewId = 0
     private var customDialog: CustomDialog? = null
     private var isDialogOpen = false
     var mApiCall: ApiCall? = null
@@ -72,50 +72,27 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_match_overview)
+        initUI()
+        handleIntent()
         initApiCall()
-        mMatchBean = CommonMethods.getSerializable(
-            intent,
-            EXTRA_MATCH_BEAN,
-            MatchesBean.InfoBean::class.java
-        )
 
-        if (mMatchBean != null) {
-            matchId = mMatchBean!!.id.toString()
-            CommonMethods.checkTrimServiceWithData(this@MatchOverviewActivity, TrimService::class.java, matchId)
-            CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team1_image,binding.imgTeam1)
-            CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team2_image,binding.imgTeam2)
-        }
+        getData()
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun initUI() {
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_match_overview)
         binding.rvHistory.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL,false)
         mAdapter = OverviewAdapter(this@MatchOverviewActivity, mListData, this)
         binding.rvHistory.adapter = mAdapter
-        getData(0)
         binding.imgHome.setOnClickListener {
             updateMatchCount()
         }
 
         binding.swRefresh.setOnRefreshListener {
-            getData(0)
+            getData()
         }
-        databaseManager.executeQuery {
-            val mInterviewsDAO = InterviewsDAO(it, this@MatchOverviewActivity)
-            val mList =
-                mInterviewsDAO.selectAll(mMatchBean!!.id.toString()) as ArrayList<InterviewBean>
-            databaseManager.closeDatabase()
-            if (CommonMethods.isValidArrayList(mList)) {
-                binding.imgThumbnail.setImageBitmap(
-                    CommonMethods.createVideoThumb(
-                        this@MatchOverviewActivity,
-                        Uri.fromFile(File(mList[0].video))
-                    )
-                )
-                strInterview = mList[0].video
-                strInterviewId = mList[0].id
-                binding.llInterview.visibility = View.VISIBLE
-            } else {
-                binding.llInterview.visibility = View.GONE
-            }
-        }
+
         binding.rlPlay.setOnClickListener {
             if (CommonMethods.isValidString(strInterview)){
                 val intent = Intent(this@MatchOverviewActivity, VideoPreviewActivity::class.java)
@@ -144,23 +121,51 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
         }
     }
 
-    private fun getData(mType: Int) {
-       if(mType == 0) {
-           binding.swRefresh.isRefreshing = true
-       }
-        databaseManager.executeQuery {
-            val mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
-            val mList =
+    @OptIn(UnstableApi::class)
+    private fun handleIntent() {
+        mMatchBean = CommonMethods.getSerializable(
+            intent,
+            EXTRA_MATCH_BEAN,
+            MatchesBean.InfoBean::class.java
+        )
+
+        if (mMatchBean != null) {
+            matchId = mMatchBean!!.id.toString()
+            CommonMethods.checkTrimServiceWithData(this@MatchOverviewActivity, TrimService::class.java, matchId)
+            CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team1_image,binding.imgTeam1)
+            CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team2_image,binding.imgTeam2)
+        }
+    }
+
+    private fun getData() {
+        binding.swRefresh.isRefreshing = true
+        databaseManager.executeQuery { database ->
+            val mMatchActionsDAO = MatchActionsDAO(database, this@MatchOverviewActivity)
+            val actionsList =
                 mMatchActionsDAO.selectAllForPreview(mMatchBean!!.id.toString()) as ArrayList<ReactionsBean>
-            databaseManager.closeDatabase()
-            if (CommonMethods.isValidArrayList(mList)) {
-                mListData = mList
-                mAdapter!!.addAll(mListData)
-//                checkCompression()
+            mListData = actionsList
+            mAdapter?.addAll(mListData)
+//            checkCompression()
+
+            val mInterviewsDAO = InterviewsDAO(database, this@MatchOverviewActivity)
+            val interviews =
+                    mInterviewsDAO.selectAll(mMatchBean!!.id.toString()) as ArrayList<InterviewBean>
+
+            if (interviews.isNotEmpty()) {
+                binding.imgThumbnail.setImageBitmap(
+                    CommonMethods.createVideoThumb(
+                        this@MatchOverviewActivity,
+                        Uri.fromFile(File(interviews[0].video))
+                    )
+                )
+                strInterview = interviews[0].video
+                strInterviewId = interviews[0].id
+                binding.llInterview.visibility = View.VISIBLE
+            } else {
+                binding.llInterview.visibility = View.GONE
             }
-            if (mType == 0) {
-                binding.swRefresh.isRefreshing = false
-            }
+
+            binding.swRefresh.isRefreshing = false
         }
     }
 
@@ -267,7 +272,10 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
     private fun updateMatchCount() {
         databaseManager.executeQuery { database ->
             val actionDao = MatchActionsDAO(database, applicationContext)
-            mActions = actionDao.getTotalCount(matchId)
+            val actionCount = actionDao.getTotalCount(matchId)
+
+            val interViewDao = InterviewsDAO(database, applicationContext)
+            val interviewCount = interViewDao.getRowCount(matchId)
 
             if (CommonMethods.isNetworkAvailable(this@MatchOverviewActivity)) {
                 mApiCall!!.updateMatchCount(
@@ -275,7 +283,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
                     true,
                     UserSessions.getUserInfo(this@MatchOverviewActivity).id.toString(),
                     matchId,
-                    mActions.toString()
+                    (actionCount + interviewCount).toString()
                 )
             } else {
                 CommonMethods.errorDialog(
@@ -283,7 +291,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
                     getResources().getString(R.string.error_internet),
                     getResources().getString(R.string.app_name),
                     getResources().getString(R.string.lbl_ok)
-                );
+                )
             }
         }
     }
@@ -291,7 +299,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
     override fun onSuccess(response: UniversalObject) {
         binding.swRefresh.isRefreshing = false
         try {
-            Logs.e(response.methodName)
             when (response.methodName) {
                 Tags.SB_UPDATE_MATCH_COUNT_API -> {
                     val mCommonBean: CommonBean = response.response as CommonBean
@@ -300,7 +307,9 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
 
                         val intent = Intent(this@MatchOverviewActivity, MainActivity::class.java)
 
-                        videoUploadsWorker.fetchVideos(matchId = matchId)
+                        matchId?.let {
+                            videoUploadsWorker.fetchVideos(matchId = it)
+                        }
 
                         // Clear the current task stack and start a new task
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -313,7 +322,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
                 }
             }
         } catch (ex: Exception) {
-            ex.printStackTrace()
             errorMsg(getResources().getString(R.string.something_wrong));
         }
     }

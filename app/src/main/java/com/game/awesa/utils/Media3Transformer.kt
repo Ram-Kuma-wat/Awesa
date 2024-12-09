@@ -131,7 +131,6 @@ class Media3Transformer @Inject constructor(
 
         // Start the transformation and wait for it to complete
         return suspendCancellableCoroutine<Boolean> { continuation ->
-            val duration = ((endTime - startTime)).toString()
             val cmd = arrayOf(
                 "-i", inputUri.path,
                 "-y",
@@ -153,7 +152,9 @@ class Media3Transformer @Inject constructor(
             } else if (ReturnCode.isCancel(session.returnCode)) {
                 continuation.resumeWithException(IOException("Export canceled"))
             } else {
-                continuation.resumeWithException(IOException(String.format("Command failed with state %s and rc %s.%s", session.state, session.returnCode, session.failStackTrace)))
+                val msg =
+                    "Command failed with state ${session.state} and rc ${session.returnCode}.${session.failStackTrace}"
+                continuation.resumeWithException(IOException(msg))
             }
 
         }
