@@ -172,8 +172,8 @@ public class MatchActionsDAO {
         try {
             DatabaseHelper mHelper = new DatabaseHelper(mContext);
             mHelper.close();
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+
         }
         return dataList;
     }
@@ -205,12 +205,12 @@ public class MatchActionsDAO {
     public int getTotalCount(String match_id) {
         initDBHelper();
 
-        String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
+        String selection = COLUMN_MATCH_ID + " = ?";
         String[] selectionArgs = {match_id};
 
         Cursor cursor = mDatabase.query(TABLE_MATCH_REACTIONS, new String[] {"*"}, selection, selectionArgs, "", "", "");
 
-        int count = cursor.getCount(); // getInt(0);
+        int count = cursor.getCount();
         cursor.close();
 
         return count;
