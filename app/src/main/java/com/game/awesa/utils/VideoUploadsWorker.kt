@@ -12,7 +12,6 @@ import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.database.dao.InterviewsDAO
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.rest.UniversalObject
-import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.di.AppCoroutineScope
 import com.game.awesa.ui.matches.MatchDetailActivity
 import kotlinx.coroutines.CoroutineScope
@@ -67,7 +66,7 @@ class VideoUploadsWorker @Inject constructor(
     private val queue = MutableSharedFlow<Work>(extraBufferCapacity = Int.MAX_VALUE)
     private val pendingWorkList = MutableStateFlow<List<Work>>(emptyList())
 
-    private val cancelledVideos = mutableSetOf<Long>()
+    private val cancelledMatches = mutableSetOf<Long>()
     private val currentJobs = mutableMapOf<Long, List<Job>>()
     // A reference to all videos being uploaded to update the notification with the correct index
     private val uploadList = mutableListOf<VideoUploadEntry>()
@@ -80,10 +79,10 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     private fun areEquivalent(old: Work, new: Work): Boolean {
-        val hasSameId = old.videoId == new.videoId
+//        val hasSameId = old.videoId == new.videoId
         val hasSameUrl = old.localUri == new.localUri
 
-        return hasSameId // && hasSameUrl
+        return hasSameUrl // hasSameId &&
     }
 
     private fun observeQueue() {
@@ -91,7 +90,7 @@ class VideoUploadsWorker @Inject constructor(
             .distinctUntilChanged(::areEquivalent)
             .onEach { work ->
                 pendingWorkList.update { list -> list + work }
-                uploadList.add(VideoUploadEntry(work.videoId, work.localUri))
+                uploadList.add(VideoUploadEntry(work.matchId, work.localUri))
 
                 handleWork(work)
             }
@@ -124,7 +123,7 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     private fun handleWork(work: Work) {
-        if (cancelledVideos.contains(work.videoId)) {
+        if (cancelledMatches.contains(work.matchId)) {
             Log.d(TAG, "-> Skipping work $work since it's cancelled")
             return
         }
@@ -143,23 +142,28 @@ class VideoUploadsWorker @Inject constructor(
         }
 
         // Save a reference to the job for cancelling it if needed
-        currentJobs[work.videoId] = currentJobs.getOrElse(work.videoId) { emptyList() } + job
+        currentJobs[work.matchId] = currentJobs.getOrElse(work.matchId) { emptyList() } + job
 
         job.invokeOnCompletion {
             // Remove the job from the list jobs
-            currentJobs[work.videoId] = currentJobs[work.videoId]!! - job
+            currentJobs[work.matchId] = currentJobs[work.matchId]!! - job
         }
     }
 
     fun fetchVideos(matchId: String? = null) {
-        Log.d(TAG, "-> fetch videos for upload")
+        Log.d(TAG, "-> fetch videos for upload $matchId")
+
+        if (matchId !== null) {
+            cancelUpload(matchId.toLong())
+        } else {
+            cancelUploads()
+        }
 
         appCoroutineScope.launch {
-            cancelUploads()
             videoUploadsRepository.getMatchReactions(matchId = matchId).collect {
                 it?.forEach { reaction -> enqueueWork(
                     Work.UploadVideo(
-                        videoId = reaction.id.toLong(),
+                        matchId = reaction.match_id.toLong(),
                         localUri = reaction.video,
                         reactionModel = reaction
                     )
@@ -170,7 +174,7 @@ class VideoUploadsWorker @Inject constructor(
             videoUploadsRepository.getMatchInterviews(matchId = matchId).collect {
                 it?.forEach { interview -> enqueueWork(
                     Work.UploadInterviewVideo(
-                        videoId = interview.id.toLong(),
+                        matchId = interview.match_id.toLong(),
                         localUri = interview.video,
                         interviewModel = interview
                     )
@@ -181,26 +185,25 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     private fun enqueueWork(work: Work) {
-        cancelledVideos.remove(work.videoId)
+        cancelledMatches.remove(work.matchId)
         queue.tryEmit(work)
     }
 
-    fun cancelUpload(videoId: Long) {
-        cancelledVideos.add(videoId)
-        currentJobs[videoId]?.forEach {
+    fun cancelUpload(matchId: Long) {
+        cancelledMatches.add(matchId)
+        currentJobs[matchId]?.forEach {
             it.cancel()
         }
-        uploadList.removeAll { it.videoId == videoId }
+        uploadList.removeAll { it.matchId == matchId }
     }
 
     fun cancelUploads() {
         currentJobs.keys.forEach { key ->
             currentJobs[key]?.forEach { job ->
                 job.cancel()
-                uploadList.removeAll { it.videoId == key }
+                uploadList.removeAll { it.matchId == key }
             }
         }
-
     }
 
     private suspend fun uploadMedia(work: Work.UploadVideo) {
@@ -222,7 +225,7 @@ class VideoUploadsWorker @Inject constructor(
                         Log.w(TAG, "-> upload failed for ${work.localUri}")
                         val index =
                             uploadList.indexOfFirst {
-                                item -> item.videoId == work.videoId && item.localUri == work.localUri
+                                item -> item.matchId == work.matchId && item.localUri == work.localUri
                             }
                         try {
                             uploadList[index] = uploadList[index].copy(isDone = true)
@@ -238,7 +241,7 @@ class VideoUploadsWorker @Inject constructor(
 
                         val index =
                             uploadList.indexOfFirst {
-                                    item -> item.videoId == work.videoId && item.localUri == work.localUri
+                                    item -> item.matchId == work.matchId && item.localUri == work.localUri
                             }
 
                         try {
@@ -248,12 +251,12 @@ class VideoUploadsWorker @Inject constructor(
                         }
 
                         try {
-                            Log.d(TAG, "-> Deleting file for action ${work.videoId} @ ${work.localUri}")
+                            Log.d(TAG, "-> Deleting file for action ${work.matchId} @ ${work.localUri}")
                             if (File(work.localUri).exists()) {
                                 File(work.localUri).delete()
                             }
-                        } catch (e: NullPointerException) {
-                            Log.e(TAG, "-> Failed Deleting file for action ${work.videoId} @ ${work.localUri}", e)
+                        } catch (e: java.lang.NullPointerException) {
+                            Log.e(TAG, "-> Failed Deleting file for action ${work.matchId} @ ${work.localUri}", e)
                         }
 
 //                        //  Safely update shared list inside lock
@@ -271,7 +274,7 @@ class VideoUploadsWorker @Inject constructor(
             }
 
             val hasMoreUploads = pendingWorkList.value.any {
-                it != work && it.videoId == work.videoId && (it is Work.UploadVideo || it is Work.UploadInterviewVideo)
+                it != work && it.matchId == work.matchId && (it is Work.UploadVideo || it is Work.UploadInterviewVideo)
             }
             if (!hasMoreUploads) {
                 Log.d(TAG, "-> all uploads are done")
@@ -306,7 +309,7 @@ class VideoUploadsWorker @Inject constructor(
                         handleResponse(response = it.response, interviewModel = it.interview)
                         val index =
                             uploadList.indexOfFirst {
-                                item -> item.videoId == work.videoId && item.localUri == work.localUri
+                                item -> item.matchId == work.matchId && item.localUri == work.localUri
                             }
 
                         try {
@@ -316,12 +319,12 @@ class VideoUploadsWorker @Inject constructor(
                         }
 
                         try {
-                            Log.d(TAG, "-> Deleting file for interview ${work.videoId} @ ${work.localUri}")
+                            Log.d(TAG, "-> Deleting file for interview ${work.matchId} @ ${work.localUri}")
                             if (File(work.localUri).exists()) {
                                 File(work.localUri).delete()
                             }
                         } catch (e: NullPointerException) {
-                            Log.e(TAG, "-> Failed Deleting file for interview ${work.videoId} @ ${work.localUri}", e)
+                            Log.e(TAG, "-> Failed Deleting file for interview ${work.matchId} @ ${work.localUri}", e)
                         }
                         // Safely update shared list inside lock
 //                        mutex.withLock {
@@ -338,7 +341,7 @@ class VideoUploadsWorker @Inject constructor(
             }
 
             val hasMoreUploads = pendingWorkList.value.any {
-                it != work && it.videoId == work.videoId && (it is Work.UploadVideo || it is Work.UploadInterviewVideo)
+                it != work && it.matchId == work.matchId && (it is Work.UploadVideo || it is Work.UploadInterviewVideo)
             }
             if (!hasMoreUploads) {
                 Log.d(TAG, "-> All uploads are done")
@@ -411,17 +414,17 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     sealed class Work {
-        abstract val videoId: Long
+        abstract val matchId: Long
         abstract val localUri: String
 
         data class UploadVideo(
-            override val videoId: Long,
+            override val matchId: Long,
             override val localUri: String,
             val reactionModel: ReactionsBean,
         ) : Work()
 
         data class UploadInterviewVideo(
-            override val videoId: Long,
+            override val matchId: Long,
             override val localUri: String,
             val interviewModel: InterviewBean,
         ) : Work()
@@ -432,7 +435,7 @@ class VideoUploadsWorker @Inject constructor(
      * notification accordingly
      */
     data class VideoUploadEntry(
-        val videoId: Long,
+        val matchId: Long,
         val localUri: String,
         val isDone: Boolean = false
     )
