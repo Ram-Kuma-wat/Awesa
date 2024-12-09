@@ -163,7 +163,7 @@ public class VideosAdapter extends ListAdapter<MatchesBean.VideosBean, VideosAda
                 if (mBean != null) {
                     if (view.getId() == R.id.imgDelete) {
                         mBean.setIsDelete("1");
-                        mListener.onVideoDelete(getBindingAdapterPosition(), mBean);
+//                        mListener.onVideoDelete(getBindingAdapterPosition(), mBean);
                     }else {
                         mListener.onVideoClick(mBean);
                     }
