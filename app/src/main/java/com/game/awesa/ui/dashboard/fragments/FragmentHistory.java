@@ -204,9 +204,4 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
     public void onVideoClick(MatchesBean.VideosBean mBeanVideo) {
 
     }
-   @Override
-    public void onVideoDelete(int positionVideo,MatchesBean.VideosBean mBeanVideo) {
-
-    }
-
 }
