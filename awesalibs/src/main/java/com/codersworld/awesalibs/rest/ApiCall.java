@@ -18,6 +18,9 @@ import com.codersworld.awesalibs.utils.CommonMethods;
 import com.codersworld.awesalibs.utils.SFProgress;
 import com.codersworld.awesalibs.utils.Tags;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
@@ -352,7 +355,7 @@ SFProgress.hideProgressDialog(mContext);
         });
     }
 
-    public void getMatchDetail(OnResponse<UniversalObject> onResponse, Boolean isTrue, String... params) {
+    public void getMatchDetail(OnResponse<UniversalObject> onResponse, List<MatchesBean.VideosBean> currentList, Boolean isTrue, String... params) {
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
@@ -365,7 +368,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
-                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_MATCH_DETAIL_API, true, ""));
+                    onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_MATCH_DETAIL_API, true, "", currentList));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_MATCH_DETAIL_API, mContext.getResources().getString(R.string.something_wrong));
                 }
