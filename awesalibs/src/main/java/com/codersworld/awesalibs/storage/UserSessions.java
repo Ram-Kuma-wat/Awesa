@@ -20,7 +20,7 @@ public class UserSessions {
     }
 
     public UserSessions(Context ctx) {
-        this.mContext = ctx;
+        mContext = ctx;
         initSession();
     }
 
@@ -75,7 +75,7 @@ public class UserSessions {
     public static void saveUserInfo(Context ctx, UserBean mUserBean) {
         mContext = ctx;
         initSession();
-        prefsEditor.putString(Tags.SB_USER_INFO, (mUserBean !=null)?new Gson().toJson(mUserBean):"");
+        prefsEditor.putString(Tags.SB_USER_INFO, (mUserBean !=null) ? new Gson().toJson(mUserBean) : "");
         prefsEditor.commit();
     }
 
@@ -100,7 +100,7 @@ public class UserSessions {
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putString(Tags.SB_APP_STATUS, str);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getAppStatus(Context context) {
@@ -112,7 +112,7 @@ public class UserSessions {
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putString("sponsors", str);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getSponsors(Context context) {
@@ -124,7 +124,7 @@ public class UserSessions {
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putInt(Tags.SB_IS_OPENED, str);
-        editor.commit();
+        editor.apply();
     }
 
     public static int getOpened(Context context) {
@@ -135,7 +135,7 @@ public class UserSessions {
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putString(Tags.SB_FCM_ID, CommonMethods.isValidString(str)?str:"");
-        editor.commit();
+        editor.apply();
     }
 
     public static String getFcmToken(Context context) {
@@ -146,7 +146,7 @@ public class UserSessions {
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putString(Tags.SB_LANGUAGE, CommonMethods.isValidString(str)?str:"");
-        editor.commit();
+        editor.apply();
     }
 
     public static String getLanguage(Context context) {
@@ -158,7 +158,7 @@ public class UserSessions {
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putInt("isUpdate", str);
-        editor.commit();
+        editor.apply();
     }
 
     public static int getUpdate(Context context) {
