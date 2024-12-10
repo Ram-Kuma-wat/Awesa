@@ -1,22 +1,15 @@
 package com.game.awesa.ui.dashboard
 
-import android.app.ActivityManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.util.Log
-import android.view.KeyEvent
 import android.view.View
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnPageChangeListener
-import com.codersworld.awesalibs.storage.UserSessions
-import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityMainBinding
-import com.game.awesa.services.TrimService
-import com.game.awesa.services.VideoUploadService
 import com.game.awesa.ui.BaseActivity
 import com.game.awesa.ui.dashboard.extension.JBNavigationPosition
 import com.game.awesa.ui.dashboard.extension.active
@@ -28,7 +21,6 @@ import com.game.awesa.ui.dialogs.CustomDialog
 import com.game.awesa.utils.AndroidNetworkObservingStrategy
 import com.game.awesa.utils.ErrorReporter
 import com.game.awesa.utils.VideoUploadsWorker
-import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -56,7 +48,7 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
         binding.bottomNavigation.selectedItemId = R.id.navHome
         val errReporter = ErrorReporter()
         errReporter.Init(this)
-        errReporter.CheckErrorAndSendMail(this)
+        errReporter.checkErrorAndSendMail(this)
 
 
     }
