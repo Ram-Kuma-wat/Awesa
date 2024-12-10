@@ -65,11 +65,6 @@ class LoginActivity : BaseActivity(), OnClickListener , OnConfirmListener,
         binding.etUsername.addTextChangedListener(JBWatcher(this@LoginActivity,binding.etUsername,null,1))
     }
 
-    override fun onResume() {
-        super.onResume()
-
-    }
-
     override fun onClick(v: View) {
        when(v.id) {
            R.id.txtSignUp -> {
