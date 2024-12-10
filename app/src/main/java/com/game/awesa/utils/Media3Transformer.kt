@@ -87,7 +87,6 @@ class Media3Transformer @Inject constructor(
                     Log.e(TAG, "Error trimming video: ${ex.localizedMessage}")
                 } catch (ex: IOException) {
                     Log.e(TAG, "Error trimming video: ${ex.localizedMessage}")
-//                    throw ex
                 }
             }
         }.invokeOnCompletion { error ->
@@ -136,6 +135,7 @@ class Media3Transformer @Inject constructor(
                 "-y",
                 "-ss", startTime.toString(),
 //                "-t", duration,
+//                "-vcodec", "mpeg4",
                 "-to", endTime.toString(),
                 "-c", "copy",
                 outputFile.absolutePath
