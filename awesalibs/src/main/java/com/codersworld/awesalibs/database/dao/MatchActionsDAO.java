@@ -6,7 +6,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.Nullable;
 
+import com.codersworld.awesalibs.beans.matches.InterviewBean;
 import com.codersworld.awesalibs.beans.matches.ReactionsBean;
 import com.codersworld.awesalibs.database.DatabaseHelper;
 import com.codersworld.awesalibs.utils.CommonMethods;
@@ -193,12 +195,25 @@ public class MatchActionsDAO {
         return dataList;
     }
 
-    public ArrayList<ReactionsBean> selectAllUploaded(String match_id, String half, int type) {
+    public ArrayList<ReactionsBean> selectAllUploaded(@Nullable String match_id, String half, int type) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") + ((type == 0) ? " AND video_path !=''" : "") + " order by id ASC, match_id DESC";
-        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-        ArrayList<ReactionsBean> dataList = manageCursor(cursor);
-        closeCursor(cursor);
+//        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") + ((type == 0) ? " AND video_path !=''" : "") + " order by id ASC, match_id DESC";
+
+        Cursor cursor;
+        ArrayList<ReactionsBean> dataList;
+
+        if (match_id == null) {
+            cursor = mDatabase.query(TABLE_MATCH_REACTIONS, new String[] {"*"}, null, null, null, null,  COLUMN_KEY_ID + " ASC" + ", " + COLUMN_MATCH_ID + " DESC");
+        } else {
+            String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
+            String[] selectionArgs = {match_id};
+
+            cursor = mDatabase.query(TABLE_MATCH_REACTIONS, new String[] {"*"}, selection, selectionArgs, null, null,  COLUMN_KEY_ID + " ASC" + ", " + COLUMN_MATCH_ID + " DESC");
+        }
+
+        dataList = manageCursor(cursor);
+
+        cursor.close();
         return dataList;
     }
 

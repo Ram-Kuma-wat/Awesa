@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.codersworld.awesalibs.beans.matches.InterviewBean;
@@ -115,14 +116,23 @@ public class InterviewsDAO {
         return dataList;
     }
 
-    public ArrayList<InterviewBean> selectAllUploaded(String match_id) {
+    public ArrayList<InterviewBean> selectAllUploaded(@Nullable String match_id) {
         initDBHelper();
 
-        String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
-        String[] selectionArgs = {match_id};
+        Cursor cursor;
+        ArrayList<InterviewBean> dataList;
 
-        Cursor cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, selection, selectionArgs, null, null,  COLUMN_KEY_ID + " DESC");
-        ArrayList<InterviewBean> dataList = manageCursor(cursor);
+        if (match_id == null) {
+            cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, null, null, null, null,  COLUMN_KEY_ID + " DESC");
+        } else {
+            String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
+            String[] selectionArgs = {match_id};
+
+            cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, selection, selectionArgs, null, null,  COLUMN_KEY_ID + " DESC");
+        }
+
+        dataList = manageCursor(cursor);
+
         cursor.close();
         return dataList;
     }
