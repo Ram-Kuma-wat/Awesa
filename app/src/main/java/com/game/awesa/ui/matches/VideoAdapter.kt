@@ -22,6 +22,11 @@ import java.io.File
 
 class VideoAdapter(onActonActionMatchListener: OnMatchListener, onDeleteVideoListener: OnDeleteVideoListener) :
     ListAdapter<VideosBean, VideoAdapter.VideoRecyclerViewHolder>(VideoDiffCallback()) {
+
+    companion object {
+        val TAG: String = VideoAdapter::class.java.simpleName
+    }
+
     var context: Context? = null
     private var onClickListener: OnMatchListener? = onActonActionMatchListener
     private var onDeleteVideoListener: OnDeleteVideoListener? = onDeleteVideoListener
@@ -127,7 +132,7 @@ class VideoAdapter(onActonActionMatchListener: OnMatchListener, onDeleteVideoLis
                     }
                 } catch (ex: Exception) {
                     CommonMethods.loadImage(context, video.thumbnail, binding.imgThumbnail)
-                    Log.e("VideosAdapter", ex.localizedMessage, ex)
+                    Log.e(TAG, ex.localizedMessage, ex)
                 }
 
             }
@@ -175,7 +180,7 @@ class VideoAdapter(onActonActionMatchListener: OnMatchListener, onDeleteVideoLis
                     }
                 } catch (ex: Exception) {
                     CommonMethods.loadImage(context, video.thumbnail, binding.imgThumbnail)
-                    Log.e("VideosAdapter", ex.localizedMessage, ex)
+                    Log.e(TAG, ex.localizedMessage, ex)
                 }
 
             }
