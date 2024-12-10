@@ -40,7 +40,7 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
             // Set a default position
             active(navPosition.position) // Extension function
             // Set a listener for handling selection events on bottom navigation items
-            setOnNavigationItemSelectedListener { item ->
+            setOnItemSelectedListener { item ->
                 navPosition = findNavigationPositionById(item.itemId)
                 switchFragment(navPosition)
             }
@@ -55,7 +55,7 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
 
     private fun switchFragment(navPosition: JBNavigationPosition): Boolean {
         return findFragment(navPosition).let {
-            supportFragmentManager.switchFragment(it, navPosition.getTag()) // Extension function
+            supportFragmentManager.switchFragment(it, navPosition.getTag())
         }
     }
 
