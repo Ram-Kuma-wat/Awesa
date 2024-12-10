@@ -4,8 +4,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.view.View.OnClickListener
 import androidx.databinding.DataBindingUtil
@@ -28,7 +26,7 @@ import com.game.awesa.utils.ErrorReporter
 import com.game.awesa.utils.JBWatcher
 import com.google.gson.Gson
 
-class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
+class LoginActivity : BaseActivity(), OnClickListener , OnConfirmListener,
     OnResponse<UniversalObject> {
     lateinit var binding: ActivityLoginNewBinding
     var mApiCall: ApiCall = ApiCall(this@LoginActivity)
@@ -51,8 +49,8 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
 
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         if (UserSessions.getUserInfo(this@LoginActivity) != null &&
             !UserSessions.getUserInfo(this@LoginActivity).login_username.isNullOrEmpty() &&
             !UserSessions.getUserInfo(this@LoginActivity).password.isNullOrEmpty()) {
@@ -65,6 +63,11 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
         checkSignup()
         clicked=1
         binding.etUsername.addTextChangedListener(JBWatcher(this@LoginActivity,binding.etUsername,null,1))
+    }
+
+    override fun onResume() {
+        super.onResume()
+
     }
 
     override fun onClick(v: View) {
@@ -144,7 +147,7 @@ class LoginActivity : BaseActivity(),OnClickListener , OnConfirmListener,
          if (CommonMethods.isNetworkAvailable(this@LoginActivity)) {
             mApiCall.checkSignup(
                 this,
-                if(clicked>0) false else true,
+                clicked <= 0,
             )
          } else {
             CommonMethods.errorDialog(
