@@ -18,7 +18,7 @@ public class SFProgress {
     private static ProgressDialog progressDialog;
     public static void showProgressDialog(Activity context,Boolean isCancelable) {
        try {
-           if (progressDialog !=null && progressDialog.isShowing()){
+           if (progressDialog !=null && progressDialog.isShowing()) {
                progressDialog.dismiss();
            }
            if (!context.isFinishing()) {
@@ -71,17 +71,13 @@ public class SFProgress {
        }
     }
 
-    public static void printLog(String message) {
-
-    }
-
     public static void hideProgressDialog(Context context) {
         try {
             if (progressDialog != null && progressDialog.isShowing()) {
                 progressDialog.dismiss();
             }
-        } catch (Exception ex) {
-            printLog(ex.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
