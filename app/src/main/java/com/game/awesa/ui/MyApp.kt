@@ -14,6 +14,7 @@ import androidx.work.Configuration
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.beans.VideoUploadBean
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO
+import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.services.TrimService
 import com.game.awesa.utils.AndroidNetworkObservingStrategy
@@ -60,6 +61,9 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
 
         networkObserver.getLiveConnectivityState().observeForever { connectivity ->
             if (connectivity.networkState!!.isConnected) {
+
+                if (UserSessions.getUserInfo(this) == null) return@observeForever
+
                 videoUploadsWorker.fetchVideos()
             } else {
                 videoUploadsWorker.cancelUploads()
