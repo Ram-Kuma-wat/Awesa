@@ -386,12 +386,12 @@ class VideoUploadsWorker @Inject constructor(
             if (mBean != null && mBean.status == 1) {
                 val broadcastIntent = Intent(MatchDetailActivity.INTENT_UPLOAD_VIDEO)
                 broadcastIntent.action = MatchDetailActivity.INTENT_ACTION_UPLOAD
-                val interviewVideoBean = VideosBean()
-                interviewVideoBean.video = interviewModel?.video
-                val interViewVideosBean = VideosBean()
-                interViewVideosBean.video = mBean.videos?.video
-                interViewVideosBean.thumbnail = mBean.videos?.thumbnail
-                broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, interViewVideosBean)
+                val interViewVideoBean = VideosBean()
+                interViewVideoBean.video = mBean.videos?.video
+                interViewVideoBean.local_id = mBean.localId
+                interViewVideoBean.match_id = mBean.videos.match_id
+                interViewVideoBean.thumbnail = mBean.videos?.thumbnail
+                broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, interViewVideoBean)
                 broadcastIntent.putExtra(MatchDetailActivity.TYPE_PARAMETER, VideoType.interview)
                 broadcastIntent.putExtra(MatchDetailActivity.LOCAL_VIDEO_PARAMETER, interviewModel)
 
