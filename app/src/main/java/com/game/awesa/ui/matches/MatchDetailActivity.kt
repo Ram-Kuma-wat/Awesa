@@ -227,9 +227,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
 
                         mAdapter?.submitList(null)
 
-                        val currentList = (response.daos as? List<VideosBean>)?.toMutableList()
-//                        val currentList = mAdapter?.currentList?.toMutableList()
-//                        currentList?.removeIf { intArrayOf(-1, -2, -3).contains(it.local_id) }
+                        var currentList = (response.daos as? List<VideosBean>)?.toMutableList()
                         currentList?.addAll(0, mBeanMatch.info[0].videos)
 
                         if (!mBeanMatch.info[0].interview.isNullOrEmpty()) {
@@ -304,8 +302,8 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
     @OptIn(UnstableApi::class)
     @Suppress("MagicNumber")
     private fun loadVideos(isRefreshing: Boolean = false) {
-        if(binding.swRefresh.isRefreshing.not()) {
-            SFProgress.showProgressDialog(this@MatchDetailActivity,true)
+        if(isRefreshing.not()) {
+            SFProgress.showProgressDialog(this,true)
         }
 
         mAdapter?.submitList(null)
@@ -348,14 +346,8 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                 mList.add(interview)
             }
 
-//            mAdapter?.submitList(formatList(mList))
-
             updateProgressCount()
             getMatchActions(isRefreshing, mList.toList())
-
-            if(binding.swRefresh.isRefreshing.not()) {
-                SFProgress.hideProgressDialog(this@MatchDetailActivity)
-            }
         }
     }
 
@@ -369,8 +361,9 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
 
     @Suppress("MagicNumber")
     fun formatList(list: List<VideosBean>) : List<VideosBean> {
+        val tempList = list.distinctBy { it.local_id }
         val updatedList = mutableListOf<VideosBean>()
-        val groups = list.groupBy { it.half }
+        val groups = tempList.groupBy { it.half }
 
         groups.forEach { (header, list) ->
             val headerItem = VideosBean()
@@ -431,7 +424,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             mApiCall.getMatchDetail(
                 this,
                 list,
-                 binding.swRefresh.isRefreshing.not(),
+                !isRefreshing,
                 userId,
                 gameId
             )
