@@ -22,7 +22,7 @@
     <string name="lbl_name">Name</string>
     <string name="lbl_verify">Überprüfen Sie</string>
     <string name="lbl_resend">Senden Sie den Code erneut</string>
-    <string name="lbl_wait_time">Warten Sie XXXX Sekunden, um den Code erneut zu senden!</string>
+    <string name="lbl_wait_time">Warten Sie 00:%d Sekunden, um den Code erneut zu senden!</string>
     <string name="error_otp_required">Bitte OTP eingeben.</string>
     <string name="lbl_privacy">Mit der Anmeldung erklären Sie sich mit unserem</string>
     <string name="lbl_privacy_policy">Datenschutzbestimmungen</string>
