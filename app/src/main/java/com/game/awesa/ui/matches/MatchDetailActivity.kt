@@ -352,7 +352,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
     }
 
     private fun updateProgressCount() {
-        binding.llUploadProgress.visibility = if(uploadedCount == totalCount) View.GONE else View.VISIBLE
+        binding.llUploadProgress.visibility = if(uploadedCount >= totalCount) View.GONE else View.VISIBLE
         binding.txtUploaded.text = getString(
             R.string.lbl_videos_uploaded, uploadedCount.toString(),
             totalCount.toString()
