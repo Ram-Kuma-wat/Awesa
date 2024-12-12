@@ -45,6 +45,7 @@ class ProcessingActivity : AppCompatActivity() {
 
     var mMatchBean: MatchesBean.InfoBean? = null
 
+    @Suppress("MagicNumber")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_splash)
@@ -54,13 +55,13 @@ class ProcessingActivity : AppCompatActivity() {
         if (intent.hasExtra(EXTRA_MATCH_BEAN)) {
             mMatchBean = CommonMethods.getSerializable(intent, EXTRA_MATCH_BEAN, MatchesBean.InfoBean::class.java)
             CommonMethods.checkTrimServiceWithData(
-                this@ProcessingActivity,
+                this,
                 TrimService::class.java,
                 mMatchBean!!.id.toString()
             )
 
             databaseManager.executeQuery {
-                val mInterviewsDAO = InterviewsDAO(it, this@ProcessingActivity)
+                val mInterviewsDAO = InterviewsDAO(it, this)
                 val mList =
                     mInterviewsDAO.selectAll(mMatchBean!!.id.toString()) as ArrayList<InterviewBean>
                 databaseManager.closeDatabase()
@@ -114,33 +115,6 @@ class ProcessingActivity : AppCompatActivity() {
                     mInterviewsDAO.updateVideo(fileName, destFile.toString(), mList[0].id)
                 }
             }
-
-            /*
-                        databaseManager.executeQuery { database ->
-                            val dao = MatchActionsDAO(database, applicationContext)
-
-                             mListReaction = dao.selectAllForTrim(mMatchBean!!.id.toString(),0)
-                            if (CommonMethods.isValidArrayList(mListReaction)) {
-                                val dao1 = VideoMasterDAO(database, applicationContext)
-                                var list = dao1.selectAll1(mListReaction[0].match_id.toString(),"")
-                                Log.e("listlist",mListReaction.size.toString()+"=>"+Gson().toJson(list))
-                                if (CommonMethods.isValidArrayList(list) && list.size>0){
-                                    if (list.size>0){
-                                        firstHalf = list[0]
-                                    }
-                                    if (list.size>1){
-                                        secondHalf = list[1]
-                                    }
-                                    trimData()
-                                }
-                            }else{
-                                val intent = Intent(this@ProcessingActivity, MatchOverviewActivity::class.java)
-                                intent.putExtra("mMatchBean", mMatchBean)
-                                startActivity(intent)
-
-                            }
-                        }
-            */
         }
 
         mTimer = object : CountDownTimer(2500, SECOND_IN_MS) { // 2.5 seconds
@@ -155,5 +129,4 @@ class ProcessingActivity : AppCompatActivity() {
             }
         }.start()
     }
-
 }

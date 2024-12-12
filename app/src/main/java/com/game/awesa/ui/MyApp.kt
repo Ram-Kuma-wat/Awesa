@@ -1,5 +1,6 @@
 package com.game.awesa.ui
 
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.camera.camera2.Camera2Config
@@ -11,8 +12,8 @@ import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
-import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.beans.VideoUploadBean
+import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
@@ -24,7 +25,9 @@ import dagger.Lazy
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
+import java.util.Locale
 import javax.inject.Inject
+
 
 @UnstableApi
 open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Provider, Configuration.Provider {
@@ -45,6 +48,14 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
         const val EXO_PLAYER_CACHE_SIZE: Long = 90 * 1024 * 1024
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
         lateinit var exoDatabaseProvider: StandaloneDatabaseProvider
+
+        fun setGermanAsDefault(context: Context): Context {
+            val locale = Locale("de")
+            Locale.setDefault(locale)
+            val config = android.content.res.Configuration()
+            config.setLocale(locale)
+            return context.createConfigurationContext(config)
+        }
     }
 
     @Inject lateinit var networkObserver: AndroidNetworkObservingStrategy
