@@ -303,13 +303,13 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             put(MediaStore.Video.Media.DISPLAY_NAME, name)
         }
         val mediaStoreOutput = MediaStoreOutputOptions.Builder(
-            requireActivity().contentResolver,
+            requireContext().contentResolver,
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         ).setContentValues(contentValues).build()
 
         // configure Recorder and Start recording to the mediaStoreOutput.
         currentRecording = videoCapture.output
-            .prepareRecording(requireActivity(), mediaStoreOutput)
+            .prepareRecording(requireContext(), mediaStoreOutput)
             .asPersistentRecording() // Audio data is recorded after the VideoCapture is unbound
             .apply {
                 if (ContextCompat.checkSelfPermission(
@@ -450,8 +450,8 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         captureViewBinding.imgZoomOut.setOnClickListener(this)
 
         strUserId =
-            if (UserSessions.getUserInfo(requireActivity()) != null) UserSessions.getUserInfo(
-                requireActivity()
+            if (UserSessions.getUserInfo(context) != null) UserSessions.getUserInfo(
+                context
             ).id.toString() else "0"
         val arguments = arguments
         if (arguments != null && arguments.containsKey(EXTRA_MATCH_HALF)) {
@@ -489,7 +489,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
              2 -> {
                  startTimerCounter()
                  databaseManager.executeQuery {
-                     val dao = MatchActionsDAO(it, requireActivity())
+                     val dao = MatchActionsDAO(it, context)
                      val teamOneScore: Int =
                          dao.getGoalCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
                      val teamTwoScore: Int = dao.getGoalCount(
@@ -500,7 +500,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                      captureViewBinding.tvTeamTwoScore.text = String.format(Locale.getDefault(),"%d", teamTwoScore)
 
                      CommonMethods.successToast(
-                         requireActivity(),
+                         context,
                          getString(com.game.awesa.R.string.msg_action_success, reaction)
                      )
                      changeImage(1)
@@ -714,7 +714,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         if (isActionClick) {
             actionTimer()
             if (!isClicked && isStart) {
-                if (CommonMethods.isNetworkAvailable(requireActivity())) {
+                if (CommonMethods.isNetworkAvailable(context)) {
                     mImageView = imageView
                     changeImage(0)
                     saveActions()
@@ -733,7 +733,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgTor -> {
                 reaction = "goal"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.tor_one,
                     mImageView,
                     type
@@ -742,7 +742,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgChance -> {
                 reaction = "chance"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.chance_one,
                     mImageView,
                     type
@@ -751,7 +751,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgWow -> {
                 reaction = "wow"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.wow_one,
                     mImageView,
                     type
@@ -760,7 +760,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgFail -> {
                 reaction = "fail"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.fail_one,
                     mImageView,
                     type
@@ -769,7 +769,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgHighlight -> {
                 reaction = "Highlight"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.highlight,
                     mImageView,
                     type
@@ -778,7 +778,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgTor1 -> {
                 reaction = "goal"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.tor_two,
                     mImageView,
                     type
@@ -787,7 +787,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgChance1 -> {
                 reaction = "chance"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.chance_two,
                     mImageView,
                     type
@@ -796,7 +796,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgWow1 -> {
                 reaction = "wow"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.wow_two,
                     mImageView,
                     type
@@ -805,7 +805,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgFail1 -> {
                 reaction = "fail"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.fail_two,
                     mImageView,
                     type
@@ -814,7 +814,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.imgHighlight1 -> {
                 reaction = "Highlight"
                 CommonMethods.loadImageDrawable(
-                    requireActivity(),
+                    context,
                     if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.highlight,
                     mImageView,
                     type
@@ -944,7 +944,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
     private fun saveActions() {
         databaseManager.executeQuery {
-            val dao = MatchActionsDAO(it, requireActivity())
+            val dao = MatchActionsDAO(it, context)
             val mBean = ReactionsBean()
             mBean.match_id = if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id else 0
             mBean.team_id = if (CommonMethods.isValidString(strTeamId)) strTeamId.toInt() else 0
@@ -991,7 +991,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             captureViewBinding.tvTeamTwoScore.text = String.format(Locale.getDefault(),"%d", teamTwoScore)
 
             CommonMethods.successToast(
-                requireActivity(),
+                context,
                 getString(com.game.awesa.R.string.msg_action_success, reaction)
             )
             changeImage(1)
@@ -1008,7 +1008,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             Locale.getDefault()
         ).format(Date())
         databaseManager.executeQuery {
-            val dao = VideoMasterDAO(it, requireActivity())
+            val dao = VideoMasterDAO(it, context)
             val mBean = VideoUploadBean()
             mBean.match_id = mMatchBean?.id.toString()
             mBean.video_name = fileName
@@ -1029,7 +1029,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                     captureViewBinding.btnReTakeVideo.setOnClickListener {
                         startActivity(
                             Intent(
-                                requireActivity(),
+                                context,
                                 CameraActivityNew::class.java
                             ).putExtra(EXTRA_MATCH_HALF, 2).putExtra(EXTRA_MATCH_BEAN, mMatchBean)
                         )
@@ -1058,7 +1058,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         if (!isDialogOpen) {
             if (customDialog == null) {
                 customDialog = CustomDialog(
-                    requireActivity(),
+                    context,
                     msg,
                     getString(com.game.awesa.R.string.lbl_interview),
                     getString(com.game.awesa.R.string.lbl_end_video),
@@ -1080,20 +1080,20 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         isDialogOpen = false
         if (isTrue) {
             if (type == "99") {
-                UserSessions.clearUserInfo(requireActivity())
-                val intent = Intent(requireActivity(), LoginActivity::class.java)
+                UserSessions.clearUserInfo(context)
+                val intent = Intent(context, LoginActivity::class.java)
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivity(intent)
                 requireActivity().finishAffinity()
             } else {
-                val intent = Intent(requireActivity(), ProcessingActivity::class.java)
+                val intent = Intent(context, ProcessingActivity::class.java)
                 intent.putExtra(ProcessingActivity.EXTRA_MATCH_BEAN, mMatchBean)
                 startActivity(intent)
                 requireActivity().finish()
             }
         } else {
-            val intent = Intent(requireActivity(), InterviewActivityNew::class.java)
+            val intent = Intent(context, InterviewActivityNew::class.java)
             intent.putExtra(ProcessingActivity.EXTRA_MATCH_BEAN, mMatchBean)
             startActivity(intent)
             requireActivity().finish()
@@ -1112,7 +1112,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                             captureViewBinding.tvTeamTwoScore.text =
                                 String.format(Locale.getDefault(),"%d", mBean.scores[0].team2_score)
                         }else if (mBean.status == 99) {
-                            UserSessions.clearUserInfo(requireActivity())
+                            UserSessions.clearUserInfo(context)
                             Global().makeConfirmation(mBean.msg, requireActivity(), this)
                         }
                     } catch (ex1: Exception) {
@@ -1137,7 +1137,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
     fun errorMsg(strMsg: String) {
         CommonMethods.errorDialog(
-            requireActivity(),
+            context,
             strMsg,
             getResources().getString(com.game.awesa.R.string.app_name),
             getResources().getString(com.game.awesa.R.string.lbl_ok)
@@ -1169,7 +1169,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
     private fun initVideo() {
         databaseManager.executeQuery {
-            val dao = MatchActionsDAO(it, requireActivity())
+            val dao = MatchActionsDAO(it, context)
             try {
                 dao.deleteByMatch(
                     if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id.toString() else "0",
@@ -1179,7 +1179,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             } catch (Ex: Exception) {
                 Ex.printStackTrace()
             }
-            val dao1 = VideoMasterDAO(it, requireActivity())
+            val dao1 = VideoMasterDAO(it, context)
             try {
                 dao1.deleteVideoByMatch(
                     if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id else 0, mHalf
@@ -1208,7 +1208,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
     private fun makeAnimation(type: Int) {
         if (animation == null) {
             animation = AnimationUtils.loadAnimation(
-                requireActivity(),
+                context,
                 com.game.awesa.R.anim.blink
             )
         }
