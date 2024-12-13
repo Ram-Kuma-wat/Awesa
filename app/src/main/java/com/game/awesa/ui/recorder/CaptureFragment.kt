@@ -95,6 +95,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
     OnConfirmListener {
     @Inject
     lateinit var databaseManager: DatabaseManager
+
     // UI with ViewBinding
     private lateinit var captureViewBinding: FragmentCaptureBinding
     private val captureLiveStatus = MutableLiveData<String>()
@@ -162,7 +163,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
         try {
             cameraProvider.unbindAll()
-            mCamera =    cameraProvider.bindToLifecycle(
+            mCamera = cameraProvider.bindToLifecycle(
                 viewLifecycleOwner,
                 cameraSelector,
                 videoCapture,
@@ -175,11 +176,12 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         }
         enableUI(true)
     }
-    var mCamera : Camera?=null;
 
-    fun setZoomLevel(zoomRatio:Int){
+    var mCamera: Camera? = null;
+
+    fun setZoomLevel(zoomRatio: Int) {
         //Log.e("zoomRatio",zoomRatio.toString()+" => "+(zoomRatio*10).toString())
-        if (mCamera !=null) {
+        if (mCamera != null) {
             // Set the default zoom level
             val cameraControl = mCamera!!.cameraControl
             val cameraInfo = mCamera!!.cameraInfo
@@ -188,10 +190,11 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             // Linear zoom ranges from 0.0 (min zoom) to 1.0 (max zoom)
             //val zoomRatio = 1.0f // Adjust this value as needed
             cameraControl.setLinearZoom(mArrayZoom[zoomRatio])
-            captureViewBinding.txtZoom.setText(mArrayZoom1[zoomRatio].toString()+"x")
+            captureViewBinding.txtZoom.setText(mArrayZoom1[zoomRatio].toString() + "x")
         }
 
     }
+
     /**
      * Kick start the video recording
      *   - config Recorder to capture to MediaStoreOutput
@@ -381,7 +384,8 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
 
     }
-     /**
+
+    /**
      * Initialize UI. Preview and Capture actions are configured in this function.
      * Note that preview and capture are both initialized either by UI or CameraX callbacks
      * (except the very 1st time upon entering to this fragment in onCreateView()
@@ -715,6 +719,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         super.onResume()
         if (currentRecording != null) {
             currentRecording?.resume()
+            resumeTimer()
         }
     }
 
@@ -722,6 +727,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         super.onPause()
         if (currentRecording != null) {
             currentRecording?.pause()
+            pauseTimer()
         }
     }
 
@@ -840,7 +846,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 mImageView,
                 type
             )
-        }else if (mImageView == captureViewBinding.imgHighlight1) {
+        } else if (mImageView == captureViewBinding.imgHighlight1) {
             reaction = "Highlight"
             CommonMethods.loadImageDrawable(
                 requireActivity(),
@@ -874,23 +880,26 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             currentRecording = null
         }
     }
-    val mArrayZoom = floatArrayOf(0.0f,0.2f,0.4f,0.6f,0.8f,1.0f)
-    val mArrayZoom1 = intArrayOf(0,1,2,3,4,5)
+
+    val mArrayZoom = floatArrayOf(0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f)
+    val mArrayZoom1 = intArrayOf(0, 1, 2, 3, 4, 5)
     var currentZoom = 0;
     override fun onClick(v: View) {
         when (v.id) {
             com.game.awesa.R.id.imgZoomIn -> {
-                if (currentZoom<5) {
+                if (currentZoom < 5) {
                     currentZoom++
                     setZoomLevel(currentZoom)
                 }
             }
+
             com.game.awesa.R.id.imgZoomOut -> {
-                if (currentZoom>0) {
+                if (currentZoom > 0) {
                     currentZoom--
                     setZoomLevel(currentZoom)
                 }
             }
+
             com.game.awesa.R.id.iv_stop -> {
                 stopRecording()
             }
@@ -918,6 +927,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             com.game.awesa.R.id.imgFail1 -> {
                 makeAction(captureViewBinding.imgFail1)
             }
+
             com.game.awesa.R.id.imgHighlight -> {
                 makeAction(captureViewBinding.imgHighlight)
             }
@@ -1037,7 +1047,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             var masterDataBaseId = dao.latestInsertedId
             val mCOUNT: Int = dao.getTodoItemCount()
             captureViewBinding.llUpload.visibility = View.GONE
-            CommonMethods.checkServiceWIthData(requireActivity(), TrimService::class.java,match_id)
+            CommonMethods.checkServiceWIthData(requireActivity(), TrimService::class.java, match_id)
             if (mHalf == 1) {
                 captureViewBinding.btnReTakeVideo.setText(getString(com.game.awesa.R.string.lbl_start_second_half))
                 captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
@@ -1094,11 +1104,17 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
     override fun onConfirm(isTrue: Boolean, type: String) {
         isDialogOpen = false
         if (isTrue) {
-            if (type.equals("99")){
+            if (type.equals("99")) {
                 UserSessions.clearUserInfo(requireActivity())
-                startActivity(Intent(requireActivity(), LoginActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+                startActivity(
+                    Intent(
+                        requireActivity(),
+                        LoginActivity::class.java
+                    ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                )
                 requireActivity().finishAffinity()
-            }else {
+            } else {
                 //overview
                 //val intent = Intent(requireActivity(), MatchOverviewActivity::class.java)
                 val intent = Intent(requireActivity(), ProcessingActivity::class.java)
@@ -1126,7 +1142,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                         if (mBean.status == 1 && CommonMethods.isValidArrayList(mBean.scores)) {
                             captureViewBinding.tvTeamOneScore.setText(mBean.scores[0].team1_score.toString())
                             captureViewBinding.tvTeamTwoScore.setText(mBean.scores[0].team2_score.toString())
-                        }else if (mBean.status == 99) {
+                        } else if (mBean.status == 99) {
                             UserSessions.clearUserInfo(requireActivity())
                             Global().makeConfirmation(mBean.msg, requireActivity(), this)
                         }
@@ -1159,36 +1175,52 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         );
     }
 
+    private var isPaused = false // Variable to track the paused state
+lateinit  var mRunnable:Runnable;
     private fun runTimer() {
         seconds = 0;
         seconds1 = 45 * 60;
         handler.post(object : java.lang.Runnable {
             override fun run() {
-                var minutes = seconds / 60
-                var secs = seconds % 60
-                var time = String.format(Locale.getDefault(), "%02d:%02d", minutes, secs)
-                if (mHalf == 2) {
-                    val minutes1 = seconds1 / 60
-                    val secs1 = seconds1 % 60
-                    var time1 = String.format(Locale.getDefault(), "%02d:%02d", minutes1, secs1)
-                    captureViewBinding.tvTimer.setText(time1)
-                } else {
-                    captureViewBinding.tvTimer.setText(time)
-                }
-                strTime = time;
-                if (isStart) {
-                    seconds++
-                    seconds1++
-                    if (seconds >= Tags.recording_duration) {
-                        stopRecording()
-                        return;
+                mRunnable = this;
+                if (!isPaused) { // Only execute if not paused
+                    var minutes = seconds / 60
+                    var secs = seconds % 60
+                    var time = String.format(Locale.getDefault(), "%02d:%02d", minutes, secs)
+                    if (mHalf == 2) {
+                        val minutes1 = seconds1 / 60
+                        val secs1 = seconds1 % 60
+                        var time1 = String.format(Locale.getDefault(), "%02d:%02d", minutes1, secs1)
+                        captureViewBinding.tvTimer.setText(time1)
+                    } else {
+                        captureViewBinding.tvTimer.setText(time)
+                    }
+                    strTime = time;
+                    if (isStart) {
+                        seconds++
+                        seconds1++
+                        if (seconds >= Tags.recording_duration) {
+                            stopRecording()
+                            return;
+                        }
                     }
                 }
-                handler.postDelayed(this, 1000)
+                if (!isPaused) {
+                    handler.postDelayed(this, 1000)
+                }
             }
         })
     }
+    // Pause the handler
+    fun pauseTimer() {
+        isPaused = true
+    }
 
+    // Resume the handler
+    fun resumeTimer() {
+        isPaused = false
+        handler.postDelayed(mRunnable, 1000)
+    }
     private fun captureVideo() {
         if (!this@CaptureFragment::recordingState.isInitialized ||
             recordingState is VideoRecordEvent.Finalize
