@@ -14,26 +14,16 @@ import dagger.hilt.android.AndroidEntryPoint
 class CameraActivity : BaseActivity() {
     lateinit var binding: ActivityCameraRecordBinding
 
-    private var mMatchBean: MatchesBean.InfoBean? = null;
+    private var mMatchBean: MatchesBean.InfoBean? = null
     private var mHalf = 1
 
-     override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_camera_record)
 
-        if (intent.hasExtra(CaptureFragment.EXTRA_MATCH_HALF)) {
-            mHalf = intent.getIntExtra(CaptureFragment.EXTRA_MATCH_HALF, 1)
-        }
+        handleIntent()
 
-        if (intent.hasExtra(CaptureFragment.EXTRA_MATCH_BEAN)) {
-            mMatchBean = CommonMethods.getSerializable(
-                intent,
-                CaptureFragment.EXTRA_MATCH_BEAN,
-                MatchesBean.InfoBean::class.java
-            )
-        }
-
-         if (savedInstanceState == null) {
+        if (savedInstanceState == null) {
              val mFragment = CaptureFragment()
              val bundle = Bundle()
 
@@ -46,6 +36,20 @@ class CameraActivity : BaseActivity() {
              supportFragmentManager.commit {
                  replace(R.id.container_body, mFragment)
              }
-         }
-     }
+        }
+    }
+
+    private fun handleIntent() {
+        if (intent.hasExtra(CaptureFragment.EXTRA_MATCH_HALF)) {
+            mHalf = intent.getIntExtra(CaptureFragment.EXTRA_MATCH_HALF, 1)
+        }
+
+        if (intent.hasExtra(CaptureFragment.EXTRA_MATCH_BEAN)) {
+            mMatchBean = CommonMethods.getSerializable(
+                intent,
+                CaptureFragment.EXTRA_MATCH_BEAN,
+                MatchesBean.InfoBean::class.java
+            )
+        }
+    }
 }
