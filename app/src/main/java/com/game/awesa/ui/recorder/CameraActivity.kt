@@ -11,7 +11,7 @@ import com.game.awesa.ui.BaseActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class CameraActivityNew : BaseActivity() {
+class CameraActivity : BaseActivity() {
     lateinit var binding: ActivityCameraRecordBinding
 
     private var mMatchBean: MatchesBean.InfoBean? = null;
@@ -33,17 +33,19 @@ class CameraActivityNew : BaseActivity() {
             )
         }
 
-         val mFragment = CaptureFragment()
-         val bundle = Bundle()
+         if (savedInstanceState == null) {
+             val mFragment = CaptureFragment()
+             val bundle = Bundle()
 
-         if (mMatchBean != null) {
-             bundle.putSerializable(CaptureFragment.EXTRA_MATCH_BEAN, mMatchBean)
-             bundle.putSerializable(CaptureFragment.EXTRA_MATCH_HALF, mHalf)
-         }
+             if (mMatchBean != null) {
+                 bundle.putSerializable(CaptureFragment.EXTRA_MATCH_BEAN, mMatchBean)
+                 bundle.putSerializable(CaptureFragment.EXTRA_MATCH_HALF, mHalf)
+             }
 
-         mFragment.setArguments(bundle)
-         supportFragmentManager.commit {
-             replace(R.id.container_body, mFragment)
+             mFragment.setArguments(bundle)
+             supportFragmentManager.commit {
+                 replace(R.id.container_body, mFragment)
+             }
          }
      }
 }

@@ -89,7 +89,7 @@
         </activity>
 
     <activity
-            android:name=".ui.recorder.CameraActivityNew"
+            android:name=".ui.recorder.CameraActivity"
             android:exported="true"
             android:screenOrientation="landscape">
         </activity>

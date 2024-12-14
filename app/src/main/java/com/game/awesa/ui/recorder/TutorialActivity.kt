@@ -7,8 +7,7 @@ import android.view.View
 import android.view.animation.Animation
 import android.view.animation.Animation.AnimationListener
 import android.view.animation.AnimationUtils
-import android.widget.Button
-import androidx.appcompat.app.AppCompatActivity
+ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.codersworld.awesalibs.beans.matches.MatchesBean
 import com.codersworld.awesalibs.utils.CommonMethods
@@ -41,7 +40,7 @@ class TutorialActivity : AppCompatActivity() {
                     MatchesBean.InfoBean::class.java)
         }
         binding.btnContinue.setOnClickListener {
-            val intent = Intent(this@TutorialActivity, CameraActivityNew::class.java)
+            val intent = Intent(this@TutorialActivity, CameraActivity::class.java)
             intent.putExtra(CaptureFragment.EXTRA_MATCH_BEAN, mMatchBean)
             startActivity(intent)
             finish()
