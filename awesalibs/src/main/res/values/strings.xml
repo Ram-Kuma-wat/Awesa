@@ -15,7 +15,7 @@
     <string name="error_no_data_found">No data found</string>
     <string name="str_done">Done</string>
     <string name="str_picker_limit">Maximum selection reached</string>
-    <string name="str_selected_image_toolbar">%s (%d/%d)</string>
+    <string name="str_selected_image_toolbar">%1$s (%2$d/%3$d)</string>
     <string name="no_network_message">Please check your Internet Connection.</string>
 
 
