@@ -28,8 +28,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -40,7 +38,6 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.ScaleAnimation
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.camera.core.Camera
@@ -64,7 +61,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenCreated
 import androidx.media3.common.util.UnstableApi
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.beans.matches.MatchesBean
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
@@ -82,9 +78,8 @@ import com.game.awesa.databinding.FragmentCaptureBinding
 import com.game.awesa.services.TrimService
 import com.game.awesa.ui.LoginActivity
 import com.game.awesa.ui.dialogs.CustomDialog
-import com.game.awesa.ui.recorder.extensions.getNameString
-import com.game.awesa.utils.GenericListAdapter
 import com.game.awesa.utils.Global
+import com.google.gson.JsonSyntaxException
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -144,26 +139,20 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
     // from camera activity
     private var isClicked = false
     var isStart = false
-    var strTime = "00:00"
     private var strTeamId = ""
     var mHalf = 1
     private var secondsPassed = 0
-    var seconds = 0
     var mTimer: CountDownTimer? = null
     var actionTimer: CountDownTimer? = null
     var strUserId = ""
     private var mMatchBean: MatchesBean.InfoBean? = null
-    var seconds1 = 0
-    var handler = Handler(Looper.getMainLooper())
     private var mediaFile: File? = null
 
     private var mImageView: ImageView? = null
     private var reaction = ""
 
     private var matchId = ""
-    private val mArrayZoom = floatArrayOf(0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f)
-    private val mArrayZoom1 = intArrayOf(0, 1, 2, 3, 4, 5)
-    private var currentZoom = 0
+    private val mArrayZoom = floatArrayOf(0.2f, 0.4f, 0.6f, 0.8f, 1.0f)
 
     private var customDialog: CustomDialog? = null
     private var isDialogOpen = false
@@ -172,16 +161,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
-            if (isGranted) {
-                audioEnabled = true
-            } else {
-                audioEnabled = false
-                // Explain to the user that the feature is unavailable because the
-                // feature requires a permission that the user has denied. At the
-                // same time, respect the user's decision. Don't link to system
-                // settings in an effort to convince the user to change their
-                // decision.
-            }
+            audioEnabled = isGranted
         }
 
     /**
@@ -269,21 +249,42 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             Log.e(TAG, "Use case binding failed", ex)
             resetUIandState()
         }
-        enableUI(true)
     }
 
-    private fun setZoomLevel(zoomRatio: Int){
-        if (mCamera !=null) {
-            // Set the default zoom level
-            val cameraControl = mCamera!!.cameraControl
-            val cameraInfo = mCamera!!.cameraInfo
+    @Suppress("MagicNumber")
+    private fun zoomIn() {
+        if(mCamera == null) return
 
-            // Example: Set zoom ratio to 2.0x
-            // Linear zoom ranges from 0.0 (min zoom) to 1.0 (max zoom)
-            //val zoomRatio = 1.0f // Adjust this value as needed
-            cameraControl.setLinearZoom(mArrayZoom[zoomRatio])
-            captureViewBinding.txtZoom.text = String.format(Locale.getDefault(), "%dx", mArrayZoom1[zoomRatio])
-        }
+        val cameraInfo = mCamera!!.cameraInfo
+
+        if (cameraInfo.zoomState.value!!.linearZoom == 0.5f) return
+
+        val cameraControl = mCamera!!.cameraControl
+        // Linear zoom ranges from 0.0 (min zoom) to 1.0 (max zoom)
+        cameraControl.setLinearZoom(cameraInfo.zoomState.value!!.linearZoom + 0.1f)
+        captureViewBinding.txtZoom.text = String.format(
+            Locale.getDefault(),
+            "%.1fx",
+            cameraInfo.zoomState.value!!.linearZoom * 10
+        )
+    }
+
+    @Suppress("MagicNumber")
+    private fun zoomOut() {
+        if(mCamera == null) return
+
+        val cameraInfo = mCamera!!.cameraInfo
+
+        if (cameraInfo.zoomState.value!!.linearZoom <= 0.0f) return
+
+        val cameraControl = mCamera!!.cameraControl
+        // Linear zoom ranges from 0.0 (min zoom) to 1.0 (max zoom)
+        cameraControl.setLinearZoom(cameraInfo.zoomState.value!!.linearZoom - 0.1f)
+        captureViewBinding.txtZoom.text = String.format(
+            Locale.getDefault(),
+            "%.1fx",
+            cameraInfo.zoomState.value!!.linearZoom * 10
+        )
     }
 
     /**
@@ -380,18 +381,8 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                     CameraSelector.DEFAULT_FRONT_CAMERA
                 )) {
                     try {
-                        // just get the camera.cameraInfo to query capabilities
-                        // we are not binding anything here.
                         if (provider.hasCamera(camSelector)) {
                             val camera = provider.bindToLifecycle(requireActivity(), camSelector)
-                            // Set the default zoom level
-                            val cameraControl = camera.cameraControl
-                            val cameraInfo = camera.cameraInfo
-
-                            // Example: Set zoom ratio to 2.0x
-                            // Linear zoom ranges from 0.0 (min zoom) to 1.0 (max zoom)
-                            val zoomRatio = 1.0f // Adjust this value as needed
-                            //cameraControl.setLinearZoom(zoomRatio)
                             QualitySelector
                                 .getSupportedQualities(camera.cameraInfo)
                                 .filter { quality ->
@@ -402,7 +393,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                                 }
                         }
                     } catch (ex: UnsupportedOperationException) {
-                        Log.e(TAG, ex.localizedMessage)
+                        Log.e(TAG, ex.localizedMessage, ex)
                     }
                 }
             }
@@ -423,7 +414,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 enumerationDeferred!!.await()
                 enumerationDeferred = null
             }
-            initializeQualitySectionsUI()
+
             bindCaptureUsecase()
         }
     }
@@ -439,13 +430,8 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         captureViewBinding.imgTor1.setOnClickListener(this)
         captureViewBinding.imgChance.setOnClickListener(this)
         captureViewBinding.imgChance1.setOnClickListener(this)
-        captureViewBinding.imgWow.setOnClickListener(this)
-        captureViewBinding.imgWow1.setOnClickListener(this)
-        captureViewBinding.imgFail.setOnClickListener(this)
-        captureViewBinding.imgFail1.setOnClickListener(this)
         captureViewBinding.imgHighlight.setOnClickListener(this)
         captureViewBinding.imgHighlight1.setOnClickListener(this)
-
         captureViewBinding.imgZoomIn.setOnClickListener(this)
         captureViewBinding.imgZoomOut.setOnClickListener(this)
 
@@ -509,12 +495,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
          }
 
         captureViewBinding.ivStop.setOnClickListener(this)
-
-        // audioEnabled by default is disabled.
-        captureViewBinding.audioSelection.isChecked = audioEnabled
-        captureViewBinding.audioSelection.setOnClickListener {
-            audioEnabled = captureViewBinding.audioSelection.isChecked
-        }
     }
 
     /**
@@ -571,24 +551,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
     }
 
     /**
-     * Enable/disable UI:
-     *    User could select the capture parameters when recording is not in session
-     *    Once recording is started, need to disable able UI to avoid conflict.
-     */
-    private fun enableUI(enable: Boolean) {
-        arrayOf(
-            captureViewBinding.audioSelection,
-            captureViewBinding.qualitySelection
-        ).forEach {
-            it.isEnabled = enable
-        }
-        // disable the resolution list if no resolution to switch
-        if (cameraCapabilities[cameraIndex].qualities.size <= 1) {
-            captureViewBinding.qualitySelection.apply { isEnabled = false }
-        }
-    }
-
-    /**
      * initialize UI for recording:
      *  - at recording: hide audio, qualitySelection,change camera UI; enable stop button
      *  - otherwise: show all except the stop button
@@ -597,20 +559,12 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         captureViewBinding.let {
             when (state) {
                 UiState.IDLE -> {
-                    it.audioSelection.visibility = View.VISIBLE
-                    it.qualitySelection.visibility = View.VISIBLE
                 }
 
                 UiState.RECORDING -> {
-                    it.audioSelection.visibility = View.INVISIBLE
-                    it.qualitySelection.visibility = View.INVISIBLE
                 }
 
                 UiState.FINALIZED -> {
-                    /*
-                    it.captureButton.setImageResource(R.drawable.ic_start)
-                    it.stopButton.visibility = View.INVISIBLE
-                    */
                 }
 
                 else -> {
@@ -628,64 +582,11 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
      *    we might fail and user get notified on the status
      */
     private fun resetUIandState() {
-        enableUI(true)
         showUI(UiState.IDLE)
 
         cameraIndex = 0
         qualityIndex = DEFAULT_QUALITY_IDX
         audioEnabled = true
-        captureViewBinding.audioSelection.isChecked = audioEnabled
-        initializeQualitySectionsUI()
-    }
-
-    /**
-     *  initializeQualitySectionsUI():
-     *    Populate a RecyclerView to display camera capabilities:
-     *       - one front facing
-     *       - one back facing
-     *    User selection is saved to qualityIndex, will be used
-     *    in the bindCaptureUsecase().
-     */
-    private fun initializeQualitySectionsUI() {
-        val selectorStrings = cameraCapabilities[cameraIndex].qualities.map {
-            it.getNameString()
-        }
-        // create the adapter to Quality selection RecyclerView
-        captureViewBinding.qualitySelection.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = GenericListAdapter(
-                selectorStrings,
-                itemLayoutId = com.game.awesa.R.layout.video_quality_item
-            ) { holderView, qcString, position ->
-
-                holderView.apply {
-                    findViewById<TextView>(com.game.awesa.R.id.qualityTextView)?.text = qcString
-                    // select the default quality selector
-                    isSelected = (position == qualityIndex)
-                }
-
-                holderView.setOnClickListener { view ->
-                    if (qualityIndex == position) return@setOnClickListener
-
-                    captureViewBinding.qualitySelection.let {
-                        // deselect the previous selection on UI.
-                        it.findViewHolderForAdapterPosition(qualityIndex)
-                            ?.itemView
-                            ?.isSelected = false
-                    }
-                    // turn on the new selection on UI.
-                    view.isSelected = true
-                    qualityIndex = position
-
-                    // rebind the use cases to put the new QualitySelection in action.
-                    enableUI(false)
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        bindCaptureUsecase()
-                    }
-                }
-            }
-            isEnabled = false
-        }
     }
 
     override fun onResume() {
@@ -748,24 +649,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                     type
                 )
             }
-            captureViewBinding.imgWow -> {
-                reaction = "wow"
-                CommonMethods.loadImageDrawable(
-                    context,
-                    if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.wow_one,
-                    mImageView,
-                    type
-                )
-            }
-            captureViewBinding.imgFail -> {
-                reaction = "fail"
-                CommonMethods.loadImageDrawable(
-                    context,
-                    if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.fail_one,
-                    mImageView,
-                    type
-                )
-            }
             captureViewBinding.imgHighlight -> {
                 reaction = "Highlight"
                 CommonMethods.loadImageDrawable(
@@ -793,24 +676,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                     type
                 )
             }
-            captureViewBinding.imgWow1 -> {
-                reaction = "wow"
-                CommonMethods.loadImageDrawable(
-                    context,
-                    if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.wow_two,
-                    mImageView,
-                    type
-                )
-            }
-            captureViewBinding.imgFail1 -> {
-                reaction = "fail"
-                CommonMethods.loadImageDrawable(
-                    context,
-                    if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.fail_two,
-                    mImageView,
-                    type
-                )
-            }
             captureViewBinding.imgHighlight1 -> {
                 reaction = "Highlight"
                 CommonMethods.loadImageDrawable(
@@ -822,11 +687,14 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             }
         }
         if (type == 1) {
-            mImageView = null;
+            mImageView = null
             reaction = ""
             strTeamId = ""
         } else {
-            if (mImageView == captureViewBinding.imgTor || mImageView == captureViewBinding.imgChance || mImageView == captureViewBinding.imgWow || mImageView == captureViewBinding.imgFail) {
+            if (mImageView == captureViewBinding.imgTor ||
+                mImageView == captureViewBinding.imgChance ||
+                mImageView == captureViewBinding.imgHighlight
+            ) {
                 strTeamId = mMatchBean!!.team_id.toString()
             } else {
                 strTeamId = mMatchBean!!.opponent_team_id.toString()
@@ -847,19 +715,14 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         }
     }
 
+    @Suppress("MagicNumber")
     override fun onClick(v: View) {
         when (v.id) {
             com.game.awesa.R.id.imgZoomIn -> {
-                if (currentZoom<5) {
-                    currentZoom++
-                    setZoomLevel(currentZoom)
-                }
+                zoomIn()
             }
             com.game.awesa.R.id.imgZoomOut -> {
-                if (currentZoom>0) {
-                    currentZoom--
-                    setZoomLevel(currentZoom)
-                }
+                zoomOut()
             }
             com.game.awesa.R.id.iv_stop -> {
                 stopRecording()
@@ -881,13 +744,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 makeAction(captureViewBinding.imgChance1)
             }
 
-            com.game.awesa.R.id.imgFail -> {
-                makeAction(captureViewBinding.imgFail)
-            }
-
-            com.game.awesa.R.id.imgFail1 -> {
-                makeAction(captureViewBinding.imgFail1)
-            }
             com.game.awesa.R.id.imgHighlight -> {
                 makeAction(captureViewBinding.imgHighlight)
             }
@@ -895,17 +751,10 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             com.game.awesa.R.id.imgHighlight1 -> {
                 makeAction(captureViewBinding.imgHighlight1)
             }
-
-            com.game.awesa.R.id.imgWow -> {
-                makeAction(captureViewBinding.imgWow)
-            }
-
-            com.game.awesa.R.id.imgWow1 -> {
-                makeAction(captureViewBinding.imgWow1)
-            }
         }
     }
 
+    @Suppress("MagicNumber")
     private fun startTimerCounter() {
         if (secondsPassed + 1 < Tags.recording_duration / BYTE) {
             captureViewBinding.countdownTimerTxt.text = "3"
@@ -922,7 +771,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             )
             mTimer = object : CountDownTimer(FIVE_MILLISECONDS, BYTE) {
                 override fun onTick(millisUntilFinished: Long) {
-                    captureViewBinding.countdownTimerTxt.text = "" + millisUntilFinished / BYTE
+                    captureViewBinding.countdownTimerTxt.text = "${millisUntilFinished / BYTE}"
                     captureViewBinding.countdownTimerTxt.setAnimation(scaleAnimation)
                     captureViewBinding.tvHalfStatus.setText(
                         if (mHalf == 1) getString(com.game.awesa.R.string.lbl_first_half) else getString(
@@ -999,6 +848,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
     }
 
     @OptIn(UnstableApi::class)
+    @Suppress("MagicNumber")
     private fun saveVideo() {
         val fileName = mediaFile.toString()
             .substring(mediaFile.toString().lastIndexOf('/') + 1, mediaFile.toString().length)
@@ -1030,7 +880,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                         startActivity(
                             Intent(
                                 context,
-                                CameraActivityNew::class.java
+                                CameraActivity::class.java
                             ).putExtra(EXTRA_MATCH_HALF, 2).putExtra(EXTRA_MATCH_BEAN, mMatchBean)
                         )
                         requireActivity().finish()
@@ -1100,29 +950,29 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         }
     }
 
+    @Suppress("MagicNumber")
     override fun onSuccess(response: UniversalObject) {
         try {
             when (response.methodName) {
                 Tags.SB_CREATE_MATCH_ACTION_API -> {
-                    try {
-                        val mBean = response.response as CommonBean
-                        if (mBean.status == 1 && CommonMethods.isValidArrayList(mBean.scores)) {
-                            captureViewBinding.tvTeamOneScore.text =
-                                String.format(Locale.getDefault(), "%d", mBean.scores[0].team1_score)
-                            captureViewBinding.tvTeamTwoScore.text =
-                                String.format(Locale.getDefault(),"%d", mBean.scores[0].team2_score)
-                        }else if (mBean.status == 99) {
-                            UserSessions.clearUserInfo(context)
-                            Global().makeConfirmation(mBean.msg, requireActivity(), this)
-                        }
-                    } catch (ex1: Exception) {
-                        ex1.printStackTrace()
+                    val mBean = response.response as CommonBean
+                    if (mBean.status == 1 && CommonMethods.isValidArrayList(mBean.scores)) {
+                        captureViewBinding.tvTeamOneScore.text =
+                            String.format(Locale.getDefault(), "%d", mBean.scores[0].team1_score)
+                        captureViewBinding.tvTeamTwoScore.text =
+                            String.format(Locale.getDefault(),"%d", mBean.scores[0].team2_score)
+                    } else if (mBean.status == 99) {
+                        UserSessions.clearUserInfo(context)
+                        Global().makeConfirmation(mBean.msg, requireActivity(), this)
                     }
                     changeImage(1)
                 }
             }
+        } catch (ex: JsonSyntaxException) {
+            Log.e(TAG, ex.localizedMessage, ex)
+            errorMsg(getString(com.game.awesa.R.string.something_wrong))
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Log.e(TAG, ex.localizedMessage, ex)
             errorMsg(getString(com.game.awesa.R.string.something_wrong))
         }
     }
@@ -1139,8 +989,8 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         CommonMethods.errorDialog(
             context,
             strMsg,
-            getResources().getString(com.game.awesa.R.string.app_name),
-            getResources().getString(com.game.awesa.R.string.lbl_ok)
+            resources.getString(com.game.awesa.R.string.app_name),
+            resources.getString(com.game.awesa.R.string.lbl_ok)
         );
     }
 
@@ -1151,7 +1001,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             makeAnimation(0)
             captureViewBinding.ivStop.setVisibility(View.VISIBLE)
 
-            enableUI(false)  // Our eventListener will turn on the Recording UI.
             startRecording()
         } else {
             when (recordingState) {
@@ -1229,7 +1078,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
             override fun onFinish() {
                 isActionClick = true
-                actionTimer!!.cancel()
+                actionTimer?.cancel()
             }
         }.start()
     }
