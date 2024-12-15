@@ -70,11 +70,6 @@ class TrimService : Service() {
             val matchId = strMatchId.ifEmpty { "" }
             val mListReaction = actionsDao.selectAllForTrim(matchId,0) // 1 - LIMIT 1, 0 - ALL
 
-            if(mListReaction.isNullOrEmpty()) {
-                stopSelf()
-                return@executeQuery
-            }
-
             val videoDao = VideoMasterDAO(database, applicationContext)
             list = videoDao.selectAll(
                 mListReaction[0].match_id.toString(),
