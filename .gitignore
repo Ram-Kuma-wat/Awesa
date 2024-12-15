@@ -19,3 +19,5 @@ local.properties
 /awesalibs/build/
 /awesalibs/build/intermediates/javac/debug/classes/
 .idea/appInsightsSettings.xml
+.idea/deploymentTargetSelector.xml
+.idea/misc.xml
