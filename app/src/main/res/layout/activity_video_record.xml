@@ -15,13 +15,6 @@
             android:background="#CC000000"
             android:visibility="gone" />
 
-        <!--  <com.codersworld.awesalibs.SegmentProgress.SegmentedProgressBar
-              android:id="@+id/videoProgress"
-              android:layout_width="match_parent"
-              android:layout_height="5dp"
-              android:layout_centerVertical="true"
-              android:background="@color/fifty_transparent_black" />
-  -->
         <RelativeLayout
             android:id="@+id/rlCustomCamera"
             android:layout_width="match_parent"
@@ -57,7 +50,8 @@
                 android:id="@+id/rlTopHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="@dimen/_5dp"
+                android:paddingStart="@dimen/_5dp"
+                android:paddingEnd="@dimen/_5dp"
                 android:paddingTop="@dimen/_10dp"
                 android:paddingBottom="@dimen/_10dp">
 
