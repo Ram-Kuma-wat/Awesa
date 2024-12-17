@@ -21,7 +21,6 @@ gradle.ext {
     targetSdkVersion = 34
     minSdkVersion = 26
 }
-//include ':camerakit'
 //orders@beautybebo.com
 //support@vilpower
 
