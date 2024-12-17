@@ -33,6 +33,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 import javax.inject.Inject
 
@@ -113,6 +114,16 @@ class VideoUploadsRepository @Inject constructor(
                             Tags.SB_CREATE_MATCH_ACTION_API,
                             t.localizedMessage
                         )
+
+                        if (t is FileNotFoundException) {
+                            trySend(UploadFailure(
+                                error = MediaUploadException(
+                                    model = reactionModel,
+                                    errorMessage = "Missing video url")
+                                )
+                            )
+                            close()
+                        }
                     }
 
                     override fun onResponse(call: Call<CommonBean>, response: Response<CommonBean>) {
