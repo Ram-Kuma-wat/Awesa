@@ -174,9 +174,9 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
                 File(getAbsolutePathFromUri(event.outputResults.outputUri))
             }
             saveVideo()
-            captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
-            captureViewBinding.llUpload.visibility = View.VISIBLE
-            captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
+            captureViewBinding.statusOverlay.visibility = View.VISIBLE
+            captureViewBinding.progressLayout.visibility = View.VISIBLE
+            captureViewBinding.btnStartVideo.visibility = View.VISIBLE
         }
     }
 
@@ -390,14 +390,14 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
             captureViewBinding.tvTeamTwoName.text = mMatchBean!!.team2
         }
 
-        captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
-        captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
-        captureViewBinding.llUpload.visibility = View.GONE
-        captureViewBinding.btnReTakeVideo.text = getString(com.game.awesa.R.string.lbl_start_interview1)
-        captureViewBinding.btnReTakeVideo.setOnClickListener {
-            captureViewBinding.btnReTakeVideo.visibility = View.GONE
-            captureViewBinding.rlAnotherVideo.visibility = View.GONE
-            captureViewBinding.llUpload.visibility = View.GONE
+        captureViewBinding.btnStartVideo.visibility = View.VISIBLE
+        captureViewBinding.statusOverlay.visibility = View.VISIBLE
+        captureViewBinding.progressLayout.visibility = View.GONE
+        captureViewBinding.btnStartVideo.text = getString(com.game.awesa.R.string.lbl_start_interview1)
+        captureViewBinding.btnStartVideo.setOnClickListener {
+            captureViewBinding.btnStartVideo.visibility = View.GONE
+            captureViewBinding.statusOverlay.visibility = View.GONE
+            captureViewBinding.progressLayout.visibility = View.GONE
             initVideo()
             startTimerCounter()
         }
