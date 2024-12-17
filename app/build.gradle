@@ -16,8 +16,8 @@ android {
         applicationId "com.itech.game.awesa"
         minSdk gradle.ext.minSdkVersion
         targetSdk gradle.ext.targetSdkVersion
-        versionCode 18
-        versionName "1.1.6"
+        versionCode 19
+        versionName "1.1.7"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -78,11 +78,6 @@ android {
             pseudoLocalesEnabled true
             isDefault true
         }
-    }
-
-    sourceSets {
-        main.java.srcDirs += 'src/main/java'
-        debug.java.srcDirs += 'src/debug/java'
     }
 
     compileOptions {
