@@ -26,7 +26,6 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
-@UnstableApi
 @AndroidEntryPoint
 class ProcessingActivity : AppCompatActivity() {
 
@@ -67,7 +66,7 @@ class ProcessingActivity : AppCompatActivity() {
                 databaseManager.closeDatabase()
                 if (CommonMethods.isValidArrayList(mList)) {
                     val timeStamp =
-                        SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date())
+                        SimpleDateFormat("dd MMM yyyy", Locale.US).format(Date())
                     var mediaStorageDir: File? = null
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         mediaStorageDir = File(
@@ -75,9 +74,7 @@ class ProcessingActivity : AppCompatActivity() {
                             "Awesa/interview/$timeStamp"
                         )
                         if (!mediaStorageDir.exists()) {
-                            if (!mediaStorageDir.mkdirs()) {
-                                //return null
-                            }
+                            if (!mediaStorageDir.mkdirs()) {}
                         }
                     } else {
                         mediaStorageDir = getExternalFilesDir("Awesa/interview/$timeStamp")
