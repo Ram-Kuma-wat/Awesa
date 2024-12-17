@@ -18,7 +18,7 @@ import javax.inject.Inject
 /**
  * Service which trims recorded videos according to reactions
  */
-@UnstableApi
+
 @AndroidEntryPoint
 class TrimService : Service() {
     var list: ArrayList<VideoUploadBean> = ArrayList()

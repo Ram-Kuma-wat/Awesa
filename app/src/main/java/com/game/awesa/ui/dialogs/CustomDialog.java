@@ -41,6 +41,7 @@ public class CustomDialog extends Dialog implements View.OnClickListener {
         this.mListener = mListener;
         isCancelable = false;
     }
+
     public CustomDialog(Context activity, String strText, String strNo, String strYes, OnConfirmListener mListener, String mType) {
         super(activity);
         this.mType = mType;
@@ -73,7 +74,7 @@ public class CustomDialog extends Dialog implements View.OnClickListener {
         } else {
             binding.btnNegative.setVisibility(View.GONE);
         }
-        binding.btnPositive.setText((CommonMethods.isValidString(strYes))?strYes:activity.getResources().getString(R.string.lbl_ok));
+        binding.btnPositive.setText((CommonMethods.isValidString(strYes)) ? strYes : activity.getResources().getString(R.string.lbl_ok));
 
         binding.btnNegative.setOnClickListener(this);
         binding.btnPositive.setOnClickListener(this);
