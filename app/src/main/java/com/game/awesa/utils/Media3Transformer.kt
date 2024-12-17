@@ -32,7 +32,6 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-@UnstableApi
 class Media3Transformer @Inject constructor(
     private val context: Context,
     private val databaseManager: DatabaseManager,
@@ -55,7 +54,7 @@ class Media3Transformer @Inject constructor(
     ) {
 
         val handler = CoroutineExceptionHandler { _, exception ->
-            Log.d(TAG, "exception: ${exception.localizedMessage}")
+            Log.e(TAG, "exception: ${exception.localizedMessage}", exception)
         }
 
         var actionCount: Int = actions.size
@@ -134,8 +133,6 @@ class Media3Transformer @Inject constructor(
                 "-i", inputUri.path,
                 "-y",
                 "-ss", startTime.toString(),
-//                "-t", duration,
-//                "-vcodec", "mpeg4",
                 "-to", endTime.toString(),
                 "-c", "copy",
                 outputFile.absolutePath
@@ -161,7 +158,7 @@ class Media3Transformer @Inject constructor(
     }
 
     private fun createMediaFolder(): File {
-        val timeStamp = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date())
+        val timeStamp = SimpleDateFormat("dd MMM yyyy", Locale.US).format(Date())
         var mediaStorageDir: File? = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mediaStorageDir = File(
