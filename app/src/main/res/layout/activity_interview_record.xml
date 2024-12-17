@@ -254,7 +254,7 @@
         </RelativeLayout>
 
         <RelativeLayout
-            android:id="@+id/rlAnotherVideo"
+            android:id="@+id/statusOverlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#DCFFFFFF"
@@ -264,7 +264,7 @@
             android:visibility="gone">
 
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnReTakeVideo"
+                android:id="@+id/btnStartVideo"
                 android:visibility="visible"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

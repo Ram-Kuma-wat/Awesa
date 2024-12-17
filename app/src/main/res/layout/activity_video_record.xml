@@ -489,19 +489,20 @@
 
         <!--Switching Layout-->
         <RelativeLayout
-            android:id="@+id/rlAnotherVideo"
+            android:id="@+id/statusOverlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#DCFFFFFF"
             android:clickable="false"
             android:focusable="false"
             android:focusableInTouchMode="false"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <LinearLayout
-                android:id="@+id/llUpload"
+                android:id="@+id/progressLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:visibility="gone"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -527,7 +528,7 @@
             </LinearLayout>
 
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnReTakeVideo"
+                android:id="@+id/btnStartVideo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
@@ -538,8 +539,7 @@
                 android:padding="@dimen/_10dp"
                 android:text="@string/lbl_start_second_half"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_14sp"
-                android:visibility="visible" />
+                android:textSize="@dimen/_14sp" />
         </RelativeLayout>
     </FrameLayout>
 </layout>
