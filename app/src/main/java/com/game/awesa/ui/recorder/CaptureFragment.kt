@@ -108,6 +108,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
     @Inject
     lateinit var databaseManager: DatabaseManager
+
     // UI with ViewBinding
     private lateinit var captureViewBinding: FragmentCaptureBinding
 
@@ -593,6 +594,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         super.onResume()
         if (currentRecording != null) {
             currentRecording?.resume()
+            resumeTimer()
         }
     }
 
@@ -600,6 +602,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         super.onPause()
         if (currentRecording != null) {
             currentRecording?.pause()
+            pauseTimer()
         }
     }
 
@@ -721,9 +724,11 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             com.game.awesa.R.id.imgZoomIn -> {
                 zoomIn()
             }
+
             com.game.awesa.R.id.imgZoomOut -> {
                 zoomOut()
             }
+
             com.game.awesa.R.id.iv_stop -> {
                 stopRecording()
             }
@@ -871,6 +876,7 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             mList.add(mBean)
             dao.insert(mList)
             captureViewBinding.llUpload.visibility = View.GONE
+
             CommonMethods.checkTrimServiceWithData(requireActivity(), TrimService::class.java, matchId)
             when (mHalf) {
                 1 -> {
