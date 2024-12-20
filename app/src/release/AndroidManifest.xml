@@ -4,7 +4,7 @@
     package="com.game.awesa">
 
     <application
-        android:name=".ui.MyAppRelease"
+        android:name=".ui.AwesaRelease"
         tools:replace="android:name">
     </application>
 
