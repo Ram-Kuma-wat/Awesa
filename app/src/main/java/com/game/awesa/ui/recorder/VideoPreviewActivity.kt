@@ -2,8 +2,10 @@ package com.game.awesa.ui.recorder
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.MediaController
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.media3.common.MediaItem
@@ -12,7 +14,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.FileDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.SimpleCache
@@ -23,7 +24,7 @@ import com.codersworld.awesalibs.beans.matches.MatchesBean
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivityVideoPreviewBinding
-import com.game.awesa.ui.MyApp
+import com.game.awesa.ui.Awesa
 import java.io.File
 
 @UnstableApi
@@ -33,6 +34,7 @@ class VideoPreviewActivity : AppCompatActivity() {
             "https://sportapp.boonoserver.de/public/uploads/videos/22Aug2023/m_50_a_1_h_5.mp4"
         const val EXTRA_BEAN_VIDEO = "mBeanVideo"
         const val EXTRA_VIDEO_PATH = "strPath"
+        var TAG: String = VideoPreviewActivity::class.java.simpleName
     }
 
     lateinit var binding: ActivityVideoPreviewBinding
@@ -42,7 +44,7 @@ class VideoPreviewActivity : AppCompatActivity() {
     private lateinit var defaultDataSourceFactory: DefaultDataSource.Factory
     private lateinit var cacheDataSourceFactory: DataSource.Factory
     private lateinit var simpleExoPlayer: ExoPlayer
-    private val simpleCache: SimpleCache = MyApp.simpleCache
+    private val simpleCache: SimpleCache = Awesa.simpleCache
 
     private lateinit var mBeanVideo: MatchesBean.VideosBean;
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,26 +58,27 @@ class VideoPreviewActivity : AppCompatActivity() {
         binding.imgBack.setOnClickListener {
             finish()
         }
-    }
 
-    override fun onBackPressed() {
-        try {
-            if (binding.videoView.isPlaying) {
-                binding.videoView.pause()
-                binding.videoView.stopPlayback()
-            }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
+        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                try {
+                    if (binding.videoView.isPlaying) {
+                        binding.videoView.pause()
+                        binding.videoView.stopPlayback()
+                    }
+                } catch (ex: IllegalStateException) {
+                    Log.e(TAG, ex.localizedMessage, ex)
+                }
 
-        try {
-            if (simpleExoPlayer.isPlaying) {
-                simpleExoPlayer.stop()
+                try {
+                    if (simpleExoPlayer.isPlaying) {
+                        simpleExoPlayer.stop()
+                    }
+                } catch (ex: IllegalStateException) {
+                    Log.e(TAG, ex.localizedMessage, ex)
+                }
             }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-        super.onBackPressed()
+        })
     }
 
     private fun initPlayer() {
