@@ -18,10 +18,6 @@ import com.game.awesa.utils.MyBounceInterpolator
 
 class TutorialActivity : AppCompatActivity() {
     lateinit var binding: ActivitySplashBinding
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        //    ApiHelper.setApplicationlanguage(this, UserSessions().getLanguage(this))
-    }
 
     private var mMatchBean: MatchesBean.InfoBean? = null
 
@@ -32,24 +28,25 @@ class TutorialActivity : AppCompatActivity() {
         binding.btnContinue.visibility=View.VISIBLE
         animateButton()
 
-        if (intent.hasExtra(CaptureFragment.EXTRA_MATCH_BEAN)) {
+        if (intent.hasExtra(CameraActivity.EXTRA_MATCH_BEAN)) {
             mMatchBean =
                 CommonMethods.getSerializable(
                     intent,
-                    CaptureFragment.EXTRA_MATCH_BEAN,
+                    CameraActivity.EXTRA_MATCH_BEAN,
                     MatchesBean.InfoBean::class.java)
         }
         binding.btnContinue.setOnClickListener {
-            val intent = Intent(this@TutorialActivity, CameraActivity::class.java)
-            intent.putExtra(CaptureFragment.EXTRA_MATCH_BEAN, mMatchBean)
+            val intent = Intent(this, CameraActivity::class.java)
+            intent.putExtra(CameraActivity.EXTRA_MATCH_BEAN, mMatchBean)
             startActivity(intent)
             finish()
         }
     }
 
+    @Suppress("MagicNumber")
     fun animateButton() {
         // Load the animation
-        val myAnim = AnimationUtils.loadAnimation(this, com.game.awesa.R.anim.bounce)
+        val myAnim = AnimationUtils.loadAnimation(this, R.anim.bounce)
         val animationDuration: Double = 3.0 * 1000
         myAnim.duration = animationDuration.toLong()
 
