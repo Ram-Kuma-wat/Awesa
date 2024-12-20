@@ -1,6 +1,9 @@
 package com.game.awesa.di
 
 import android.content.Context
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import com.game.awesa.ui.Awesa
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -40,6 +43,13 @@ abstract class ApplicationModule {
         @Provides
         fun provideBackgroundDispatcher(): CoroutineDispatcher {
             return Dispatchers.Default
+        }
+
+        @OptIn(UnstableApi::class)
+        @Provides
+        @Singleton
+        fun provideAwesa(@ApplicationContext application: Context): Awesa {
+            return application as Awesa
         }
 
 //        @Provides
