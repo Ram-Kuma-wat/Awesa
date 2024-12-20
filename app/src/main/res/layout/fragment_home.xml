@@ -25,9 +25,11 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:contentDescription="Home banner"
                         android:scaleType="centerCrop"
                         android:src="@drawable/home_banner"
-                        android:visibility="visible" />
+                        android:visibility="visible"
+                        tools:ignore="HardcodedText" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -46,8 +48,10 @@
                                 android:layout_width="@dimen/_100dp"
                                 android:layout_height="@dimen/_100dp"
                                 android:minWidth="90dp"
+                                android:contentDescription="App Icon"
                                 android:minHeight="90dp"
-                                android:src="@drawable/app_icon" />
+                                android:src="@drawable/app_icon"
+                                tools:ignore="HardcodedText" />
                         </androidx.cardview.widget.CardView>
                     </LinearLayout>
 
@@ -106,17 +110,21 @@
                         android:id="@+id/imgFootBall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:contentDescription="Handball Button"
                         android:minWidth="190dp"
                         android:minHeight="190dp"
-                        android:src="@drawable/img_handball" />
+                        android:src="@drawable/img_handball"
+                        tools:ignore="HardcodedText" />
 
                     <ImageView
                         android:id="@+id/imgHandBall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:contentDescription="Football Button"
                         android:minWidth="190dp"
                         android:minHeight="190dp"
-                        android:src="@drawable/img_football" />
+                        android:src="@drawable/img_football"
+                        tools:ignore="HardcodedText" />
 
                 </LinearLayout>
 
@@ -128,7 +136,7 @@
                     android:padding="10dp"
                     android:text="@string/sport_not_include"
                     android:textColor="@color/black"
-                    android:textSize="@dimen/_16dp" />
+                    android:textSize="@dimen/_16sp" />
 
                 <com.codersworld.awesalibs.customFonts.SBTextViewBold
                     android:layout_width="match_parent"
@@ -139,7 +147,7 @@
                     android:padding="10dp"
                     android:text="@string/lbl_storage_hint"
                     android:textColor="@color/black"
-                    android:textSize="@dimen/_16dp" />
+                    android:textSize="@dimen/_16sp" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </LinearLayout>

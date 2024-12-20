@@ -17,6 +17,8 @@ public class ReactionsBean implements Serializable {
     private int half;
     @SerializedName("time")
     private String time;
+    @SerializedName("timestamp")
+    private Long timestamp;
     @SerializedName("reaction")
     private String reaction;
     @SerializedName("video")
@@ -82,6 +84,14 @@ public class ReactionsBean implements Serializable {
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getReaction() {

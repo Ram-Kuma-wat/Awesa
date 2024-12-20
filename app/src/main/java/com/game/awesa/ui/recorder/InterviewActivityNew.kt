@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.commit
 import com.codersworld.awesalibs.beans.matches.MatchesBean
 import com.codersworld.awesalibs.database.DatabaseHelper
 import com.codersworld.awesalibs.database.DatabaseManager
@@ -21,49 +22,36 @@ import java.io.File
 
 
 @AndroidEntryPoint
-class InterviewActivityNew : BaseActivity(), View.OnClickListener, OnResponse<UniversalObject>,
-    OnConfirmListener, FileCallback {
+class InterviewActivityNew : BaseActivity() {
+    companion object {
+        const val EXTRA_MATCH_BEAN = "mMatchBean"
+        val TAG: String = MatchOverviewActivity::class.java.simpleName
+    }
+
     lateinit var binding: ActivityCameraRecordBinding
 
-    var mMatchBean: MatchesBean.InfoBean? = null;
+    private var mMatchBean: MatchesBean.InfoBean? = null
 
      override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_camera_record)
-        if (intent.hasExtra("mMatchBean")) {
-            mMatchBean = CommonMethods.getSerializable(intent, "mMatchBean", MatchesBean.InfoBean::class.java)
+        if (intent.hasExtra(EXTRA_MATCH_BEAN)) {
+            mMatchBean = CommonMethods.getSerializable(intent, EXTRA_MATCH_BEAN, MatchesBean.InfoBean::class.java)
         }
-        //CommonMethods.loadImageDrawable(this@CameraActivity,R.drawable.loading_img_one,binding.imgTor)
+
          val mFragment = InterviewFragment()
          val bundle = Bundle()
          if (mMatchBean != null) {
              bundle.putSerializable("MatchBean", mMatchBean)
          }
          mFragment.setArguments(bundle)
-         supportFragmentManager
-             .beginTransaction()
-             .replace(R.id.container_body, mFragment)
-             .commit()
-
+         supportFragmentManager.commit {
+             replace(R.id.container_body, mFragment)
+         }
 
      }
-
-    override fun onClick(v: View) {}
-    override fun onFileReady(file: File?) {
-    }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return super.onKeyDown(keyCode, event)
     }
-
-    override fun onConfirm(isTrue: Boolean?, type: String?) {
-
-    }
-
-    override fun onSuccess(response: UniversalObject?) {
-    }
-
-    override fun onError(type: String?, error: String?) {
-    }
-
 }

@@ -34,7 +34,7 @@ class VideoUploadJobService : JobService() {
     }
 
     override fun onStopJob(params: JobParameters?): Boolean {
-        jobFinished(params!!, false)
+        jobFinished(params, false)
         return true
     }
 }

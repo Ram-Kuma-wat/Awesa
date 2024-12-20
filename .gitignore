@@ -7,8 +7,10 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/appInsightsSettings.xml
 .DS_Store
 /build
+/app/release
 /captures
 .externalNativeBuild
 .cxx
@@ -17,3 +19,7 @@ local.properties
 # Project exclude paths
 /awesalibs/build/
 /awesalibs/build/intermediates/javac/debug/classes/
+.idea/appInsightsSettings.xml
+.idea/deploymentTargetSelector.xml
+.idea/misc.xml
+.idea/compiler.xml

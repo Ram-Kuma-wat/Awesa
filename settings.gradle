@@ -12,10 +12,15 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Awesa New"
+rootProject.name = "Awesa"
 include ':app'
 include ':awesalibs'
-//include ':camerakit'
+
+gradle.ext {
+    compileSdkVersion = 34
+    targetSdkVersion = 34
+    minSdkVersion = 26
+}
 //orders@beautybebo.com
 //support@vilpower
 

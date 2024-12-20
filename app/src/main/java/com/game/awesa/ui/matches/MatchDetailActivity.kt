@@ -10,23 +10,25 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.annotation.OptIn
 import androidx.databinding.DataBindingUtil
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.media3.common.util.UnstableApi
 import com.codersworld.awesalibs.beans.CommonBean
+import com.codersworld.awesalibs.beans.matches.InterviewBean
 import com.codersworld.awesalibs.beans.matches.MatchesBean
+import com.codersworld.awesalibs.beans.matches.MatchesBean.VideosBean
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.codersworld.awesalibs.database.DatabaseManager
+import com.codersworld.awesalibs.database.dao.InterviewsDAO
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.listeners.OnConfirmListener
+import com.codersworld.awesalibs.listeners.OnDeleteVideoListener
 import com.codersworld.awesalibs.listeners.OnMatchListener
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.rest.ApiCall
 import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
-import com.codersworld.awesalibs.utils.Logs
 import com.codersworld.awesalibs.utils.SFProgress
 import com.codersworld.awesalibs.utils.Tags
 import com.game.awesa.R
@@ -38,32 +40,150 @@ import com.game.awesa.ui.dialogs.CustomDialog
 import com.game.awesa.ui.recorder.VideoPreviewActivity
 import com.game.awesa.utils.Global
 import com.game.awesa.utils.VideoUploadsWorker
-import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@Suppress("TooManyFunctions")
 class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<UniversalObject>,
-    OnMatchListener {
+    OnMatchListener, OnDeleteVideoListener {
+
+    companion object {
+        val TAG: String = MatchDetailActivity::class.java.simpleName
+        const val INTENT_UPLOAD_VIDEO = "com.game.awesa.UPLOAD_VIDEO"
+        const val INTENT_ACTION_UPLOAD = "videoUpload"
+        const val VIDEO_PARAMETER = "remote_video"
+        const val TYPE_PARAMETER = "type"
+        const val LOCAL_VIDEO_PARAMETER = "local_video"
+    }
+
     @Inject
     lateinit var databaseManager: DatabaseManager
     @Inject lateinit var videoUploadsWorker: VideoUploadsWorker
     lateinit var binding: ActivityMatchDetailBinding
-    var mApiCall: ApiCall? = null
-    var game_id = ""
-    lateinit var matchBean: MatchesBean.InfoBean
-    var mAdapter: VideosAdapter? = null
-    var match_id = ""
-    var match_title=""
+    val mApiCall: ApiCall by lazy {
+        ApiCall(this@MatchDetailActivity)
+    }
+    private var gameId = ""
+    private lateinit var matchBean: MatchesBean.InfoBean
+    var mAdapter: VideoAdapter? = null
+    var matchId = ""
+    private var totalCount = 0
+    private var uploadedCount = 0
+    private var mVideo: VideosBean? = null
+    private var videoPosition: Int = -1
+    private var customDialog: CustomDialog? = null
+    private var isDialogOpen = false
+    private var deleteType = ""
+
+    private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+
+        @Suppress("MagicNumber", "ReturnCount")
+        @UnstableApi
+        @OptIn(UnstableApi::class)
+        override fun onReceive(context: Context, intent: Intent) {
+            try {
+                val type: VideoUploadsWorker.VideoType? = CommonMethods.getSerializable(intent, TYPE_PARAMETER,
+                    VideoUploadsWorker.VideoType::class.java)
+                when(type) {
+                    VideoUploadsWorker.VideoType.reaction -> {
+                        val mBean: VideosBean? = CommonMethods.getSerializable(intent, VIDEO_PARAMETER,
+                            VideosBean::class.java
+                        )
+
+                        if (mBean == null) return
+
+                        if (mBean.match_id != matchId.toInt()) return
+
+                        val currentList = mAdapter?.currentList?.toMutableList()
+                        currentList?.removeIf { intArrayOf(-1, -2, -3).contains(it.local_id) }
+
+                        currentList?.replaceAll {
+                            if(it.local_id == mBean.local_id) mBean else it
+                        }
+
+                        mAdapter?.submitList(formatList(currentList ?: emptyList()))
+
+                        uploadedCount += 1
+                        updateProgressCount()
+
+                    }
+                    VideoUploadsWorker.VideoType.interview -> {
+                        val mInterview: VideosBean? = CommonMethods.getSerializable(intent, VIDEO_PARAMETER,
+                            VideosBean::class.java
+                        )
+
+                        if (mInterview == null) return
+
+                        if (mInterview.match_id != matchId.toInt()) return
+
+                        mInterview.half = 3
+                        mInterview.local_id = Int.MAX_VALUE
+
+                        val currentList = mAdapter?.currentList?.toMutableList()
+                        currentList?.removeIf { intArrayOf(-1, -2, -3).contains(it.local_id) }
+
+                        currentList?.replaceAll {
+                            if(it.local_id == Int.MAX_VALUE) mInterview else it
+                        }
+
+                        mAdapter?.submitList(formatList(currentList ?: emptyList()))
+
+                        uploadedCount += 1
+                        updateProgressCount()
+                    }
+
+                    null -> {}
+                }
+            } catch (ex: TypeCastException) {
+                Log.e(TAG, ex.localizedMessage, ex)
+            } catch (ex: java.lang.Exception) {
+                Log.e(TAG, ex.localizedMessage, ex)
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setupObserver()
+//        videoUploadsWorker.fetchVideos(matchId = matchId)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        initUI()
+        handleIntent()
+
+        loadVideos()
+    }
+
+    private fun handleIntent() {
+        if (intent.hasExtra("game_id")) {
+            gameId = intent.getStringExtra("game_id") as String
+        }
+        if (intent.hasExtra("matchBean")) {
+            matchBean =
+                CommonMethods.getSerializable(intent, "matchBean", MatchesBean.InfoBean::class.java)
+            matchId = matchBean.id.toString()
+            totalCount = matchBean.total_actions + (if (matchBean.interview.isNullOrEmpty()) 0 else 1)
+        }
+    }
+
+    @Suppress("UnspecifiedRegisterReceiverFlag")
+    private fun setupObserver() {
+        val intentFilter = IntentFilter(INTENT_UPLOAD_VIDEO)
+        intentFilter.addAction(INTENT_ACTION_UPLOAD)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(mReceiver, intentFilter, RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(mReceiver, intentFilter)
+        }
+    }
+
+    private fun initUI() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_match_detail)
-        initApiCall()
-        val intentFilter = IntentFilter()
-        mIntentFilter = intentFilter
-        intentFilter.addAction("videoUpload")
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,mIntentFilter!!)
+        mAdapter = VideoAdapter( onActonActionMatchListener = this, onDeleteVideoListener = this)
+        binding.rvHistory.adapter = mAdapter
 
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.imgHome.setOnClickListener {
@@ -72,148 +192,207 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                 MainActivity::class.java
             )
         }
-        binding.rvHistory.layoutManager =
-            LinearLayoutManager(this@MatchDetailActivity, RecyclerView.VERTICAL, false)
-        if (intent.hasExtra("game_id")) {
-            game_id = intent.getStringExtra("game_id") as String
-        }
-        if (intent.hasExtra("matchBean")) {
-            matchBean =
-                CommonMethods.getSerializable(intent, "matchBean", MatchesBean.InfoBean::class.java)
-            match_id = if (matchBean != null) matchBean.id.toString() else ""
-            match_title = if (matchBean != null) matchBean.team1+" <b>Vs</b> "+matchBean.team2 else ""
-            totalCount = matchBean.total_actions
-        }
-        getMatches()
+
         binding.swRefresh.setOnRefreshListener {
-            getMatches()
+//            matchId.let {
+//                videoUploadsWorker.cancelUpload(it.toLong())
+//            }
+
+            loadVideos(isRefreshing = true)
         }
     }
 
-    fun initApiCall() {
-        if (mApiCall == null) {
-            mApiCall = ApiCall(this@MatchDetailActivity)
-        }
-    }
-    var totalCount = 0;
-    private var uploadedCount = 0;
+    @UnstableApi
+    @Suppress("LongMethod", "NestedBlockDepth", "CyclomaticComplexMethod", "MagicNumber")
     override fun onSuccess(response: UniversalObject) {
         binding.swRefresh.isRefreshing = false
+
         try {
-            Logs.d(response.methodName)
             when (response.methodName) {
                 Tags.SB_MATCH_DETAIL_API -> {
                     val mBeanMatch: MatchesBean = response.response as MatchesBean
-                    if (mBeanMatch.status == 1 && CommonMethods.isValidArrayList(mBeanMatch.info)) {
-                        CommonMethods.loadImage(this@MatchDetailActivity,mBeanMatch.info[0].team1_image,binding.imgTeam1)
-                        CommonMethods.loadImage(this@MatchDetailActivity,mBeanMatch.info[0].team2_image,binding.imgTeam2)
-                        if (CommonMethods.isValidString(mBeanMatch.info[0].interview)) {
-                            binding.llInterview.visibility = View.VISIBLE
-                            CommonMethods.loadImage(this@MatchDetailActivity,mBeanMatch.info[0].interview_thumbnail,binding.imgThumbnail)
-                            binding.rlPlay.setOnClickListener {
-                                val mBeanVideo: MatchesBean.VideosBean = MatchesBean.VideosBean()
-                                mBeanVideo.video = mBeanMatch.info[0].interview
-                                startActivity(Intent(this@MatchDetailActivity,VideoPreviewActivity::class.java).putExtra("mBeanVideo", mBeanVideo))
+                    if (mBeanMatch.status == 1 && mBeanMatch.info.isNotEmpty()) {
+
+                        totalCount = mBeanMatch.info[0].total_actions
+                        uploadedCount = mBeanMatch.info[0].videos.size
+
+                        CommonMethods.loadImage(
+                            this@MatchDetailActivity,
+                            mBeanMatch.info[0].team1_image, binding.imgTeam1
+                        )
+                        CommonMethods.loadImage(
+                            this@MatchDetailActivity,
+                            mBeanMatch.info[0].team2_image, binding.imgTeam2
+                        )
+
+                        mAdapter?.submitList(null)
+
+                        var currentList = (response.daos as? List<VideosBean>)?.toMutableList()
+                        currentList?.addAll(0, mBeanMatch.info[0].videos)
+
+                        if (!mBeanMatch.info[0].interview.isNullOrEmpty()) {
+                            // Add uploaded interview to uploaded count
+                            uploadedCount += 1
+                            val interview = VideosBean()
+                            interview.id = -3
+                            interview.local_id = Int.MAX_VALUE
+                            interview.half = 3
+                            interview.match_id = matchId.toInt()
+                            interview.thumbnail = mBeanMatch.info[0].interview_thumbnail
+                            interview.video = mBeanMatch.info[0].interview
+                            interview.local_video = null
+                            interview.views = 0
+
+                            if (currentList?.any { it.local_id == Int.MAX_VALUE } == true) {
+                                currentList.replaceAll {
+                                    if(it.local_id == Int.MAX_VALUE) interview else it
+                                }
+                            } else {
+                                currentList?.add(interview)
                             }
-                            binding.imgDelete.setOnClickListener {
-                                makeConfirmation(getString(R.string.msg_delete_interview), "2")
-                            }
-                        } else {
-                            binding.llInterview.visibility = View.GONE
                         }
-                        if (CommonMethods.isValidArrayList((mBeanMatch.info[0].videos)) || CommonMethods.isValidString(mBeanMatch.info[0].interview)) {
-                            try {
-                                match_title = mBeanMatch.info[0].videos[0].title
-                            } catch (_:Exception){}
-                            mAdapter = VideosAdapter(this@MatchDetailActivity,mBeanMatch.info[0].videos,this@MatchDetailActivity);
-                            binding.rvHistory.adapter = mAdapter
-                            CommonMethods.changeView(binding.mNestedScroll, binding.llNoData)
-                            uploadedCount = mBeanMatch.info[0].videos.size
-                         }
+
+                        mAdapter?.submitList(formatList(currentList ?: emptyList()))
+
+                        CommonMethods.changeView(binding.mNestedScroll, binding.llNoData)
+
+                        updateProgressCount()
+//                        videoUploadsWorker.fetchVideos(matchId)
                     } else if (mBeanMatch.status == 99) {
                         UserSessions.clearUserInfo(this@MatchDetailActivity)
                         Global().makeConfirmation(mBeanMatch.msg, this@MatchDetailActivity, this)
                     } else if (CommonMethods.isValidString(mBeanMatch.msg)) {
-                        errorMsg(mBeanMatch.msg);
+                        errorMsg(mBeanMatch.msg)
                     } else {
-                        errorMsg(getResources().getString(R.string.something_wrong));
+                        errorMsg(getResources().getString(R.string.something_wrong))
                     }
-                    if (mAdapter==null) {
-                        uploadedCount = 0;
-                        mAdapter = VideosAdapter(this@MatchDetailActivity,ArrayList(),this@MatchDetailActivity);
-                    }
-                    binding.rvHistory.adapter = mAdapter
-                    checkVideosProgress()
-                    CommonMethods.changeView(binding.mNestedScroll, binding.llNoData)
 
+                    if (totalCount == 0 && uploadedCount == 0 && mBeanMatch.info[0].interview.isNullOrEmpty() ) {
+                        CommonMethods.changeView(binding.llNoData, binding.mNestedScroll)
+                    } else {
+                        CommonMethods.changeView(binding.mNestedScroll, binding.llNoData)
+                    }
                 }
 
                 Tags.SB_DELETE_VIDEO_API -> {
                     val mCommonBean: CommonBean = response.response as CommonBean
                     if (mCommonBean.status == 1) {
-                        if (deleteType == "1") {
-                            if (mAdapter != null) {
-                                mAdapter!!.deleteVideo(videoPosition)
-                            }
-                        } else {
-                            if (matchBean != null) {
-                                binding.llInterview.visibility = View.GONE
-                            }
+                        if (mCommonBean.localId == -1) {
+                            mCommonBean.setLocalId(Int.MAX_VALUE.toString())
                         }
+
+                        val currentList = mAdapter?.currentList?.toMutableList()
+                        currentList?.removeIf { intArrayOf(-1, -2, -3).contains(it.local_id) }
+                        currentList?.removeIf { it.local_id == mCommonBean.localId }
+
+                        mAdapter?.submitList(formatList(currentList ?: emptyList()))
                     } else if (CommonMethods.isValidString(mCommonBean.msg)) {
-                        errorMsg(mCommonBean.msg);
+                        errorMsg(mCommonBean.msg)
                     } else {
-                        errorMsg(getResources().getString(R.string.something_wrong));
+                        errorMsg(getResources().getString(R.string.something_wrong))
                     }
                 }
             }
-        } catch (ex: Exception) {
-            Log.e("MatchDetailActivity", ex.localizedMessage)
-            errorMsg(getResources().getString(R.string.something_wrong));
+        } catch (ignored: Exception) {
+            Log.e(TAG, ignored.localizedMessage, ignored)
+            errorMsg(getResources().getString(R.string.something_wrong))
         }
-        //method body
     }
 
-    private fun checkVideosProgress( ) {
-        SFProgress.showProgressDialog(this@MatchDetailActivity,true)
-          databaseManager.executeQuery {
-              val mMatchActionsDAO = MatchActionsDAO(it, this@MatchDetailActivity)
-              val mActions = mMatchActionsDAO.getTotalCount(match_id);
-              if (totalCount == 0) {
-                  totalCount = uploadedCount + mActions;
-              }
-              if (totalCount > 0 && mActions > 0) {
-                  binding.llUploadProgress.visibility = View.VISIBLE
-                  binding.txtUploaded.text = getString(
-                      R.string.lbl_videos_uploaded, uploadedCount.toString(),
-                      totalCount.toString()
-                  )
-                  val mList = mMatchActionsDAO.selectAllForPreview(match_id) as ArrayList<ReactionsBean>
-                  databaseManager.closeDatabase()
-                  val mListNew: ArrayList<MatchesBean.VideosBean> = ArrayList()
-                  if (CommonMethods.isValidArrayList(mList)) {
-                      for (a in mList) {
-                          val mBean: MatchesBean.VideosBean = MatchesBean.VideosBean()
-                          mBean.isDelete = "0"
-                          mBean.local_id = a.id
-                          mBean.match_id = a.match_id
-                          mBean.half = a.half
-                          mBean.time = a.time
-                          mBean.reaction = a.reaction
-                          mBean.local_video = a.video
-                          mBean.title = match_title + " : <b>" + a.reaction + "</b>"
-                          mBean.views = 0
-                          mListNew.add(mBean)
-                      }
-                      if (mAdapter != null && CommonMethods.isValidArrayList(mListNew)) {
-                          mAdapter!!.addOne(mListNew)
-                      }
-                  }
-              } else {
-                  binding.llUploadProgress.visibility = View.GONE
-              }
-              SFProgress.hideProgressDialog(this@MatchDetailActivity)
-          }
+    @OptIn(UnstableApi::class)
+    @Suppress("MagicNumber")
+    private fun loadVideos(isRefreshing: Boolean = false) {
+        if(isRefreshing.not()) {
+            SFProgress.showProgressDialog(this,true)
+        }
+
+        mAdapter?.submitList(null)
+
+        databaseManager.executeQuery { database ->
+            val mMatchActionsDAO = MatchActionsDAO(database, this@MatchDetailActivity)
+            val mActions = mMatchActionsDAO.getTotalCount(matchId)
+            // Already uploaded + remaining action count
+            totalCount = uploadedCount + mActions
+            // Total count - remaining actions
+            uploadedCount = totalCount - mActions
+
+            val mData = mMatchActionsDAO.selectAllForPreview(matchId) as ArrayList<ReactionsBean>
+            val mList = mutableListOf<VideosBean>()
+            if (CommonMethods.isValidArrayList(mData)) {
+                for (a in mData) {
+                    val mBean = VideosBean()
+                    mBean.isDelete = "0"
+                    mBean.local_id = a.id
+                    mBean.match_id = a.match_id
+                    mBean.half = a.half
+                    mBean.time = a.time
+                    mBean.reaction = a.reaction
+                    mBean.local_video = a.video
+                    mBean.title = matchBean.team1+" <b>Vs</b> "+matchBean.team2+" : <b>"+a.reaction+"</b>"
+                    mBean.views = 0
+                    mList.add(mBean)
+                }
+            }
+
+            val mInterviewDao = InterviewsDAO(database, this@MatchDetailActivity)
+            val interviews = mInterviewDao.selectAllUploaded(matchId) as ArrayList<InterviewBean>
+
+            if (interviews.isNotEmpty()) {
+                val interview = VideosBean()
+                interview.local_id = Int.MAX_VALUE
+                interview.half = 3
+                interview.match_id = matchId.toInt()
+                interview.local_video = interviews[0].video
+                mList.add(interview)
+            }
+
+            updateProgressCount()
+            getMatchActions(isRefreshing, mList.toList())
+        }
+    }
+
+    private fun updateProgressCount() {
+        binding.llUploadProgress.visibility = if(uploadedCount >= totalCount) View.GONE else View.VISIBLE
+        binding.txtUploaded.text = getString(
+            R.string.lbl_videos_uploaded, uploadedCount.toString(),
+            totalCount.toString()
+        )
+    }
+
+    @Suppress("MagicNumber")
+    fun formatList(list: List<VideosBean>) : List<VideosBean> {
+        val tempList = list.distinctBy { it.local_id }
+        val updatedList = mutableListOf<VideosBean>()
+        val groups = tempList.groupBy { it.half }
+
+        groups.forEach { (header, list) ->
+            val headerItem = VideosBean()
+            headerItem.match_id = matchId.toInt()
+            when(header) {
+                1 -> headerItem.local_id = -1
+                2 -> headerItem.local_id = -2
+                3 -> headerItem.local_id = -3
+            }
+
+            when (header) {
+                1 -> {
+                    headerItem.title = getString(R.string.lbl_first_half)
+                }
+                2 -> {
+                    headerItem.title = getString(R.string.lbl_second_half)
+                }
+                3 -> {
+                    headerItem.title = getString(R.string.lbl_interview)
+                }
+            }
+            updatedList.add(
+                headerItem
+            )
+
+            updatedList.addAll(list)
+        }
+
+        return updatedList.toList()
     }
 
     fun errorMsg(strMsg: String) {
@@ -223,26 +402,31 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             strMsg,
             getResources().getString(R.string.app_name),
             getResources().getString(R.string.lbl_ok)
-        );
+        )
     }
 
     override fun onError(type: String, error: String) {
-        checkVideosProgress()
         errorMsg(error)
-        //method body
+
+        when (type) {
+            Tags.SB_MATCH_DETAIL_API -> {
+            }
+            Tags.SB_DELETE_VIDEO_API -> {
+
+            }
+        }
     }
 
-    private fun getMatches() {
+    private fun getMatchActions(isRefreshing: Boolean = false, list: List<VideosBean>) {
         if (CommonMethods.isNetworkAvailable(this@MatchDetailActivity)) {
+            val userId =  UserSessions.getUserInfo(this@MatchDetailActivity).id.toString()
 
-            val userId =  UserSessions.getUserInfo(this@MatchDetailActivity).id.toString();
-//            var userId = "72" // TODO: Test with specific user_ID
-
-            mApiCall!!.getMatchDetail(
+            mApiCall.getMatchDetail(
                 this,
-                true,
+                list,
+                !isRefreshing,
                 userId,
-                game_id
+                gameId
             )
         } else {
             CommonMethods.errorDialog(
@@ -250,19 +434,17 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                 getResources().getString(R.string.error_internet),
                 getResources().getString(R.string.app_name),
                 getResources().getString(R.string.lbl_ok)
-            );
+            )
         }
-
-        videoUploadsWorker.fetchVideos(matchId = match_id)
     }
 
     private fun deleteVideos() {
         if (CommonMethods.isNetworkAvailable(this@MatchDetailActivity)) {
-            mApiCall!!.deleteVideos(
+            mApiCall.deleteVideos(
                 this,
                 true,
                 UserSessions.getUserInfo(this@MatchDetailActivity).id.toString(),
-                game_id,
+                gameId,
                 deleteType,
                 if (mVideo != null) mVideo!!.id.toString() else ""
             )
@@ -272,52 +454,58 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                 getResources().getString(R.string.error_internet),
                 getResources().getString(R.string.app_name),
                 getResources().getString(R.string.lbl_ok)
-            );
+            )
         }
     }
 
-    override fun onMatchClick(mBeanMatch: MatchesBean.InfoBean?) {
-        //
-    }
+    @Suppress("EmptyFunctionBlock")
+    override fun onMatchClick(mBeanMatch: MatchesBean.InfoBean?) {}
 
-    private var mVideo: MatchesBean.VideosBean? = null
-    private var videoPosition: Int = -1
-
-    override fun onVideoClick(mBeanVideo: MatchesBean.VideosBean?) {
+    @UnstableApi
+    override fun onVideoClick(mBeanVideo: VideosBean?) {
         if (mBeanVideo != null) {
             if (CommonMethods.isValidString(mBeanVideo.video)) {
                 startActivity(
                     Intent(
                         this@MatchDetailActivity,
                         VideoPreviewActivity::class.java
-                    ).putExtra("mBeanVideo", mBeanVideo)
+                    ).putExtra(VideoPreviewActivity.EXTRA_BEAN_VIDEO, mBeanVideo)
                 )
             }else{
                 startActivity(Intent(
                     this@MatchDetailActivity,
                     VideoPreviewActivity::class.java)
-                    .putExtra("strPath", mBeanVideo.local_video))
+                    .putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, mBeanVideo.local_video))
             }
         }
     }
 
-    override fun onVideoDelete(position: Int, mBeanVideo: MatchesBean.VideosBean?) {
-        mVideo = null;
+    override fun onInterviewDelete(position: Int, mBeanVideo: VideosBean?) {
+        mVideo = null
+        videoPosition = -1
+
+        if (mBeanVideo != null && CommonMethods.isValidString(mBeanVideo.isDelete)) {
+            videoPosition = position
+            mVideo = mBeanVideo
+            makeConfirmation(getString(R.string.msg_delete_action), "2")
+        }
+
+    }
+
+    override fun onActionDelete(position: Int, mBeanVideo: VideosBean?) {
+        mVideo = null
         videoPosition = -1
         if (mBeanVideo != null && CommonMethods.isValidString(mBeanVideo.isDelete)) {
-            if (CommonMethods.isValidString(mBeanVideo.local_video)){
+            if (CommonMethods.isValidString(mBeanVideo.local_video)) {
                 makeConfirmation(getString(R.string.msg_delete_action), "44")
-            }else {
+            } else {
                 videoPosition = position
                 mVideo = mBeanVideo
                 makeConfirmation(getString(R.string.msg_delete_action), "1")
             }
-            //delete video
         }
     }
 
-    private var customDialog: CustomDialog? = null
-    private var isDialogOpen = false
     fun makeConfirmation(msg: String, type: String) {
         if (!isDialogOpen) {
             if (customDialog == null) {
@@ -338,108 +526,45 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
         }
     }
 
-    private var deleteType = ""
     override fun onConfirm(isTrue: Boolean, type: String) {
         isDialogOpen = false
         deleteType = ""
         if (isTrue) {
             deleteType = type
-            if (type == "1") {
-                deleteVideos()
-            } else if (type == "44") {
-                //deleteVideos() //delete from local
-            } else if (type == "2") {
-                //delete interview
-                deleteVideos()
-            } else if (type == "99") {
-                UserSessions.clearUserInfo(this@MatchDetailActivity)
-                startActivity(
-                    Intent(this@MatchDetailActivity, LoginActivity::class.java).setFlags(
-                        Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                )
-                finishAffinity()
+            when (type) {
+                "1" -> {
+                    deleteVideos()
+                }
+                "44" -> {
+                    //deleteVideos() //delete from local
+                }
+                "2" -> {
+                    //delete interview
+                    deleteVideos()
+                }
+                "99" -> {
+                    UserSessions.clearUserInfo(this@MatchDetailActivity)
+                    val intent = Intent(this@MatchDetailActivity, LoginActivity::class.java)
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    startActivity(intent)
+                    finishAffinity()
+                }
             }
         } else {
             videoPosition = -1
             mVideo = null
         }
     }
-    override fun onPause() {
-        try {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver)
-        } catch (e: java.lang.Exception) {
-            Log.e("MatchDetailActivity", e.localizedMessage)
-        }
-        super.onPause()
-    }
+
     override fun onStop() {
-        try {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver)
-        } catch (e: java.lang.Exception) {
-            Log.e("MatchDetailActivity", e.localizedMessage)
-        }
         super.onStop()
-    }
-    override fun onDestroy() {
-        try {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver)
-        } catch (e: java.lang.Exception) {
-            Log.e("MatchDetailActivity", e.localizedMessage)
-        }
-        super.onDestroy()
+        unregisterReceiver(mReceiver)
     }
 
+    @Suppress("UnspecifiedRegisterReceiverFlag")
     override fun onResume() {
         super.onResume()
-        try {
-            LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, mIntentFilter!!)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(mReceiver, mIntentFilter, RECEIVER_NOT_EXPORTED)
-            } else {
-                registerReceiver(mReceiver, mIntentFilter)
-            }
-        } catch (e: java.lang.Exception) {
-            Log.e("MatchDetailActivity", e.localizedMessage)
-        }
-    }
-    private var mIntentFilter: IntentFilter? = null
-    private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            try {
-                if (intent.hasExtra("Data")){
-                    val mBn:MatchesBean.VideosBean = Gson().fromJson(
-                        intent.getStringExtra("Data"),
-                        MatchesBean.VideosBean::class.java)
-                    if (intent.hasExtra("old_data")){
-                        val mBn1:ReactionsBean? = Gson().fromJson(
-                            intent.getStringExtra("old_data"),ReactionsBean::class.java)
-                        if (mBn1 != null) {
-                            if (mAdapter !=null){
-                                mAdapter!!.updateVideo(mBn1,mBn)
-                            }
-                            databaseManager.executeQuery {
-                                val mMatchActionsDAO = MatchActionsDAO(it, this@MatchDetailActivity)
-                                val mActions = mMatchActionsDAO.getTotalCount(match_id);
-                                if (mActions > 0) {
-                                    binding.llUploadProgress.visibility = View.VISIBLE
-                                    binding.txtUploaded.text = getString(
-                                        R.string.lbl_videos_uploaded,
-                                        (totalCount - mActions).toString(),
-                                        totalCount.toString()
-                                    )
-                                    databaseManager.closeDatabase()
-                                } else {
-                                    binding.llUploadProgress.visibility = View.GONE
-                                }
-                            }
-                        }
-                    }
-                 }
-            } catch (e: java.lang.Exception) {
-                Log.e("MatchDetailActivity", e.localizedMessage)
-            }
-        }
+        setupObserver()
     }
 
 }

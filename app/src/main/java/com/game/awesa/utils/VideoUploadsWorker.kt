@@ -2,16 +2,18 @@ package com.game.awesa.utils
 
 import android.content.Context
 import android.content.Intent
+import android.database.SQLException
 import android.util.Log
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.beans.matches.InterviewBean
+import com.codersworld.awesalibs.beans.matches.MatchesBean.VideosBean
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.database.dao.InterviewsDAO
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.rest.UniversalObject
-import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.di.AppCoroutineScope
+import com.game.awesa.ui.matches.MatchDetailActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -19,7 +21,7 @@ import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadFailure
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadSuccess
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadProgress
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadInterviewSuccess
-import com.google.gson.Gson
+import com.google.gson.JsonIOException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -31,6 +33,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
+import java.io.Serializable
+import java.lang.IllegalStateException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,7 +66,7 @@ class VideoUploadsWorker @Inject constructor(
     private val queue = MutableSharedFlow<Work>(extraBufferCapacity = Int.MAX_VALUE)
     private val pendingWorkList = MutableStateFlow<List<Work>>(emptyList())
 
-    private val cancelledVideos = mutableSetOf<Long>()
+    private val cancelledMatches = mutableSetOf<Long>()
     private val currentJobs = mutableMapOf<Long, List<Job>>()
     // A reference to all videos being uploaded to update the notification with the correct index
     private val uploadList = mutableListOf<VideoUploadEntry>()
@@ -75,10 +79,10 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     private fun areEquivalent(old: Work, new: Work): Boolean {
-        val hasSameId = old.videoId == new.videoId
+//        val hasSameId = old.videoId == new.videoId
         val hasSameUrl = old.localUri == new.localUri
 
-        return hasSameId && hasSameUrl
+        return hasSameUrl // hasSameId &&
     }
 
     private fun observeQueue() {
@@ -86,7 +90,7 @@ class VideoUploadsWorker @Inject constructor(
             .distinctUntilChanged(::areEquivalent)
             .onEach { work ->
                 pendingWorkList.update { list -> list + work }
-                uploadList.add(VideoUploadEntry(work.videoId, work.localUri))
+                uploadList.add(VideoUploadEntry(work.matchId, work.localUri))
 
                 handleWork(work)
             }
@@ -107,11 +111,11 @@ class VideoUploadsWorker @Inject constructor(
             .distinctUntilChanged()
             .onEach { done ->
                 if (done) {
-                    Log.d(TAG, "VideoFileUploadHandler -> stop service")
+                    Log.d(TAG, "> Stop Service")
                     videoUploadServiceWrapper.stopService()
                     uploadList.clear()
                 } else {
-                    Log.d(TAG, "VideoFileUploadHandler -> start service")
+                    Log.d(TAG, "-> Start Service")
                     videoUploadServiceWrapper.startService()
                 }
             }
@@ -119,13 +123,13 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     private fun handleWork(work: Work) {
-        if (cancelledVideos.contains(work.videoId)) {
-            Log.d(TAG, "VideoUploadsWorker -> skipping work $work since it's cancelled")
+        if (cancelledMatches.contains(work.matchId)) {
+            Log.d(TAG, "-> Skipping work $work since it's cancelled")
             return
         }
 
         val job = appCoroutineScope.launch {
-            Log.d(TAG, "VideoUploadsWorker -> start work handling $work")
+            Log.d(TAG, "-> start work handling $work")
 
             try {
                 when (work) {
@@ -138,23 +142,28 @@ class VideoUploadsWorker @Inject constructor(
         }
 
         // Save a reference to the job for cancelling it if needed
-        currentJobs[work.videoId] = currentJobs.getOrElse(work.videoId) { emptyList() } + job
+        currentJobs[work.matchId] = currentJobs.getOrElse(work.matchId) { emptyList() } + job
 
         job.invokeOnCompletion {
             // Remove the job from the list jobs
-            currentJobs[work.videoId] = currentJobs[work.videoId]!! - job
+            currentJobs[work.matchId] = currentJobs[work.matchId]!! - job
         }
     }
 
-    fun fetchVideos(matchId: String?) {
-        cancelUploads()
-        Log.d(TAG, "VideoUploadsWorker -> fetch videos for upload")
+    fun fetchVideos(matchId: String? = null) {
+        Log.d(TAG, "-> fetch videos for upload $matchId")
+
+        if (matchId !== null) {
+            cancelUpload(matchId.toLong())
+        } else {
+            cancelUploads()
+        }
 
         appCoroutineScope.launch {
             videoUploadsRepository.getMatchReactions(matchId = matchId).collect {
                 it?.forEach { reaction -> enqueueWork(
                     Work.UploadVideo(
-                        videoId = reaction.id.toLong(),
+                        matchId = reaction.match_id.toLong(),
                         localUri = reaction.video,
                         reactionModel = reaction
                     )
@@ -165,7 +174,7 @@ class VideoUploadsWorker @Inject constructor(
             videoUploadsRepository.getMatchInterviews(matchId = matchId).collect {
                 it?.forEach { interview -> enqueueWork(
                     Work.UploadInterviewVideo(
-                        videoId = interview.id.toLong(),
+                        matchId = interview.match_id.toLong(),
                         localUri = interview.video,
                         interviewModel = interview
                     )
@@ -176,54 +185,88 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     private fun enqueueWork(work: Work) {
-        cancelledVideos.remove(work.videoId)
+        cancelledMatches.remove(work.matchId)
         queue.tryEmit(work)
     }
 
-    fun cancelUpload(videoId: Long) {
-        cancelledVideos.add(videoId)
-        currentJobs[videoId]?.forEach {
+    fun cancelUpload(matchId: Long) {
+        cancelledMatches.add(matchId)
+        currentJobs[matchId]?.forEach {
             it.cancel()
         }
-        uploadList.removeAll { it.videoId == videoId }
+        uploadList.removeAll { it.matchId == matchId }
     }
 
     fun cancelUploads() {
         currentJobs.keys.forEach { key ->
             currentJobs[key]?.forEach { job ->
                 job.cancel()
-                uploadList.removeAll { it.videoId == key }
+                uploadList.removeAll { it.matchId == key }
             }
         }
-
     }
 
     private suspend fun uploadMedia(work: Work.UploadVideo) {
+//        mutex.withLock {
+//            Log.d(TAG, "-> start uploading media ${work.localUri}")
+//
+//            val doneUploads = uploadList.count { it.isDone }
+//            notificationHandler.update(doneUploads + 1, uploadList.size)
+//        }
+
         mutex.withLock {
-            Log.d(TAG, "VideoUploadsWorker -> start uploading media ${work.localUri}")
+            Log.d(TAG, "-> start uploading media ${work.localUri}")
 
             val doneUploads = uploadList.count { it.isDone }
             notificationHandler.update(doneUploads + 1, uploadList.size)
             videoUploadsRepository.uploadMedia(work.reactionModel).collect {
                 when (it) {
                     is UploadFailure -> {
-                        Log.w(TAG, "VideoFileUploadHandler -> upload failed for ${work.localUri}")
+                        Log.w(TAG, "-> upload failed for ${work.localUri}")
                         val index =
                             uploadList.indexOfFirst {
-                                item -> item.videoId == work.videoId && item.localUri == work.localUri
+                                item -> item.matchId == work.matchId && item.localUri == work.localUri
                             }
-                        uploadList[index] = uploadList[index].copy(isDone = true)
+                        try {
+                            uploadList[index] = uploadList[index].copy(isDone = true)
+                        } catch (e: ConcurrentModificationException) {
+                            Log.e(TAG, e.localizedMessage, e)
+                        }
                     }
                     is UploadProgress -> notificationHandler.setProgress(it.progress)
                     is UploadSuccess -> {
-                        Log.d(TAG, "VideoFileUploadHandler -> upload succeeded for ${work.localUri}")
+                        Log.d(TAG, "-> upload succeeded for ${work.localUri}")
                         notificationHandler.setProgress(1f)
                         handleResponse(response = it.response, reactionModel = it.reaction)
+
                         val index =
                             uploadList.indexOfFirst {
-                                item -> item.videoId == work.videoId && item.localUri == work.localUri
+                                    item -> item.matchId == work.matchId && item.localUri == work.localUri
                             }
-                        uploadList[index] = uploadList[index].copy(isDone = true)
+
+                        try {
+                            uploadList[index] = uploadList[index].copy(isDone = true)
+                        } catch (e: ConcurrentModificationException) {
+                            Log.e(TAG, e.localizedMessage, e)
+                        }
+
+                        try {
+                            Log.d(TAG, "-> Deleting file for action ${work.matchId} @ ${work.localUri}")
+                            if (File(work.localUri).exists()) {
+                                File(work.localUri).delete()
+                            }
+                        } catch (e: java.lang.NullPointerException) {
+                            Log.e(TAG, "-> Failed Deleting file for action ${work.matchId} @ ${work.localUri}", e)
+                        }
+
+//                        //  Safely update shared list inside lock
+//                        mutex.withLock {
+//                            val index =
+//                                uploadList.indexOfFirst {
+//                                        item -> item.videoId == work.videoId && item.localUri == work.localUri
+//                                }
+//                            uploadList[index] = uploadList[index].copy(isDone = true)
+//                        }
                     }
 
                     is UploadInterviewSuccess -> {}
@@ -231,47 +274,77 @@ class VideoUploadsWorker @Inject constructor(
             }
 
             val hasMoreUploads = pendingWorkList.value.any {
-                it != work && it.videoId == work.videoId && (it is Work.UploadVideo || it is Work.UploadInterviewVideo)
+                it != work && it.matchId == work.matchId && (it is Work.UploadVideo || it is Work.UploadInterviewVideo)
             }
             if (!hasMoreUploads) {
-                Log.d(TAG, "VideoUploadsWorker -> all uploads are done")
+                Log.d(TAG, "-> all uploads are done")
             }
         }
     }
 
     private suspend fun uploadMedia(work: Work.UploadInterviewVideo) {
+//        mutex.withLock {
+//            Log.d(TAG, "-> start uploading interview ${work.localUri}")
+//
+//            // Update notification safely
+//            val doneUploads = uploadList.count { it.isDone }
+//            notificationHandler.update(doneUploads + 1, uploadList.size)
+//        }
+
         mutex.withLock {
-            Log.d(TAG, "VideoUploadsWorker -> start uploading interview ${work.localUri}")
+            Log.d(TAG, "-> Start uploading interview ${work.localUri}")
 
             val doneUploads = uploadList.count { it.isDone }
             notificationHandler.update(doneUploads + 1, uploadList.size)
             videoUploadsRepository.uploadMedia(work.interviewModel).collect {
                 when (it) {
                     is UploadFailure -> {
-                        Log.w(TAG, "VideoFileUploadHandler -> upload interview failed for ${work.localUri}")
+                        Log.w(TAG, "-> Upload interview failed for ${work.localUri}")
 
                     }
                     is UploadProgress -> notificationHandler.setProgress(it.progress)
                     is UploadInterviewSuccess -> {
-                        Log.d(TAG, "VideoFileUploadHandler -> upload interview succeeded for ${work.localUri}")
+                        Log.d(TAG, "-> Upload interview succeeded for ${work.localUri}")
                         notificationHandler.setProgress(1f)
                         handleResponse(response = it.response, interviewModel = it.interview)
                         val index =
                             uploadList.indexOfFirst {
-                                item -> item.videoId == work.videoId && item.localUri == work.localUri
+                                item -> item.matchId == work.matchId && item.localUri == work.localUri
                             }
-                        uploadList[index] = uploadList[index].copy(isDone = true)
-                    }
 
+                        try {
+                            uploadList[index] = uploadList[index].copy(isDone = true)
+                        } catch (e: ConcurrentModificationException) {
+                            Log.e(TAG, e.localizedMessage, e)
+                        }
+
+                        try {
+                            Log.d(TAG, "-> Deleting file for interview ${work.matchId} @ ${work.localUri}")
+                            if (File(work.localUri).exists()) {
+                                File(work.localUri).delete()
+                            }
+                        } catch (e: NullPointerException) {
+                            Log.e(TAG, "-> Failed Deleting file for interview ${work.matchId} @ ${work.localUri}", e)
+                        }
+                        // Safely update shared list inside lock
+//                        mutex.withLock {
+//                            val index = uploadList.indexOfFirst {
+//                                    item -> item.videoId == work.videoId && item.localUri == work.localUri
+//                            }
+//                            if (index >= 0) {
+//                                uploadList[index] = uploadList[index].copy(isDone = true)
+//                            }
+//                        }
+                    }
                     is UploadSuccess -> {}
                 }
             }
 
             val hasMoreUploads = pendingWorkList.value.any {
-                it != work && it.videoId == work.videoId && (it is Work.UploadVideo || it is Work.UploadInterviewVideo)
+                it != work && it.matchId == work.matchId && (it is Work.UploadVideo || it is Work.UploadInterviewVideo)
             }
             if (!hasMoreUploads) {
-                Log.d(TAG, "VideoUploadsWorker -> all uploads are done")
+                Log.d(TAG, "-> All uploads are done")
             }
         }
     }
@@ -280,71 +353,78 @@ class VideoUploadsWorker @Inject constructor(
         try {
             val mBean = response?.response as? CommonBean
             if (mBean != null && mBean.videos != null) {
-                val broadcastIntent = Intent("videoUpload")
-                broadcastIntent.putExtra("Data", Gson().toJson(mBean.videos))
-                try {
-                    broadcastIntent.putExtra("old_data", Gson().toJson(reactionModel))
-                } catch (ex: Exception) {
-                    Log.e(TAG, ex.localizedMessage)
-                }
+                val broadcastIntent = Intent(MatchDetailActivity.INTENT_UPLOAD_VIDEO)
+                broadcastIntent.action = MatchDetailActivity.INTENT_ACTION_UPLOAD
+                broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, mBean.videos)
+                broadcastIntent.putExtra(MatchDetailActivity.TYPE_PARAMETER, VideoType.reaction)
+                broadcastIntent.putExtra(MatchDetailActivity.LOCAL_VIDEO_PARAMETER, reactionModel)
 
                 context.sendBroadcast(broadcastIntent)
 
-                if (mBean.status == 1 && CommonMethods.isValidString(response.msg)) {
+                if (reactionModel == null) return
 
-                    if (reactionModel != null) {
-                        databaseManager.executeQuery { database ->
-                            val dao = MatchActionsDAO(database, context)
-                            dao.deleteAll(reactionModel.id.toString(), 0)
-                            try {
-                                File(reactionModel.video).delete()
-                            } catch (e: Exception) {
-                                Log.e(TAG, e.localizedMessage)
-                            }
-                        }
-                    }
+                databaseManager.executeQuery { database ->
+                    val dao = MatchActionsDAO(database, context)
+                    dao.deleteAll(reactionModel.id)
                 }
             }
 
-        } catch (e: Exception) {
-            Log.e(TAG, e.localizedMessage)
+        } catch (ex: JsonIOException) {
+            Log.e(TAG, "GSON Error: ${ex.localizedMessage}")
+        } catch (ex: IllegalStateException) {
+            Log.e(TAG, "Database Error: ${ex.localizedMessage}")
+        } catch (ex: SQLException) {
+            Log.e(TAG, "Query Error: ${ex.localizedMessage}")
+        } catch (ex: SecurityException) {
+            Log.e(TAG, "Access Denied: ${ex.localizedMessage}")
         }
     }
 
     private  fun handleResponse(response: UniversalObject?, interviewModel: InterviewBean?) {
-        try{
+        try {
             val mBean = response?.response as? CommonBean
+            if (mBean != null && mBean.status == 1) {
+                val broadcastIntent = Intent(MatchDetailActivity.INTENT_UPLOAD_VIDEO)
+                broadcastIntent.action = MatchDetailActivity.INTENT_ACTION_UPLOAD
+                val interViewVideoBean = VideosBean()
+                interViewVideoBean.video = mBean.videos?.video
+                interViewVideoBean.local_id = mBean.localId
+                interViewVideoBean.match_id = mBean.videos.match_id
+                interViewVideoBean.thumbnail = mBean.videos?.thumbnail
+                broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, interViewVideoBean)
+                broadcastIntent.putExtra(MatchDetailActivity.TYPE_PARAMETER, VideoType.interview)
+                broadcastIntent.putExtra(MatchDetailActivity.LOCAL_VIDEO_PARAMETER, interviewModel)
 
-            if (mBean != null &&  mBean.status == 1) {
-                if (interviewModel != null) {
-                    databaseManager.executeQuery { database ->
-                        val dao = InterviewsDAO(database, context)
-                        dao.deleteAll(interviewModel.id.toString(),0)
-                        try{
-                            File(interviewModel.video).delete()
-                        }catch (ex:Exception){
-                            Log.e(TAG, ex.localizedMessage)
-                        }
-                    }
+                context.sendBroadcast(broadcastIntent)
+
+                if (interviewModel == null) return
+
+                databaseManager.executeQuery { database ->
+                    val dao = InterviewsDAO(database, context)
+                    dao.deleteAll(interviewModel.id)
                 }
             }
-        }catch (ex: Exception) {
-            Log.e(TAG, ex.localizedMessage)
+        } catch (ex: IllegalStateException) {
+            Log.e(TAG, "Database Error: ${ex.localizedMessage}")
+        } catch (ex: SQLException) {
+            Log.e(TAG, "Query Error: ${ex.localizedMessage}")
+        } catch (ex: SecurityException) {
+            Log.e(TAG, "Access Denied: ${ex.localizedMessage}")
         }
     }
 
     sealed class Work {
-        abstract val videoId: Long
+        abstract val matchId: Long
         abstract val localUri: String
 
         data class UploadVideo(
-            override val videoId: Long,
+            override val matchId: Long,
             override val localUri: String,
             val reactionModel: ReactionsBean,
         ) : Work()
 
         data class UploadInterviewVideo(
-            override val videoId: Long,
+            override val matchId: Long,
             override val localUri: String,
             val interviewModel: InterviewBean,
         ) : Work()
@@ -355,8 +435,13 @@ class VideoUploadsWorker @Inject constructor(
      * notification accordingly
      */
     data class VideoUploadEntry(
-        val videoId: Long,
+        val matchId: Long,
         val localUri: String,
         val isDone: Boolean = false
     )
+
+    enum class VideoType: Serializable {
+        reaction,
+        interview
+    }
 }

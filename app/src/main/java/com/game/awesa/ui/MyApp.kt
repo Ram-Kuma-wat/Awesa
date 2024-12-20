@@ -1,26 +1,35 @@
 package com.game.awesa.ui
 
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.camera.camera2.Camera2Config
 import androidx.camera.core.CameraXConfig
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
+import com.codersworld.awesalibs.beans.VideoUploadBean
+import com.codersworld.awesalibs.database.DatabaseManager
+import com.codersworld.awesalibs.database.dao.VideoMasterDAO
+import com.codersworld.awesalibs.storage.UserSessions
+import com.codersworld.awesalibs.utils.CommonMethods
+import com.game.awesa.services.TrimService
 import com.game.awesa.utils.AndroidNetworkObservingStrategy
 import com.game.awesa.utils.AppInitializer
 import com.game.awesa.utils.VideoUploadsWorker
-import com.game.awesa.utils.VideosNotificationHandler
-import com.google.android.exoplayer2.database.ExoDatabaseProvider
-import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
-import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import dagger.Lazy
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
-import dagger.hilt.android.HiltAndroidApp
+import java.util.Locale
 import javax.inject.Inject
 
-@HiltAndroidApp
+
+@UnstableApi
 open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Provider, Configuration.Provider {
     @Inject
     lateinit var androidInjector: DispatchingAndroidInjector<Any>
@@ -31,33 +40,63 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
 
     @Inject lateinit var videoUploadsWorker: VideoUploadsWorker
 
+    @Inject lateinit var databaseManager: DatabaseManager
+
     companion object {
-        const val TAG = "MyApp"
+        val TAG: String = MyApp::class.java.simpleName
         lateinit var simpleCache: SimpleCache
-        const val exoPlayerCacheSize: Long = 90 * 1024 * 1024
+        const val EXO_PLAYER_CACHE_SIZE: Long = 90 * 1024 * 1024
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
-        lateinit var exoDatabaseProvider: ExoDatabaseProvider
+        lateinit var exoDatabaseProvider: StandaloneDatabaseProvider
+
+        fun setGermanAsDefault(context: Context): Context {
+            val locale = Locale("de")
+            Locale.setDefault(locale)
+            val config = android.content.res.Configuration()
+            config.setLocale(locale)
+            return context.createConfigurationContext(config)
+        }
     }
 
-    private val networkObserver = AndroidNetworkObservingStrategy()
+    @Inject lateinit var networkObserver: AndroidNetworkObservingStrategy
 
     override fun onCreate() {
         super.onCreate()
-        leastRecentlyUsedCacheEvictor = LeastRecentlyUsedCacheEvictor(exoPlayerCacheSize)
-        exoDatabaseProvider = ExoDatabaseProvider(this.applicationContext)
+        leastRecentlyUsedCacheEvictor = LeastRecentlyUsedCacheEvictor(EXO_PLAYER_CACHE_SIZE)
+        exoDatabaseProvider = StandaloneDatabaseProvider(this.applicationContext)
         simpleCache = SimpleCache(cacheDir, leastRecentlyUsedCacheEvictor, exoDatabaseProvider)
 
         networkObserver.observeNetworkConnectivity(this)
 
-        networkObserver.getLiveConnectivityState().observeForever { connectivity -> // .distinctUntilChanged()
+        startTrimService()
+
+        networkObserver.getLiveConnectivityState().observeForever { connectivity ->
             if (connectivity.networkState!!.isConnected) {
-                videoUploadsWorker.fetchVideos(matchId = null)
+
+                if (UserSessions.getUserInfo(this) == null) return@observeForever
+
+                videoUploadsWorker.fetchVideos()
             } else {
                 videoUploadsWorker.cancelUploads()
             }
         }
 
         appInitializer.get().init(this)
+    }
+
+    private fun startTrimService() {
+        databaseManager.executeQuery { database ->
+            val mVideoMasterDAO = VideoMasterDAO(database, applicationContext)
+            val mList = mVideoMasterDAO.selectAll() as ArrayList<VideoUploadBean>
+            if (CommonMethods.isValidArrayList(mList)) {
+                loop@ for (index in mList.indices) {
+                    val mIntent = Intent(this, TrimService::class.java)
+                    mIntent.putExtra("matchId", mList[index].match_id)
+                    this.startService(mIntent)
+                    break@loop
+                }
+            }
+        }
     }
 
     override fun getCameraXConfig(): CameraXConfig {

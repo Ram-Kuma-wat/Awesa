@@ -12,7 +12,7 @@ import com.codersworld.awesalibs.R;
 import com.codersworld.awesalibs.autoimageslider.IndicatorView.utils.DensityUtils;
 import com.codersworld.awesalibs.autoimageslider.IndicatorView.animation.type.*;
 import com.codersworld.awesalibs.autoimageslider.IndicatorView.draw.data.Indicator;
-import com.codersworld.awesalibs.autoimageslider.IndicatorView.draw.data.Orientation;;
+import com.codersworld.awesalibs.autoimageslider.IndicatorView.draw.data.Orientation;
 import com.codersworld.awesalibs.autoimageslider.IndicatorView.draw.data.RtlMode;
 
 public class AttributeController {

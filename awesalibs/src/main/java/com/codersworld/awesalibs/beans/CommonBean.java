@@ -1,5 +1,7 @@
 package com.codersworld.awesalibs.beans;
 
+import androidx.annotation.Nullable;
+
 import com.codersworld.awesalibs.beans.matches.MatchesBean;
 import com.codersworld.awesalibs.beans.matches.ScoresBean;
 import com.codersworld.awesalibs.beans.user.UserBean;
@@ -15,6 +17,10 @@ public class CommonBean implements Serializable {
     int app_signup_allowed;
     @SerializedName("msg")
     String msg;
+    @SerializedName("total_actions")
+    int totalActions;
+    @SerializedName("local_id")
+    String localId;
     @SerializedName("info")
     UserBean info;
     @SerializedName("ticket")
@@ -40,6 +46,14 @@ public class CommonBean implements Serializable {
 
     public void setVideos(MatchesBean.VideosBean videos) {
         this.videos = videos;
+    }
+
+    public void setTotalActions(int totalActions) {
+        this.totalActions = totalActions;
+    }
+
+    public int getTotalActions() {
+        return totalActions;
     }
 
     public int getApp_signup_allowed() {
@@ -80,6 +94,18 @@ public class CommonBean implements Serializable {
 
     public void setInfo(UserBean info) {
         this.info = info;
+    }
+
+    public int getLocalId() {
+        try {
+            return Integer.parseInt(localId);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    public void setLocalId(String localId) {
+        this.localId = localId;
     }
 
     public int getStatus() {

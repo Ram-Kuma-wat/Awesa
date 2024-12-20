@@ -7,22 +7,22 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.beans.matches.InterviewBean
 import com.codersworld.awesalibs.beans.matches.MatchesBean
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
-import com.codersworld.awesalibs.database.DatabaseHelper
 import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.database.dao.InterviewsDAO
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnReactionListener
 import com.codersworld.awesalibs.listeners.OnResponse
-import com.codersworld.awesalibs.listeners.QueryExecutor
 import com.codersworld.awesalibs.rest.ApiCall
 import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
@@ -41,72 +41,77 @@ import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@Suppress("TooManyFunctions")
 class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmListener,
     OnResponse<UniversalObject> {
+
+    companion object {
+        const val EXTRA_MATCH_BEAN = "mMatchBean"
+        val TAG: String = MatchOverviewActivity::class.java.simpleName
+    }
+
     @Inject
     lateinit var videoUploadsWorker: VideoUploadsWorker
 
     @Inject lateinit var databaseManager: DatabaseManager
 
     lateinit var binding:ActivityMatchOverviewBinding
-    private var mMatchBean : MatchesBean.InfoBean? = null;
-    private var match_id :String="";
-    private var mActions =0;
-    private var mAdapter : OverviewAdapter?=null
-    private var mListData : ArrayList<ReactionsBean> = ArrayList();
+    private var mMatchBean : MatchesBean.InfoBean? = null
+    private var matchId: String? = null
+    private var mAdapter: OverviewAdapter?=null
+    private var mListData: ArrayList<ReactionsBean> = ArrayList()
+    private var mBeanReaction: ReactionsBean? = null
+    private var actionPosition =-1
 
+    private var strInterview = ""
+    private var strInterviewId = 0
+    private var customDialog: CustomDialog? = null
+    private var isDialogOpen = false
+    var mApiCall: ApiCall? = null
+
+    @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-         binding = DataBindingUtil.setContentView(this, R.layout.activity_match_overview)
-        //setContentView(R.layout.activity_video_preview)
+        initUI()
+        handleIntent()
         initApiCall()
-        mMatchBean = CommonMethods.getSerializable(intent,"mMatchBean",MatchesBean.InfoBean::class.java)
-        //CommonMethods.checkService(this@MatchOverviewActivity, TrimService::class.java)
-        CommonMethods.checkServiceWIthData(this@MatchOverviewActivity, TrimService::class.java,match_id)
-        if (mMatchBean !=null){
-            match_id = mMatchBean!!.id.toString()
-            CommonMethods.loadImage(this@MatchOverviewActivity,mMatchBean!!.team1_image,binding.imgTeam1)
-            CommonMethods.loadImage(this@MatchOverviewActivity,mMatchBean!!.team2_image,binding.imgTeam2)
-        }
-        binding.rvHistory.layoutManager = LinearLayoutManager(this,RecyclerView.VERTICAL,false)
-        mAdapter = OverviewAdapter(this@MatchOverviewActivity,mListData,this)
+
+        getData()
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun initUI() {
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_match_overview)
+        binding.rvHistory.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL,false)
+        mAdapter = OverviewAdapter(this@MatchOverviewActivity, mListData, this)
         binding.rvHistory.adapter = mAdapter
-        getData(0)
         binding.imgHome.setOnClickListener {
             updateMatchCount()
         }
 
-
         binding.swRefresh.setOnRefreshListener {
-            getData(0)
+            getData()
         }
-        databaseManager.executeQuery1(QueryExecutor {
-            var mInterviewsDAO = InterviewsDAO(it, this@MatchOverviewActivity)
-            var mList = mInterviewsDAO.selectAll(mMatchBean!!.id.toString()) as ArrayList<InterviewBean>
-           // Log.e("InterviewmList",Gson().toJson(mList))
-            databaseManager.closeDatabase()
-            if (CommonMethods.isValidArrayList(mList)) {
-                binding.imgThumbnail.setImageBitmap(CommonMethods.createVideoThumb(this@MatchOverviewActivity, Uri.fromFile(File(mList[0].video))))
-                strInterview = mList[0].video
-                strInterviewId = mList[0].id
-                binding.llInterview.visibility = View.VISIBLE
-            }else{
-                binding.llInterview.visibility = View.GONE
-            }
-        },"MatchOverview1")
+
         binding.rlPlay.setOnClickListener {
             if (CommonMethods.isValidString(strInterview)){
-                startActivity(Intent(this@MatchOverviewActivity,VideoPreviewActivity::class.java).putExtra("strPath",strInterview))
+                val intent = Intent(this@MatchOverviewActivity, VideoPreviewActivity::class.java)
+                intent.putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, strInterview)
+                startActivity(intent)
             }
         }
         binding.imgThumbnail.setOnClickListener {
             if (CommonMethods.isValidString(strInterview)){
-                startActivity(Intent(this@MatchOverviewActivity,VideoPreviewActivity::class.java).putExtra("strPath",strInterview))
+                val intent = Intent(this@MatchOverviewActivity,VideoPreviewActivity::class.java)
+                intent.putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, strInterview)
+                startActivity(intent)
             }
         }
         binding.imgPlay.setOnClickListener {
             if (CommonMethods.isValidString(strInterview)){
-                startActivity(Intent(this@MatchOverviewActivity,VideoPreviewActivity::class.java).putExtra("strPath",strInterview))
+                val intent = Intent(this@MatchOverviewActivity,VideoPreviewActivity::class.java)
+                intent.putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, strInterview)
+                startActivity(intent)
             }
         }
         binding.imgDelete.setOnClickListener {
@@ -115,93 +120,110 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
             }
         }
     }
-    var strInterview = "";
-    var strInterviewId = 0;
 
-    fun getData(mType:Int){
-       if(mType==0){
-           binding.swRefresh.isRefreshing=true
-       }
-        databaseManager.executeQuery1(QueryExecutor {
-            var mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
-            var mList = mMatchActionsDAO.selectAllForPreview(mMatchBean!!.id.toString()) as ArrayList<ReactionsBean>
-            databaseManager.closeDatabase()
-            if (CommonMethods.isValidArrayList(mList)) {
-                mListData = mList
-                mAdapter!!.addAll(mListData)
-                checkCompression()
-            }
-            if (mType==0){
-                binding.swRefresh.isRefreshing=false
-            }
-        },"MatchOverview2")
+    @OptIn(UnstableApi::class)
+    private fun handleIntent() {
+        mMatchBean = CommonMethods.getSerializable(
+            intent,
+            EXTRA_MATCH_BEAN,
+            MatchesBean.InfoBean::class.java
+        )
+
+        if (mMatchBean != null) {
+            matchId = mMatchBean!!.id.toString()
+            CommonMethods.checkTrimServiceWithData(this@MatchOverviewActivity, TrimService::class.java, matchId)
+            CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team1_image,binding.imgTeam1)
+            CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team2_image,binding.imgTeam2)
+        }
     }
 
-fun checkCompression(){
-    if (CommonMethods.isValidArrayList(mListData)){
-        var counter=0;
-        for(a in mListData.indices){
-            if (!CommonMethods.isValidString(mListData[a].video)){
-                counter++
-            }else{
-                val file: File = File(mListData[a].video)
-                val file_size =( ((file.length() / 1024).toString().toInt())/1024).toString().toInt()
-                if (file_size<4){
+    private fun getData() {
+        binding.swRefresh.isRefreshing = true
+        databaseManager.executeQuery { database ->
+            val mMatchActionsDAO = MatchActionsDAO(database, this@MatchOverviewActivity)
+            val actionsList =
+                mMatchActionsDAO.selectAllForPreview(mMatchBean!!.id.toString()) as ArrayList<ReactionsBean>
+            mListData = actionsList
+            mAdapter?.addAll(mListData)
+//            checkCompression()
+
+            val mInterviewsDAO = InterviewsDAO(database, this@MatchOverviewActivity)
+            val interviews =
+                    mInterviewsDAO.selectAll(mMatchBean!!.id.toString()) as ArrayList<InterviewBean>
+
+            if (interviews.isNotEmpty()) {
+                binding.imgThumbnail.setImageBitmap(
+                    CommonMethods.createVideoThumb(
+                        this@MatchOverviewActivity,
+                        Uri.fromFile(File(interviews[0].video))
+                    )
+                )
+                strInterview = interviews[0].video
+                strInterviewId = interviews[0].id
+                binding.llInterview.visibility = View.VISIBLE
+            } else {
+                binding.llInterview.visibility = View.GONE
+            }
+
+            binding.swRefresh.isRefreshing = false
+        }
+    }
+
+    private fun checkCompression() {
+        if (CommonMethods.isValidArrayList(mListData)) {
+            var counter = 0
+            for(a in mListData.indices) {
+                if (!CommonMethods.isValidString(mListData[a].video)){
                     counter++
-                    databaseManager.executeQuery1(QueryExecutor {
-                        var mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
-                        mMatchActionsDAO.updateVideo("","",mListData[a].id)
-                        /*try{
-                            var file: File = File(mListData[a].video)
-                            file.delete()
-                            if (file.exists()) {
-                                file.canonicalFile.delete()
-                                if (file.exists()) {
-                                    applicationContext.deleteFile(file.name)
-                                }
-                            }
-                        }catch (ex:Exception){
-                            ex.printStackTrace()
-                        }*/
-                    },"MatchOverview3")
+                }else{
+                    val file: File = File(mListData[a].video)
+                    val fileSize = (((file.length() / 1024).toString().toInt()) / 1024).toString().toInt()
+                    if (fileSize < 4) {
+                        counter++
+                        databaseManager.executeQuery {
+                            val mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
+                            mMatchActionsDAO.updateVideo("", "", mListData[a].id)
+                        }
+                    }
                 }
             }
-        }
-        if (counter>0){
-            //CommonMethods.checkService(this@MatchOverviewActivity,TrimService::class.java)
-            val handler = Handler()
-            handler.postDelayed({
-                //getData(1)
-                                }, 3000)
+            if (counter > 0){
+                val handler = Handler()
+                handler.postDelayed({}, 3000)
+            }
         }
     }
-}
-    var mBeanReaction:ReactionsBean? = null
-    var actionPosition=-1;
+
+    @OptIn(UnstableApi::class)
     override fun OnReactionAction(mReactionsBean: ReactionsBean?, type: Int, position:Int) {
         if (type < 99) {
             actionPosition = position
             mBeanReaction = mReactionsBean
         }
-        if (type==1){
-            if (mReactionsBean !=null && CommonMethods.isValidString(mReactionsBean!!.video)) {
-                startActivity(Intent(this@MatchOverviewActivity,VideoPreviewActivity::class.java).putExtra("strPath", mReactionsBean!!.video))
+        if (type == 1) {
+            if (mReactionsBean !=null && CommonMethods.isValidString(mReactionsBean.video)) {
+                val intent = Intent(this@MatchOverviewActivity, VideoPreviewActivity::class.java)
+                intent.putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, mReactionsBean.video)
+                startActivity(intent)
             }
-        }else if (type==99){
-            if (mReactionsBean !=null && CommonMethods.isValidString(mReactionsBean!!.video)) {
-                databaseManager.executeQuery1(QueryExecutor {
+        } else if (type == 99) {
+            if (mReactionsBean !=null && CommonMethods.isValidString(mReactionsBean.video)) {
+                databaseManager.executeQuery {
                     databaseManager.openDatabase()
-                    var mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
-                    mMatchActionsDAO.updateAction(mBeanReaction!!.reaction.toString(), mBeanReaction!!.id)
-                },"MatchOverview4")
+                    val mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
+                    mMatchActionsDAO.updateAction(
+                        mBeanReaction!!.reaction.toString(),
+                        mBeanReaction!!.id
+                    )
+                }
                 if (mAdapter != null && actionPosition >= 0) {
                     mAdapter!!.update(mBeanReaction,actionPosition)
                 }
             }
-        }else if(type==3){
-            var pn = EditActionDialog(mBeanReaction,this)
-            pn.show(supportFragmentManager, pn.getTag())
-        }else{
+        } else if(type == 3) {
+            val pn = EditActionDialog(mBeanReaction,this)
+            pn.show(supportFragmentManager, pn.tag)
+        } else {
             makeConfirmation(getString(R.string.msg_delete_action),"1")
         }
     }
@@ -209,39 +231,25 @@ fun checkCompression(){
     override fun onConfirm(isTrue: Boolean, type: String) {
         isDialogOpen = false
         if (isTrue) {
-            if (type.equals("1")) {
+            if (type == "1") {
                 if (mAdapter != null && actionPosition >= 0) {
                     mAdapter!!.delete(actionPosition)
-                    databaseManager.executeQuery1(QueryExecutor {
-                        var mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
-                        mMatchActionsDAO.deleteAll(mBeanReaction!!.id.toString(), 0)
-                    },"MatchOverview5")
-                }
-            }else if (type.equals("2")){
-                databaseManager.executeQuery1(QueryExecutor {
-                    var mInterviewsDAO = InterviewsDAO(it, this@MatchOverviewActivity)
-                    mInterviewsDAO.deleteAll(strInterviewId.toString(), 0)
-                    try{
-                        /*var file: File = File(strInterview)
-                        file.delete()
-                        if (file.exists()) {
-                            file.canonicalFile.delete()
-                            if (file.exists()) {
-                                applicationContext.deleteFile(file.name)
-                            }
-                        }*/
-                    }catch (ex:Exception){
-                        ex.printStackTrace()
+                    databaseManager.executeQuery {
+                        val mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
+                        mMatchActionsDAO.deleteAll(mBeanReaction!!.id)
                     }
+                }
+            } else if (type == "2") {
+                databaseManager.executeQuery {
+                    val mInterviewsDAO = InterviewsDAO(it, this@MatchOverviewActivity)
+                    mInterviewsDAO.deleteAll(strInterviewId)
 
                     binding.llInterview.visibility = View.GONE
-                },"MatchOverview6")
+                }
             }
         }
     }
 
-    private var customDialog: CustomDialog? = null
-    private var isDialogOpen = false
     fun makeConfirmation(msg:String,type:String){
         if (!isDialogOpen) {
             if (customDialog == null) {
@@ -256,24 +264,26 @@ fun checkCompression(){
         }
     }
 
-    var mApiCall: ApiCall? = null
     fun initApiCall() {
         if (mApiCall == null) {
             mApiCall = ApiCall(this@MatchOverviewActivity)
         }
     }
-    fun updateMatchCount() {
+    private fun updateMatchCount() {
         databaseManager.executeQuery { database ->
             val actionDao = MatchActionsDAO(database, applicationContext)
-            mActions = actionDao.getTotalCount(match_id);
+            val actionCount = actionDao.getTotalCount(matchId)
+
+            val interViewDao = InterviewsDAO(database, applicationContext)
+            val interviewCount = interViewDao.getRowCount(matchId)
 
             if (CommonMethods.isNetworkAvailable(this@MatchOverviewActivity)) {
                 mApiCall!!.updateMatchCount(
                     this,
                     true,
                     UserSessions.getUserInfo(this@MatchOverviewActivity).id.toString(),
-                    match_id,
-                    mActions.toString()
+                    matchId,
+                    (actionCount + interviewCount).toString()
                 )
             } else {
                 CommonMethods.errorDialog(
@@ -281,7 +291,7 @@ fun checkCompression(){
                     getResources().getString(R.string.error_internet),
                     getResources().getString(R.string.app_name),
                     getResources().getString(R.string.lbl_ok)
-                );
+                )
             }
         }
     }
@@ -289,24 +299,21 @@ fun checkCompression(){
     override fun onSuccess(response: UniversalObject) {
         binding.swRefresh.isRefreshing = false
         try {
-            Logs.e(response.methodName)
             when (response.methodName) {
                 Tags.SB_UPDATE_MATCH_COUNT_API -> {
-                    var mCommonBean: CommonBean = response.response as CommonBean
+                    val mCommonBean: CommonBean = response.response as CommonBean
                     if (mCommonBean.status == 1) {
                         CommonMethods.successToast(this@MatchOverviewActivity,getString(R.string.msg_video_upload))
 
-//                        CommonMethods.checkService(this@MatchOverviewActivity, InterviewUploadService::class.java)
-
                         val intent = Intent(this@MatchOverviewActivity, MainActivity::class.java)
 
-                        videoUploadsWorker.fetchVideos(matchId = match_id)
+                        matchId?.let {
+                            videoUploadsWorker.fetchVideos(matchId = it)
+                        }
 
                         // Clear the current task stack and start a new task
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         startActivity(intent)
-                        // Optionally, you can kill the current process to ensure a clean restart
-//                        Process.killProcess(Process.myPid())
                     } else if (CommonMethods.isValidString(mCommonBean.msg)) {
                         errorMsg(mCommonBean.msg);
                     } else {
@@ -315,10 +322,8 @@ fun checkCompression(){
                 }
             }
         } catch (ex: Exception) {
-            ex.printStackTrace()
             errorMsg(getResources().getString(R.string.something_wrong));
         }
-        //method body
     }
 
     fun errorMsg(strMsg: String) {
@@ -332,13 +337,11 @@ fun checkCompression(){
 
     override fun onError(type: String, error: String) {
         errorMsg(error)
-        //method body
     }
 
     override fun onBackPressed() {
+        super.onBackPressed()
         updateMatchCount()
-
-        //super.onBackPressed()
     }
 }
 

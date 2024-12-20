@@ -16,9 +16,11 @@
 
 package com.game.awesa.ui.recorder
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -26,7 +28,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.os.Handler
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -37,11 +38,15 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.ScaleAnimation
 import android.widget.ImageView
-import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.ExperimentalPersistentRecording
 import androidx.camera.video.MediaStoreOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -53,20 +58,18 @@ import androidx.concurrent.futures.await
 import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenCreated
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.media3.common.util.UnstableApi
 import com.codersworld.awesalibs.beans.CommonBean
 import com.codersworld.awesalibs.beans.matches.MatchesBean
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.codersworld.awesalibs.database.DatabaseManager
-import com.codersworld.awesalibs.database.dao.DBVideoUplaodDao
+import com.codersworld.awesalibs.beans.VideoUploadBean
 import com.codersworld.awesalibs.database.dao.MatchActionsDAO
 import com.codersworld.awesalibs.database.dao.VideoMasterDAO
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
-import com.codersworld.awesalibs.listeners.QueryExecutor
 import com.codersworld.awesalibs.rest.UniversalObject
 import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
@@ -75,10 +78,8 @@ import com.game.awesa.databinding.FragmentCaptureBinding
 import com.game.awesa.services.TrimService
 import com.game.awesa.ui.LoginActivity
 import com.game.awesa.ui.dialogs.CustomDialog
-import com.game.awesa.ui.recorder.extensions.getAspectRatio
-import com.game.awesa.ui.recorder.extensions.getNameString
-import com.game.awesa.utils.GenericListAdapter
 import com.game.awesa.utils.Global
+import com.google.gson.JsonSyntaxException
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -87,18 +88,29 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
-class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>,
-    OnConfirmListener {
+class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>, OnConfirmListener {
+
+    companion object {
+        private const val BYTE = 1_000L
+        const val SIXTY = 60
+        const val FIVE_MILLISECONDS = 5000L
+        const val SECOND_HALF_TIME = 2700L
+        const val EXTRA_MATCH_HALF = "mHalf"
+        const val EXTRA_MATCH_BEAN = "MatchBean"
+        // default Quality selection if no input from UI
+        const val DEFAULT_QUALITY_IDX = 0
+        val TAG: String = CaptureFragment::class.java.simpleName
+    }
+
     @Inject
     lateinit var databaseManager: DatabaseManager
 
     // UI with ViewBinding
     private lateinit var captureViewBinding: FragmentCaptureBinding
-    private val captureLiveStatus = MutableLiveData<String>()
 
     /** Host's navigation controller */
 
@@ -123,6 +135,76 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
     private val mainThreadExecutor by lazy { ContextCompat.getMainExecutor(requireContext()) }
     private var enumerationDeferred: Deferred<Unit>? = null
 
+    private var mCamera: Camera? = null
+
+    // from camera activity
+    private var isClicked = false
+    var isStart = false
+    private var strTeamId = ""
+    var mHalf = 1
+    private var secondsPassed = 0
+    var mTimer: CountDownTimer? = null
+    var actionTimer: CountDownTimer? = null
+    var strUserId = ""
+    private var mMatchBean: MatchesBean.InfoBean? = null
+    private var mediaFile: File? = null
+
+    private var mImageView: ImageView? = null
+    private var reaction = ""
+
+    private var matchId = ""
+    private val mArrayZoom = floatArrayOf(0.2f, 0.4f, 0.6f, 0.8f, 1.0f)
+
+    private var customDialog: CustomDialog? = null
+    private var isDialogOpen = false
+
+    private val requestAudioPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            audioEnabled = isGranted
+        }
+
+    /**
+     * CaptureEvent listener.
+     */
+    private val captureListener = Consumer<VideoRecordEvent> { event ->
+        // Cache the recording state
+        recordingState = event
+
+        updateUI(event)
+
+        if (event is VideoRecordEvent.Finalize && !event.hasError()) {
+            // Display the captured video
+            // Video record completed
+            mediaFile = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                File(getAbsolutePathFromUri(event.outputResults.outputUri))
+            } else {
+                // force MediaScanner to re-scan the media file.
+                File(getAbsolutePathFromUri(event.outputResults.outputUri))
+            }
+            saveVideo()
+            captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
+            captureViewBinding.llUpload.visibility = View.VISIBLE
+            captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
+        }
+    }
+
+    // System function implementations
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        captureViewBinding = FragmentCaptureBinding.inflate(inflater, container, false)
+        return captureViewBinding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initCameraFragment()
+    }
+
     // main cameraX capture functions
     /**
      *   Always bind preview + video capture use case combinations in this sample
@@ -139,18 +221,12 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         val quality = cameraCapabilities[cameraIndex].qualities[qualityIndex]
         val qualitySelector = QualitySelector.from(quality)
 
-        /* captureViewBinding.previewView.updateLayoutParams<ConstraintLayout.LayoutParams> {
-             val orientation = this@CaptureFragment.resources.configuration.orientation
-             dimensionRatio = quality.getAspectRatioString(
-                 quality,
-                 (orientation == Configuration.ORIENTATION_PORTRAIT)
-             )
-         }*/
-
+        val resolutionSelector = ResolutionSelector.Builder().setAspectRatioStrategy(
+            AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY).build()
         val preview = Preview.Builder()
-            .setTargetAspectRatio(quality.getAspectRatio(quality))
+            .setResolutionSelector(resolutionSelector)
             .build().apply {
-                setSurfaceProvider(captureViewBinding.previewView.surfaceProvider)
+                surfaceProvider = captureViewBinding.previewView.surfaceProvider
             }
 
         // build a recorder, which can:
@@ -169,30 +245,47 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 videoCapture,
                 preview
             )
-        } catch (exc: Exception) {
+        } catch (ex: UnsupportedOperationException) {
             // we are on main thread, let's reset the controls on the UI.
-            Log.e(TAG, "Use case binding failed", exc)
-            resetUIandState("bindToLifecycle failed: $exc")
+            Log.e(TAG, "Use case binding failed", ex)
+            resetUIandState()
         }
-        enableUI(true)
     }
 
-    var mCamera: Camera? = null;
+    @Suppress("MagicNumber")
+    private fun zoomIn() {
+        if(mCamera == null) return
 
-    fun setZoomLevel(zoomRatio: Int) {
-        //Log.e("zoomRatio",zoomRatio.toString()+" => "+(zoomRatio*10).toString())
-        if (mCamera != null) {
-            // Set the default zoom level
-            val cameraControl = mCamera!!.cameraControl
-            val cameraInfo = mCamera!!.cameraInfo
+        val cameraInfo = mCamera!!.cameraInfo
 
-            // Example: Set zoom ratio to 2.0x
-            // Linear zoom ranges from 0.0 (min zoom) to 1.0 (max zoom)
-            //val zoomRatio = 1.0f // Adjust this value as needed
-            cameraControl.setLinearZoom(mArrayZoom[zoomRatio])
-            captureViewBinding.txtZoom.setText(mArrayZoom1[zoomRatio].toString() + "x")
-        }
+        if (cameraInfo.zoomState.value!!.linearZoom == 0.5f) return
 
+        val cameraControl = mCamera!!.cameraControl
+        // Linear zoom ranges from 0.0 (min zoom) to 1.0 (max zoom)
+        cameraControl.setLinearZoom(cameraInfo.zoomState.value!!.linearZoom + 0.1f)
+        captureViewBinding.txtZoom.text = String.format(
+            Locale.getDefault(),
+            "%.1fx",
+            cameraInfo.zoomState.value!!.linearZoom * 10
+        )
+    }
+
+    @Suppress("MagicNumber")
+    private fun zoomOut() {
+        if(mCamera == null) return
+
+        val cameraInfo = mCamera!!.cameraInfo
+
+        if (cameraInfo.zoomState.value!!.linearZoom <= 0.0f) return
+
+        val cameraControl = mCamera!!.cameraControl
+        // Linear zoom ranges from 0.0 (min zoom) to 1.0 (max zoom)
+        cameraControl.setLinearZoom(cameraInfo.zoomState.value!!.linearZoom - 0.1f)
+        captureViewBinding.txtZoom.text = String.format(
+            Locale.getDefault(),
+            "%.1fx",
+            cameraInfo.zoomState.value!!.linearZoom * 10
+        )
     }
 
     /**
@@ -204,79 +297,35 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
      * After this function, user could start/pause/resume/stop recording and application listens
      * to VideoRecordEvent for the current recording status.
      */
-    @SuppressLint("MissingPermission")
+
+    @OptIn(ExperimentalPersistentRecording::class)
     private fun startRecording() {
-        /*      var timeStamp = SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Date())
-              mediaFile = File(
-                  mediaStorageDir.path + File.separator +
-                          "match_" + "_" + timeStamp + "_half_" + mHalf + ".mp4"
-              )*/
-        // create MediaStoreOutputOptions for our recorder: resulting our recording!
-        val name = /*"match_" +
-                SimpleDateFormat(FILENAME_FORMAT, Locale.US)
-                    .format(System.currentTimeMillis()) +*/
-            "match_" + match_id + "_half_" + mHalf + ".mp4"
+        val name = "match_" + matchId + "_half_" + mHalf + ".mp4"
         val contentValues = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, name)
         }
         val mediaStoreOutput = MediaStoreOutputOptions.Builder(
-            requireActivity().contentResolver,
+            requireContext().contentResolver,
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         ).setContentValues(contentValues).build()
 
         // configure Recorder and Start recording to the mediaStoreOutput.
         currentRecording = videoCapture.output
-            .prepareRecording(requireActivity(), mediaStoreOutput)
-            .apply { if (audioEnabled) withAudioEnabled() }
+            .prepareRecording(requireContext(), mediaStoreOutput)
+            .asPersistentRecording() // Audio data is recorded after the VideoCapture is unbound
+            .apply {
+                if (ContextCompat.checkSelfPermission(
+                    this@CaptureFragment.requireContext(),
+                    Manifest.permission.RECORD_AUDIO
+                ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    requestAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    return
+                }
+                if (audioEnabled) withAudioEnabled() }
             .start(mainThreadExecutor, captureListener)
 
-        Log.i(TAG, "Recording started")
-    }
-
-    /**
-     * CaptureEvent listener.
-     */
-    private val captureListener = Consumer<VideoRecordEvent> { event ->
-        // cache the recording state
-        if (event !is VideoRecordEvent.Status)
-            recordingState = event
-
-        updateUI(event)
-
-        if (event is VideoRecordEvent.Finalize) {
-            // display the captured video
-
-            //video record completed
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                mediaFile =
-                    File(getAbsolutePathFromUri(event.outputResults.outputUri))//File( event.outputResults.outputUri.path)
-            } else {
-                // force MediaScanner to re-scan the media file.
-                mediaFile = File(getAbsolutePathFromUri(event.outputResults.outputUri))
-                /*     MediaScannerConnection.scanFile(
-                         context, arrayOf(path), null
-                     ) { _, uri ->
-                         // playback video on main thread with VideoView
-                         if (uri != null) {
-                             lifecycleScope.launch {
-                                 showVideo(uri)
-                             }
-                         }
-                     }*/
-            }
-            saveVideo()
-            captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
-            captureViewBinding.llUpload.visibility = View.VISIBLE
-            captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
-
-            /*       lifecycleScope.launch {
-                       navController.navigate(
-                           CaptureFragmentDirections.actionCaptureToVideoViewer(
-                               event.outputResults.outputUri
-                           )
-                       )
-                   }*/
-        }
+        Log.i(TAG, "$mHalf Half: Recording started")
     }
 
     private fun getAbsolutePathFromUri(contentUri: Uri): String {
@@ -291,11 +340,11 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
             cursor.moveToFirst()
             cursor.getString(columnIndex)
-        } catch (e: RuntimeException) {
+        } catch (e: IllegalArgumentException) {
             Log.e(
-                "VideoViewerFragment", String.format(
+                TAG, String.format(Locale.getDefault(),
                     "Failed in getting absolute path for Uri %s with Exception %s",
-                    contentUri.toString(), e.toString()
+                    contentUri.toString(), e.localizedMessage
                 )
             )
             ""
@@ -333,29 +382,19 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                     CameraSelector.DEFAULT_FRONT_CAMERA
                 )) {
                     try {
-                        // just get the camera.cameraInfo to query capabilities
-                        // we are not binding anything here.
                         if (provider.hasCamera(camSelector)) {
                             val camera = provider.bindToLifecycle(requireActivity(), camSelector)
-                            // Set the default zoom level
-                            val cameraControl = camera.cameraControl
-                            val cameraInfo = camera.cameraInfo
-
-                            // Example: Set zoom ratio to 2.0x
-                            // Linear zoom ranges from 0.0 (min zoom) to 1.0 (max zoom)
-                            val zoomRatio = 1.0f // Adjust this value as needed
-                            //cameraControl.setLinearZoom(zoomRatio)
                             QualitySelector
                                 .getSupportedQualities(camera.cameraInfo)
                                 .filter { quality ->
-                                    listOf(/*Quality.UHD,*/ Quality.FHD/*, Quality.HD, Quality.SD*/)
+                                    listOf(Quality.HD)
                                         .contains(quality)
                                 }.also {
                                     cameraCapabilities.add(CameraCapability(camSelector, it))
                                 }
                         }
-                    } catch (exc: java.lang.Exception) {
-                        Log.e(TAG, "Camera Face $camSelector is not supported")
+                    } catch (ex: UnsupportedOperationException) {
+                        Log.e(TAG, ex.localizedMessage, ex)
                     }
                 }
             }
@@ -370,22 +409,18 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
      *   - bind use cases to a lifecycle camera, enable UI controls.
      */
     private fun initCameraFragment() {
-
         initializeUI()
         viewLifecycleOwner.lifecycleScope.launch {
             if (enumerationDeferred != null) {
                 enumerationDeferred!!.await()
                 enumerationDeferred = null
             }
-            initializeQualitySectionsUI()
 
             bindCaptureUsecase()
         }
-
-
     }
 
-    /**
+     /**
      * Initialize UI. Preview and Capture actions are configured in this function.
      * Note that preview and capture are both initialized either by UI or CameraX callbacks
      * (except the very 1st time upon entering to this fragment in onCreateView()
@@ -396,181 +431,124 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         captureViewBinding.imgTor1.setOnClickListener(this)
         captureViewBinding.imgChance.setOnClickListener(this)
         captureViewBinding.imgChance1.setOnClickListener(this)
-        captureViewBinding.imgWow.setOnClickListener(this)
-        captureViewBinding.imgWow1.setOnClickListener(this)
-        captureViewBinding.imgFail.setOnClickListener(this)
-        captureViewBinding.imgFail1.setOnClickListener(this)
         captureViewBinding.imgHighlight.setOnClickListener(this)
         captureViewBinding.imgHighlight1.setOnClickListener(this)
-
         captureViewBinding.imgZoomIn.setOnClickListener(this)
         captureViewBinding.imgZoomOut.setOnClickListener(this)
 
         strUserId =
-            if (UserSessions.getUserInfo(requireActivity()) != null) UserSessions.getUserInfo(
-                requireActivity()
+            if (UserSessions.getUserInfo(context) != null) UserSessions.getUserInfo(
+                context
             ).id.toString() else "0"
         val arguments = arguments
-        if (arguments != null && arguments.containsKey("mHalf")) {
-            mHalf = arguments.getInt("mHalf")
+        if (arguments != null && arguments.containsKey(EXTRA_MATCH_HALF)) {
+            mHalf = arguments.getInt(EXTRA_MATCH_HALF)
         }
-        if (arguments != null && arguments.containsKey("MatchBean")) {
+        if (arguments != null && arguments.containsKey(EXTRA_MATCH_BEAN)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 mMatchBean =
-                    arguments.getSerializable("MatchBean", MatchesBean.InfoBean::class.java)
+                    arguments.getSerializable(EXTRA_MATCH_BEAN, MatchesBean.InfoBean::class.java)
             } else {
-                try {
-                    mMatchBean = arguments!!.getSerializable("MatchBean") as MatchesBean.InfoBean?
-                } catch (ignored: Throwable) {
-                }
+                mMatchBean = arguments.getSerializable(EXTRA_MATCH_BEAN) as MatchesBean.InfoBean?
             }
         }
         if (mMatchBean != null) {
-            match_id = mMatchBean!!.id.toString()
-            captureViewBinding.tvTeamOneName.setText(mMatchBean!!.team1)
-            captureViewBinding.tvTeamTwoName.setText(mMatchBean!!.team2)
+            matchId = mMatchBean!!.id.toString()
+            captureViewBinding.tvTeamOneName.text = mMatchBean!!.team1
+            captureViewBinding.tvTeamTwoName.text = mMatchBean!!.team2
         }
 
-        if (mHalf == 2) {
-            startTimerCounter()
-            databaseManager.executeQuery(QueryExecutor {
-                val dao = MatchActionsDAO(it, requireActivity())
-                val mCOUNT: Int =
-                    dao.getRowCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
-                val mCOUNT1: Int = dao.getRowCount(
-                    mMatchBean!!.opponent_team_id.toString(),
-                    mMatchBean!!.id.toString()
-                )
-                captureViewBinding.tvTeamOneScore.setText(mCOUNT.toString())
-                captureViewBinding.tvTeamTwoScore.setText(mCOUNT1.toString())
-
-                CommonMethods.successToast(
-                    requireActivity(),
-                    getString(com.game.awesa.R.string.msg_action_success, reaction)
-                )
-                changeImage(1)
-            })
-
-        } else {
-            captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
-            captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
-            captureViewBinding.llUpload.visibility = View.GONE
-            captureViewBinding.btnReTakeVideo.setText(getString(com.game.awesa.R.string.lbl_start_first_half))
-            captureViewBinding.btnReTakeVideo.setOnClickListener {
-                mHalf = 1
-                captureViewBinding.btnReTakeVideo.visibility = View.GONE
-                captureViewBinding.rlAnotherVideo.visibility = View.GONE
-                captureViewBinding.llUpload.visibility = View.GONE
-                initVideo()
-                startTimerCounter()
-            }
-        }
-        captureViewBinding.ivStop.setOnClickListener(this)
-
-
-        // audioEnabled by default is disabled.
-        captureViewBinding.audioSelection.isChecked = audioEnabled
-        captureViewBinding.audioSelection.setOnClickListener {
-            audioEnabled = captureViewBinding.audioSelection.isChecked
-        }
-
-
-        /*     captureViewBinding.stopButton.apply {
-                 setOnClickListener {
-                     // stopping: hide it after getting a click before we go to viewing fragment
-                     captureViewBinding.stopButton.visibility = View.INVISIBLE
-                     if (currentRecording == null || recordingState is VideoRecordEvent.Finalize) {
-                         return@setOnClickListener
-                     }
-
-                     val recording = currentRecording
-                     if (recording != null) {
-                         recording.stop()
-                         currentRecording = null
-                     }
-                     captureViewBinding.captureButton.setImageResource(R.drawable.ic_start)
+         when(mHalf) {
+             1 -> {
+                 captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
+                 captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
+                 captureViewBinding.llUpload.visibility = View.GONE
+                 captureViewBinding.btnReTakeVideo.text = getString(com.game.awesa.R.string.lbl_start_first_half)
+                 captureViewBinding.btnReTakeVideo.setOnClickListener {
+                     mHalf = 1
+                     captureViewBinding.btnReTakeVideo.visibility = View.GONE
+                     captureViewBinding.rlAnotherVideo.visibility = View.GONE
+                     captureViewBinding.llUpload.visibility = View.GONE
+                     initVideo()
+                     startTimerCounter()
                  }
-                 // ensure the stop button is initialized disabled & invisible
-                 visibility = View.INVISIBLE
-                 isEnabled = false
-             }*/
+             }
+             2 -> {
+                 startTimerCounter()
+                 databaseManager.executeQuery {
+                     val dao = MatchActionsDAO(it, context)
+                     val teamOneScore: Int =
+                         dao.getGoalCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
+                     val teamTwoScore: Int = dao.getGoalCount(
+                         mMatchBean!!.opponent_team_id.toString(),
+                         mMatchBean!!.id.toString()
+                     )
+                     captureViewBinding.tvTeamOneScore.text = String.format(Locale.getDefault(), "%d", teamOneScore)
+                     captureViewBinding.tvTeamTwoScore.text = String.format(Locale.getDefault(),"%d", teamTwoScore)
 
-        /*       captureLiveStatus.observe(viewLifecycleOwner) {
-                   captureViewBinding.captureStatus.apply {
-                       post { text = it }
-                   }
-               }
-               captureLiveStatus.value = getString(R.string.Idle)*/
+                     CommonMethods.successToast(
+                         context,
+                         getString(com.game.awesa.R.string.msg_action_success, reaction)
+                     )
+                     changeImage(1)
+                 }
+             }
+         }
+
+        captureViewBinding.ivStop.setOnClickListener(this)
     }
 
     /**
      * UpdateUI according to CameraX VideoRecordEvent type:
      *   - user starts capture.
-     *   - this app disables all UI selections.
      *   - this app enables capture run-time UI (pause/resume/stop).
      *   - user controls recording with run-time UI, eventually tap "stop" to end.
      *   - this app informs CameraX recording to stop with recording.stop() (or recording.close()).
      *   - CameraX notify this app that the recording is indeed stopped, with the Finalize event.
-     *   - this app starts VideoViewer fragment to view the captured result.
      */
     private fun updateUI(event: VideoRecordEvent) {
-        val state = if (event is VideoRecordEvent.Status) recordingState.getNameString()
-        else event.getNameString()
         when (event) {
             is VideoRecordEvent.Status -> {
-                // placeholder: we update the UI with new status after this when() block,
-                // nothing needs to do here.
+                var recordedSeconds = TimeUnit.NANOSECONDS.toSeconds(event.recordingStats.recordedDurationNanos)
+                if (mHalf == 2) {
+                    recordedSeconds += SECOND_HALF_TIME
+                }
+                val time = convertRecordedTime(recordedSeconds)
+                captureViewBinding.tvTimer.text = time
+
+                when(mHalf) {
+                    1 -> {
+                        if (isStart && recordedSeconds >= SECOND_HALF_TIME) {
+                            stopRecording()
+                            return
+                        }
+                    }
+                    2 -> {
+                        if (isStart && recordedSeconds >= SECOND_HALF_TIME * 2) {
+                            stopRecording()
+                            return
+                        }
+                    }
+                }
             }
 
             is VideoRecordEvent.Start -> {
-                showUI(UiState.RECORDING, event.getNameString())
+                showUI(UiState.RECORDING)
             }
 
-            is VideoRecordEvent.Finalize -> {
-                showUI(UiState.FINALIZED, event.getNameString())
+            is VideoRecordEvent.Finalize -> if(event.hasError()) {
+                Log.i(TAG, event.error.toString(), event.cause)
+            } else {
+                showUI(UiState.FINALIZED)
             }
-
-            /*    is VideoRecordEvent.Pause -> {
-                    captureViewBinding.captureButton.setImageResource(R.drawable.ic_resume)
-                }
-
-                is VideoRecordEvent.Resume -> {
-                    captureViewBinding.captureButton.setImageResource(R.drawable.ic_pause)
-                }*/
         }
-
-        val stats = event.recordingStats
-        val size = stats.numBytesRecorded / 1000
-        val time = java.util.concurrent.TimeUnit.NANOSECONDS.toSeconds(stats.recordedDurationNanos)
-        var text = "${state}: recorded ${size}KB, in ${time}second"
-        if (event is VideoRecordEvent.Finalize)
-            text = "${text}\nFile saved to: ${event.outputResults.outputUri}"
-
-        // captureLiveStatus.value = text
-        Log.i(TAG, "recording event: $text")
     }
 
-
-    /**
-     * Enable/disable UI:
-     *    User could select the capture parameters when recording is not in session
-     *    Once recording is started, need to disable able UI to avoid conflict.
-     */
-    private fun enableUI(enable: Boolean) {
-        arrayOf(
-            captureViewBinding.audioSelection,
-            captureViewBinding.qualitySelection
-        ).forEach {
-            it.isEnabled = enable
-        }
-        // disable the camera button if no device to switch
-        if (cameraCapabilities.size <= 1) {
-            //captureViewBinding.cameraButton.isEnabled = false
-        }
-        // disable the resolution list if no resolution to switch
-        if (cameraCapabilities[cameraIndex].qualities.size <= 1) {
-            captureViewBinding.qualitySelection.apply { isEnabled = false }
-        }
+    private fun convertRecordedTime(recordedSeconds: Long): String {
+        val minutes = recordedSeconds / SIXTY
+        val secs = recordedSeconds % SIXTY
+        val time = String.format(Locale.getDefault(), "%02d:%02d", minutes, secs)
+        return time
     }
 
     /**
@@ -578,47 +556,24 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
      *  - at recording: hide audio, qualitySelection,change camera UI; enable stop button
      *  - otherwise: show all except the stop button
      */
-    private fun showUI(state: UiState, status: String = "idle") {
+    private fun showUI(state: UiState) {
         captureViewBinding.let {
             when (state) {
                 UiState.IDLE -> {
-                    /*
-                                        it.captureButton.setImageResource(R.drawable.ic_start)
-                                        it.stopButton.visibility = View.INVISIBLE
-
-                                        it.cameraButton.visibility = View.VISIBLE
-                    */
-                    it.audioSelection.visibility = View.VISIBLE
-                    it.qualitySelection.visibility = View.VISIBLE
                 }
 
                 UiState.RECORDING -> {
-                    //it.cameraButton.visibility = View.INVISIBLE
-                    it.audioSelection.visibility = View.INVISIBLE
-                    it.qualitySelection.visibility = View.INVISIBLE
-
-                    /*
-                                        it.captureButton.setImageResource(R.drawable.ic_pause)
-                                        it.captureButton.isEnabled = true
-                                        it.stopButton.visibility = View.VISIBLE
-                                        it.stopButton.isEnabled = true
-                    */
                 }
 
                 UiState.FINALIZED -> {
-                    /*
-                                        it.captureButton.setImageResource(R.drawable.ic_start)
-                                        it.stopButton.visibility = View.INVISIBLE
-                    */
                 }
 
                 else -> {
                     val errorMsg = "Error: showUI($state) is not supported"
                     Log.e(TAG, errorMsg)
-                    return
+                    error(errorMsg)
                 }
             }
-            // it.captureStatus.text = status
         }
     }
 
@@ -627,92 +582,12 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
      *    in case binding failed, let's give it another change for re-try. In future cases
      *    we might fail and user get notified on the status
      */
-    private fun resetUIandState(reason: String) {
-        enableUI(true)
-        showUI(UiState.IDLE, reason)
+    private fun resetUIandState() {
+        showUI(UiState.IDLE)
 
         cameraIndex = 0
         qualityIndex = DEFAULT_QUALITY_IDX
         audioEnabled = true
-        captureViewBinding.audioSelection.isChecked = audioEnabled
-        initializeQualitySectionsUI()
-    }
-
-    /**
-     *  initializeQualitySectionsUI():
-     *    Populate a RecyclerView to display camera capabilities:
-     *       - one front facing
-     *       - one back facing
-     *    User selection is saved to qualityIndex, will be used
-     *    in the bindCaptureUsecase().
-     */
-    private fun initializeQualitySectionsUI() {
-        val selectorStrings = cameraCapabilities[cameraIndex].qualities.map {
-            it.getNameString()
-        }
-        // create the adapter to Quality selection RecyclerView
-        captureViewBinding.qualitySelection.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = GenericListAdapter(
-                selectorStrings,
-                itemLayoutId = com.game.awesa.R.layout.video_quality_item
-            ) { holderView, qcString, position ->
-
-                holderView.apply {
-                    findViewById<TextView>(com.game.awesa.R.id.qualityTextView)?.text = qcString
-                    // select the default quality selector
-                    isSelected = (position == qualityIndex)
-                }
-
-                holderView.setOnClickListener { view ->
-                    if (qualityIndex == position) return@setOnClickListener
-
-                    captureViewBinding.qualitySelection.let {
-                        // deselect the previous selection on UI.
-                        it.findViewHolderForAdapterPosition(qualityIndex)
-                            ?.itemView
-                            ?.isSelected = false
-                    }
-                    // turn on the new selection on UI.
-                    view.isSelected = true
-                    qualityIndex = position
-
-                    // rebind the use cases to put the new QualitySelection in action.
-                    enableUI(false)
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        bindCaptureUsecase()
-                    }
-                }
-            }
-            isEnabled = false
-        }
-    }
-
-    // System function implementations
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        captureViewBinding = FragmentCaptureBinding.inflate(inflater, container, false)
-        return captureViewBinding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        initCameraFragment()
-    }
-
-    override fun onDestroyView() {
-        //_captureViewBinding = null
-        super.onDestroyView()
-    }
-
-    companion object {
-        // default Quality selection if no input from UI
-        const val DEFAULT_QUALITY_IDX = 0
-        val TAG: String = CaptureFragment::class.java.simpleName
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
 
     override fun onResume() {
@@ -731,146 +606,108 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         }
     }
 
-    // from camera activity
-    var isClicked = false
-    var isStart = false
-    var strTime = "00:00"
-    var strTeam_id = ""
-    var mHalf = 1
-    var sec_passed = 0
-    var seconds = 0;
-    var mTimer: CountDownTimer? = null
-    var actionTimer: CountDownTimer? = null
-    var strUserId = "";
-    var mMatchBean: MatchesBean.InfoBean? = null;
-    var seconds1 = 0;
-    var handler = Handler()
-    var mediaFile: File? = null
+    override fun onDestroy() {
+        super.onDestroy()
+    }
 
-    var mImageView: ImageView? = null
-    var reaction = ""
+    override fun onDestroyView() {
+        super.onDestroyView()
+    }
 
-    var match_id = ""
-
-    fun makeAction(imageView: ImageView) {
+    private fun makeAction(imageView: ImageView) {
         if (isActionClick) {
             actionTimer()
             if (!isClicked && isStart) {
-                if (CommonMethods.isNetworkAvailable(requireActivity())) {
+                if (CommonMethods.isNetworkAvailable(context)) {
                     mImageView = imageView
                     changeImage(0)
-                    //capturePictureSnapshot()
                     saveActions()
-                    //ApiCall(requireActivity()).makeActions(this, false,strUserId,mMatchBean!!.id.toString(),strTeam_id,strTime,reaction,mHalf.toString())
                 } else {
                     changeImage(1)
-                    errorMsg(getResources().getString(com.game.awesa.R.string.error_internet));
-                    return;
+                    errorMsg(resources.getString(com.game.awesa.R.string.error_internet))
                 }
             }
         }
     }
 
-    fun changeImage(type: Int) {
-        isClicked = if (type == 0) true else false
+    private fun changeImage(type: Int) {
+        isClicked = type == 0
 
-        if (mImageView == captureViewBinding.imgTor) {
-            reaction = "goal"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.tor_one,
-                mImageView,
-                type
-            )
-        } else if (mImageView == captureViewBinding.imgChance) {
-            reaction = "chance"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.chance_one,
-                mImageView,
-                type
-            )
-        } else if (mImageView == captureViewBinding.imgWow) {
-            reaction = "wow"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.wow_one,
-                mImageView,
-                type
-            )
-        } else if (mImageView == captureViewBinding.imgFail) {
-            reaction = "fail"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.fail_one,
-                mImageView,
-                type
-            )
-        } else if (mImageView == captureViewBinding.imgHighlight) {
-            reaction = "Highlight"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.highlight,
-                mImageView,
-                type
-            )
-        } else if (mImageView == captureViewBinding.imgTor1) {
-            reaction = "goal"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.tor_two,
-                mImageView,
-                type
-            )
-        } else if (mImageView == captureViewBinding.imgChance1) {
-            reaction = "chance"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.chance_two,
-                mImageView,
-                type
-            )
-        } else if (mImageView == captureViewBinding.imgWow1) {
-            reaction = "wow"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.wow_two,
-                mImageView,
-                type
-            )
-        } else if (mImageView == captureViewBinding.imgFail1) {
-            reaction = "fail"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.fail_two,
-                mImageView,
-                type
-            )
-        } else if (mImageView == captureViewBinding.imgHighlight1) {
-            reaction = "Highlight"
-            CommonMethods.loadImageDrawable(
-                requireActivity(),
-                if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.highlight,
-                mImageView,
-                type
-            )
+        when (mImageView) {
+            captureViewBinding.imgTor -> {
+                reaction = "goal"
+                CommonMethods.loadImageDrawable(
+                    context,
+                    if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.tor_one,
+                    mImageView,
+                    type
+                )
+            }
+            captureViewBinding.imgChance -> {
+                reaction = "chance"
+                CommonMethods.loadImageDrawable(
+                    context,
+                    if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.chance_one,
+                    mImageView,
+                    type
+                )
+            }
+            captureViewBinding.imgHighlight -> {
+                reaction = "Highlight"
+                CommonMethods.loadImageDrawable(
+                    context,
+                    if (type == 0) com.game.awesa.R.drawable.loading_img_one else com.game.awesa.R.drawable.highlight,
+                    mImageView,
+                    type
+                )
+            }
+            captureViewBinding.imgTor1 -> {
+                reaction = "goal"
+                CommonMethods.loadImageDrawable(
+                    context,
+                    if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.tor_two,
+                    mImageView,
+                    type
+                )
+            }
+            captureViewBinding.imgChance1 -> {
+                reaction = "chance"
+                CommonMethods.loadImageDrawable(
+                    context,
+                    if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.chance_two,
+                    mImageView,
+                    type
+                )
+            }
+            captureViewBinding.imgHighlight1 -> {
+                reaction = "Highlight"
+                CommonMethods.loadImageDrawable(
+                    context,
+                    if (type == 0) com.game.awesa.R.drawable.loading_img else com.game.awesa.R.drawable.highlight,
+                    mImageView,
+                    type
+                )
+            }
         }
         if (type == 1) {
-            mImageView = null;
+            mImageView = null
             reaction = ""
-            strTeam_id = ""
+            strTeamId = ""
         } else {
-            if (mImageView == captureViewBinding.imgTor || mImageView == captureViewBinding.imgChance || mImageView == captureViewBinding.imgWow || mImageView == captureViewBinding.imgFail) {
-                strTeam_id = mMatchBean!!.team_id.toString()
+            if (mImageView == captureViewBinding.imgTor ||
+                mImageView == captureViewBinding.imgChance ||
+                mImageView == captureViewBinding.imgHighlight
+            ) {
+                strTeamId = mMatchBean!!.team_id.toString()
             } else {
-                strTeam_id = mMatchBean!!.opponent_team_id.toString()
+                strTeamId = mMatchBean!!.opponent_team_id.toString()
             }
         }
     }
 
-    fun stopRecording() {
+    private fun stopRecording() {
         if (currentRecording == null || recordingState is VideoRecordEvent.Finalize) {
-            return;
+            return
         }
 
         val recording = currentRecording
@@ -881,23 +718,15 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         }
     }
 
-    val mArrayZoom = floatArrayOf(0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f)
-    val mArrayZoom1 = intArrayOf(0, 1, 2, 3, 4, 5)
-    var currentZoom = 0;
+    @Suppress("MagicNumber")
     override fun onClick(v: View) {
         when (v.id) {
             com.game.awesa.R.id.imgZoomIn -> {
-                if (currentZoom < 5) {
-                    currentZoom++
-                    setZoomLevel(currentZoom)
-                }
+                zoomIn()
             }
 
             com.game.awesa.R.id.imgZoomOut -> {
-                if (currentZoom > 0) {
-                    currentZoom--
-                    setZoomLevel(currentZoom)
-                }
+                zoomOut()
             }
 
             com.game.awesa.R.id.iv_stop -> {
@@ -920,14 +749,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 makeAction(captureViewBinding.imgChance1)
             }
 
-            com.game.awesa.R.id.imgFail -> {
-                makeAction(captureViewBinding.imgFail)
-            }
-
-            com.game.awesa.R.id.imgFail1 -> {
-                makeAction(captureViewBinding.imgFail1)
-            }
-
             com.game.awesa.R.id.imgHighlight -> {
                 makeAction(captureViewBinding.imgHighlight)
             }
@@ -935,21 +756,14 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             com.game.awesa.R.id.imgHighlight1 -> {
                 makeAction(captureViewBinding.imgHighlight1)
             }
-
-            com.game.awesa.R.id.imgWow -> {
-                makeAction(captureViewBinding.imgWow)
-            }
-
-            com.game.awesa.R.id.imgWow1 -> {
-                makeAction(captureViewBinding.imgWow1)
-            }
         }
     }
 
+    @Suppress("MagicNumber")
     private fun startTimerCounter() {
-        if (sec_passed + 1 < Tags.recording_duration / 1000) {
-            captureViewBinding.countdownTimerTxt.setText("3")
-            captureViewBinding.countdownTimerTxt.setVisibility(View.VISIBLE)
+        if (secondsPassed + 1 < Tags.recording_duration / BYTE) {
+            captureViewBinding.countdownTimerTxt.text = "3"
+            captureViewBinding.countdownTimerTxt.visibility = View.VISIBLE
             val scaleAnimation: Animation = ScaleAnimation(
                 1.0f,
                 0.0f,
@@ -960,9 +774,9 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 Animation.RELATIVE_TO_SELF,
                 0.5f
             )
-            mTimer = object : CountDownTimer(5000, 1000) {
+            mTimer = object : CountDownTimer(FIVE_MILLISECONDS, BYTE) {
                 override fun onTick(millisUntilFinished: Long) {
-                    captureViewBinding.countdownTimerTxt.setText("" + millisUntilFinished / 1000)
+                    captureViewBinding.countdownTimerTxt.text = "${millisUntilFinished / BYTE}"
                     captureViewBinding.countdownTimerTxt.setAnimation(scaleAnimation)
                     captureViewBinding.tvHalfStatus.setText(
                         if (mHalf == 1) getString(com.game.awesa.R.string.lbl_first_half) else getString(
@@ -972,30 +786,45 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 }
 
                 override fun onFinish() {
-                    captureViewBinding.countdownTimerTxt.setVisibility(View.GONE)
+                    captureViewBinding.countdownTimerTxt.visibility = View.GONE
                     isStart = true
-                    runTimer()
-                    //Start_or_Stop_Recording()
                     captureVideo()
                     mTimer!!.cancel()
                 }
-            }//.start()
+            }
             mTimer!!.start()
         }
     }
 
-    fun saveActions() {
-        databaseManager.executeQuery(QueryExecutor {
-            val dao = MatchActionsDAO(it, requireActivity())
-            var mBean = ReactionsBean();
+    private fun saveActions() {
+        databaseManager.executeQuery {
+            val dao = MatchActionsDAO(it, context)
+            val mBean = ReactionsBean()
             mBean.match_id = if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id else 0
-            mBean.team_id = if (CommonMethods.isValidString(strTeam_id)) strTeam_id.toInt() else 0
-            mBean.team_name =
-                if (mMatchBean != null && mMatchBean!!.id > 0) if (mMatchBean!!.team_id == strTeam_id.toInt()) mMatchBean!!.team1 else mMatchBean!!.team2 else getString(
-                    com.game.awesa.R.string.app_name
-                )
+            mBean.team_id = if (CommonMethods.isValidString(strTeamId)) strTeamId.toInt() else 0
+            mBean.team_name = if (mMatchBean != null && mMatchBean!!.id > 0) {
+                if (mMatchBean!!.team_id == strTeamId.toInt()) {
+                    mMatchBean!!.team1
+                } else {
+                    mMatchBean!!.team2
+                }
+            } else {
+                getString(com.game.awesa.R.string.app_name)
+            }
+
+            var recordedSeconds = TimeUnit.NANOSECONDS.toSeconds(
+                recordingState.recordingStats.recordedDurationNanos
+            )
+
+            if (mHalf == 2) {
+                recordedSeconds += SECOND_HALF_TIME
+            }
+
             mBean.half = mHalf
-            mBean.time = strTime
+            mBean.time = convertRecordedTime(recordedSeconds)
+            mBean.timestamp = TimeUnit.NANOSECONDS.toSeconds(
+                recordingState.recordingStats.recordedDurationNanos
+            )
             mBean.reaction = reaction
             mBean.file_name = ""
             mBean.video = ""
@@ -1003,157 +832,153 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             mBean.created_date = CommonMethods.getCurrentFormatedDate("yyyy-MM-dd HH:mm:ss")
 
             //2023-08-16 13:06:03 //yyyy/MM/dd HH:mm:ss
-            var mList: ArrayList<ReactionsBean> = ArrayList()
+            val mList: ArrayList<ReactionsBean> = ArrayList()
             mList.add(mBean)
             dao.insert(mList)
-            var masterDataBaseId = dao.lastInsertedId
-            val mCOUNT: Int =
-                dao.getRowCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
-            val mCOUNT1: Int = dao.getRowCount(
+            val teamOneScore: Int =
+                dao.getGoalCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
+            val teamTwoScore: Int = dao.getGoalCount(
                 mMatchBean!!.opponent_team_id.toString(),
                 mMatchBean!!.id.toString()
             )
-            captureViewBinding.tvTeamOneScore.setText(mCOUNT.toString())
-            captureViewBinding.tvTeamTwoScore.setText(mCOUNT1.toString())
+            captureViewBinding.tvTeamOneScore.text = String.format(Locale.getDefault(), "%d", teamOneScore)
+            captureViewBinding.tvTeamTwoScore.text = String.format(Locale.getDefault(),"%d", teamTwoScore)
 
             CommonMethods.successToast(
-                requireActivity(),
+                context,
                 getString(com.game.awesa.R.string.msg_action_success, reaction)
             )
             changeImage(1)
-        })
-
+        }
     }
 
-    fun saveVideo() {
-        var fileName = mediaFile.toString()
+    @OptIn(UnstableApi::class)
+    @Suppress("MagicNumber")
+    private fun saveVideo() {
+        val fileName = mediaFile.toString()
             .substring(mediaFile.toString().lastIndexOf('/') + 1, mediaFile.toString().length)
-        var extension = "mp4"//mediaFile.toString().substring(mediaFile.toString().lastIndexOf("."))
-        var timeStamp = SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Date())
-        databaseManager.executeQuery(QueryExecutor {
-            val dao = VideoMasterDAO(it, requireActivity())
-            var mBean = DBVideoUplaodDao();
-            mBean.match_id =
-                if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id.toString() else ""
+        val extension = "mp4"
+        val timeStamp = SimpleDateFormat(
+            "yyyy/MM/dd HH:mm:ss",
+            Locale.getDefault()
+        ).format(Date())
+        databaseManager.executeQuery {
+            val dao = VideoMasterDAO(it, context)
+            val mBean = VideoUploadBean()
+            mBean.match_id = mMatchBean?.id.toString()
             mBean.video_name = fileName
             mBean.video_ext = extension
             mBean.video_path = mediaFile.toString()
             mBean.video_half = mHalf.toString()
             mBean.upload_status = 0
             mBean.date = timeStamp
-            var mList: ArrayList<DBVideoUplaodDao> = ArrayList()
+            val mList: ArrayList<VideoUploadBean> = ArrayList()
             mList.add(mBean)
             dao.insert(mList)
-            var masterDataBaseId = dao.latestInsertedId
-            val mCOUNT: Int = dao.getTodoItemCount()
             captureViewBinding.llUpload.visibility = View.GONE
-            CommonMethods.checkServiceWIthData(requireActivity(), TrimService::class.java, match_id)
-            if (mHalf == 1) {
-                captureViewBinding.btnReTakeVideo.setText(getString(com.game.awesa.R.string.lbl_start_second_half))
-                captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
-                captureViewBinding.btnReTakeVideo.setOnClickListener {
-                    startActivity(
-                        Intent(
-                            requireActivity(),
-                            CameraActivityNew::class.java
-                        ).putExtra("mHalf", 2).putExtra("MatchBean", mMatchBean)
-                    )
-                    requireActivity().finish()
+
+            CommonMethods.checkTrimServiceWithData(requireActivity(), TrimService::class.java, matchId)
+            when (mHalf) {
+                1 -> {
+                    captureViewBinding.btnReTakeVideo.text = getString(com.game.awesa.R.string.lbl_start_second_half)
+                    captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
+                    captureViewBinding.btnReTakeVideo.setOnClickListener {
+                        startActivity(
+                            Intent(
+                                context,
+                                CameraActivity::class.java
+                            ).putExtra(EXTRA_MATCH_HALF, 2).putExtra(EXTRA_MATCH_BEAN, mMatchBean)
+                        )
+                        requireActivity().finish()
+                    }
                 }
-            } else if (mHalf == 0 || mHalf == 3) {
-                captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
-                captureViewBinding.btnReTakeVideo.setOnClickListener {
-                    mHalf = if (mHalf == 3) 2 else 1
-                    initVideo()
-                    captureViewBinding.btnReTakeVideo.visibility = View.GONE
-                    captureViewBinding.rlAnotherVideo.visibility = View.GONE
-                    captureViewBinding.llUpload.visibility = View.GONE
-                    //captureViewBinding.btnReTakeVideo.setText( getString(R.string.lbl_start_second_half))
-                    startTimerCounter()
+                0, 3 -> {
+                    captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
+                    captureViewBinding.btnReTakeVideo.setOnClickListener {
+                        mHalf = if (mHalf == 3) 2 else 1
+                        initVideo()
+                        captureViewBinding.btnReTakeVideo.visibility = View.GONE
+                        captureViewBinding.rlAnotherVideo.visibility = View.GONE
+                        captureViewBinding.llUpload.visibility = View.GONE
+                        startTimerCounter()
+                    }
                 }
-            } else {
-                makeConfirmation(getString(com.game.awesa.R.string.msg_video_success))
-                //CommonMethods.successToast(requireActivity(),getString(R.string.msg_video_success))
+                else -> {
+                    makeConfirmation(getString(com.game.awesa.R.string.msg_video_success))
+                }
             }
-        })
+        }
     }
 
-    var customDialog: CustomDialog? = null
-    var isDialogOpen = false
     fun makeConfirmation(msg: String) {
         if (!isDialogOpen) {
             if (customDialog == null) {
                 customDialog = CustomDialog(
-                    requireActivity(),
+                    context,
                     msg,
                     getString(com.game.awesa.R.string.lbl_interview),
                     getString(com.game.awesa.R.string.lbl_end_video),
                     this,
                     "1"
                 )
-                customDialog!!.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                customDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             }
             isDialogOpen = true
-            if (customDialog!! != null && customDialog!!.isShowing()) {
+            if (customDialog!!.isShowing) {
                 customDialog!!.dismiss()
             }
             customDialog!!.show()
         }
     }
 
+    @OptIn(UnstableApi::class)
     override fun onConfirm(isTrue: Boolean, type: String) {
         isDialogOpen = false
         if (isTrue) {
-            if (type.equals("99")) {
-                UserSessions.clearUserInfo(requireActivity())
-                startActivity(
-                    Intent(
-                        requireActivity(),
-                        LoginActivity::class.java
-                    ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                )
+            if (type == "99") {
+                UserSessions.clearUserInfo(context)
+                val intent = Intent(context, LoginActivity::class.java)
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
                 requireActivity().finishAffinity()
             } else {
-                //overview
-                //val intent = Intent(requireActivity(), MatchOverviewActivity::class.java)
-                val intent = Intent(requireActivity(), ProcessingActivity::class.java)
-                intent.putExtra("mMatchBean", mMatchBean)
+                val intent = Intent(context, ProcessingActivity::class.java)
+                intent.putExtra(ProcessingActivity.EXTRA_MATCH_BEAN, mMatchBean)
                 startActivity(intent)
                 requireActivity().finish()
             }
-            //CommonMethods.moveWithClear(requireActivity(), LoginActivity::class.java)
         } else {
-            //interview
-//            val intent = Intent(requireActivity(), InterviewActivity::class.java)
-            val intent = Intent(requireActivity(), InterviewActivityNew::class.java)
-            intent.putExtra("mMatchBean", mMatchBean)
+            val intent = Intent(context, InterviewActivityNew::class.java)
+            intent.putExtra(ProcessingActivity.EXTRA_MATCH_BEAN, mMatchBean)
             startActivity(intent)
             requireActivity().finish()
         }
     }
 
+    @Suppress("MagicNumber")
     override fun onSuccess(response: UniversalObject) {
         try {
             when (response.methodName) {
                 Tags.SB_CREATE_MATCH_ACTION_API -> {
-                    try {
-                        var mBean = response.response as CommonBean
-                        if (mBean.status == 1 && CommonMethods.isValidArrayList(mBean.scores)) {
-                            captureViewBinding.tvTeamOneScore.setText(mBean.scores[0].team1_score.toString())
-                            captureViewBinding.tvTeamTwoScore.setText(mBean.scores[0].team2_score.toString())
-                        } else if (mBean.status == 99) {
-                            UserSessions.clearUserInfo(requireActivity())
-                            Global().makeConfirmation(mBean.msg, requireActivity(), this)
-                        }
-                    } catch (ex1: Exception) {
-                        ex1.printStackTrace()
+                    val mBean = response.response as CommonBean
+                    if (mBean.status == 1 && CommonMethods.isValidArrayList(mBean.scores)) {
+                        captureViewBinding.tvTeamOneScore.text =
+                            String.format(Locale.getDefault(), "%d", mBean.scores[0].team1_score)
+                        captureViewBinding.tvTeamTwoScore.text =
+                            String.format(Locale.getDefault(),"%d", mBean.scores[0].team2_score)
+                    } else if (mBean.status == 99) {
+                        UserSessions.clearUserInfo(context)
+                        Global().makeConfirmation(mBean.msg, requireActivity(), this)
                     }
                     changeImage(1)
                 }
             }
+        } catch (ex: JsonSyntaxException) {
+            Log.e(TAG, ex.localizedMessage, ex)
+            errorMsg(getString(com.game.awesa.R.string.something_wrong))
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Log.e(TAG, ex.localizedMessage, ex)
             errorMsg(getString(com.game.awesa.R.string.something_wrong))
         }
     }
@@ -1168,107 +993,20 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
     fun errorMsg(strMsg: String) {
         CommonMethods.errorDialog(
-            requireActivity(),
+            context,
             strMsg,
-            getResources().getString(com.game.awesa.R.string.app_name),
-            getResources().getString(com.game.awesa.R.string.lbl_ok)
+            resources.getString(com.game.awesa.R.string.app_name),
+            resources.getString(com.game.awesa.R.string.lbl_ok)
         );
     }
 
-    private var isPaused = false // Variable to track the paused state
-lateinit  var mRunnable:Runnable;
-    private fun runTimer() {
-        seconds = 0;
-        seconds1 = 45 * 60;
-        handler.post(object : java.lang.Runnable {
-            override fun run() {
-                mRunnable = this;
-                if (!isPaused) { // Only execute if not paused
-                    var minutes = seconds / 60
-                    var secs = seconds % 60
-                    var time = String.format(Locale.getDefault(), "%02d:%02d", minutes, secs)
-                    if (mHalf == 2) {
-                        val minutes1 = seconds1 / 60
-                        val secs1 = seconds1 % 60
-                        var time1 = String.format(Locale.getDefault(), "%02d:%02d", minutes1, secs1)
-                        captureViewBinding.tvTimer.setText(time1)
-                    } else {
-                        captureViewBinding.tvTimer.setText(time)
-                    }
-                    strTime = time;
-                    if (isStart) {
-                        seconds++
-                        seconds1++
-                        if (seconds >= Tags.recording_duration) {
-                            stopRecording()
-                            return;
-                        }
-                    }
-                }
-                if (!isPaused) {
-                    handler.postDelayed(this, 1000)
-                }
-            }
-        })
-    }
-    // Pause the handler
-    fun pauseTimer() {
-        isPaused = true
-    }
-
-    // Resume the handler
-    fun resumeTimer() {
-        isPaused = false
-        handler.postDelayed(mRunnable, 1000)
-    }
     private fun captureVideo() {
         if (!this@CaptureFragment::recordingState.isInitialized ||
             recordingState is VideoRecordEvent.Finalize
         ) {
             makeAnimation(0)
-            /*  var timeStamp1 = SimpleDateFormat("dd MMM yyyy").format(Date())
-              var mediaStorageDir: File? = null
-              if (Build.VERSION.SDK_INT >= 30) {
-                  mediaStorageDir = File(
-                      Environment.getExternalStoragePublicDirectory(
-                          Environment.DIRECTORY_PICTURES
-                      ), "Awesa/videos/" + timeStamp1
-                  )
-                  if (!mediaStorageDir.exists()) {
-                      if (!mediaStorageDir.mkdirs()) {
-                          //return null
-                      }
-                  }
-              } else {
-                  mediaStorageDir =
-                      requireActivity().getExternalFilesDir(
-                          "Awesa/videos/" + timeStamp1
-                      )
-                  mediaStorageDir!!.mkdirs()
-                  if (!mediaStorageDir!!.exists()) {
-                      if (!mediaStorageDir!!.mkdirs()) {
-                      }
-                  }
-              }
-              if (!mediaStorageDir.exists()) {
-                  if (!mediaStorageDir.mkdirs()) {
-                      Toast.makeText(
-                          requireActivity(), "Please Allow Storage Permission.",
-                          Toast.LENGTH_LONG
-                      ).show()
-                  }
-              }
-              val date = Date()
-              val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss")
-                  .format(date.time)
-              // For unique video file name appending current timeStamp with file name
-              mediaFile = File(
-                  mediaStorageDir.path + File.separator +
-                          "match_" + "_" + timeStamp + "_half_" + mHalf + ".mp4"
-              )*/
             captureViewBinding.ivStop.setVisibility(View.VISIBLE)
 
-            enableUI(false)  // Our eventListener will turn on the Recording UI.
             startRecording()
         } else {
             when (recordingState) {
@@ -1279,14 +1017,14 @@ lateinit  var mRunnable:Runnable;
 
                 is VideoRecordEvent.Pause -> currentRecording?.resume()
                 is VideoRecordEvent.Resume -> currentRecording?.pause()
-                else -> throw IllegalStateException("recordingState in unknown state")
+                else -> error("recordingState in unknown state")
             }
         }
     }
 
-    fun initVideo() {
-        databaseManager.executeQuery(QueryExecutor {
-            val dao = MatchActionsDAO(it, requireActivity())
+    private fun initVideo() {
+        databaseManager.executeQuery {
+            val dao = MatchActionsDAO(it, context)
             try {
                 dao.deleteByMatch(
                     if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id.toString() else "0",
@@ -1296,7 +1034,7 @@ lateinit  var mRunnable:Runnable;
             } catch (Ex: Exception) {
                 Ex.printStackTrace()
             }
-            val dao1 = VideoMasterDAO(it, requireActivity())
+            val dao1 = VideoMasterDAO(it, context)
             try {
                 dao1.deleteVideoByMatch(
                     if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id else 0, mHalf
@@ -1306,49 +1044,48 @@ lateinit  var mRunnable:Runnable;
             }
 
             try {
-                val mCOUNT: Int =
-                    dao.getRowCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
-                val mCOUNT1: Int = dao.getRowCount(
+                val teamOneScore: Int =
+                    dao.getGoalCount(mMatchBean!!.team_id.toString(), mMatchBean!!.id.toString())
+                val teamTwoScore: Int = dao.getGoalCount(
                     mMatchBean!!.opponent_team_id.toString(),
                     mMatchBean!!.id.toString()
                 )
-                captureViewBinding.tvTeamOneScore.setText(mCOUNT.toString())
-                captureViewBinding.tvTeamTwoScore.setText(mCOUNT1.toString())
+                captureViewBinding.tvTeamOneScore.text = String.format(Locale.getDefault(), "%d", teamOneScore)
+                captureViewBinding.tvTeamTwoScore.text = String.format(Locale.getDefault(),"%d", teamTwoScore)
             } catch (Ex: Exception) {
                 Ex.printStackTrace()
             }
-        })
+        }
 
     }
 
-    var animation1: Animation? = null;
-    fun makeAnimation(type: Int) {
-        if (animation1 == null) {
-            animation1 = AnimationUtils.loadAnimation(
-                requireActivity(),
+    private var animation: Animation? = null
+    private fun makeAnimation(type: Int) {
+        if (animation == null) {
+            animation = AnimationUtils.loadAnimation(
+                context,
                 com.game.awesa.R.anim.blink
             )
         }
         if (type == 0) {
-            captureViewBinding.ivRec.startAnimation(animation1)
+            captureViewBinding.ivRec.startAnimation(animation)
         } else {
-            animation1!!.cancel()
-            animation1!!.reset()
+            animation!!.cancel()
+            animation!!.reset()
         }
     }
 
     var isActionClick = true
-    fun actionTimer() {
-        actionTimer = object : CountDownTimer(5000, 1000) {
+    private fun actionTimer() {
+        actionTimer = object : CountDownTimer(FIVE_MILLISECONDS, BYTE) {
             override fun onTick(millisUntilFinished: Long) {
                 isActionClick = false
             }
 
             override fun onFinish() {
                 isActionClick = true
-                actionTimer!!.cancel()
+                actionTimer?.cancel()
             }
-        }//.start()
-        actionTimer!!.start()
+        }.start()
     }
 }

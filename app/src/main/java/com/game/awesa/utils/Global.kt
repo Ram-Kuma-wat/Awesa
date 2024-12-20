@@ -5,11 +5,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.multidex.BuildConfig
 import com.codersworld.awesalibs.listeners.OnConfirmListener
-import com.game.awesa.R
 import com.game.awesa.ui.dialogs.CustomDialog
 
 public class Global {
@@ -27,20 +24,20 @@ public class Global {
 
     var customDialog: CustomDialog? = null
     var isDialogOpen = false
-    fun makeConfirmation(msg:String,mActivity: Activity,mListener:OnConfirmListener){
+
+    fun makeConfirmation(msg: String, mActivity: Activity, mListener: OnConfirmListener) {
         if (!isDialogOpen) {
             if (customDialog == null) {
                 customDialog = CustomDialog(mActivity,msg,"" ,mListener, "99")
-                customDialog!!.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                customDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             }
             isDialogOpen = true
-            if (customDialog!! != null && customDialog!!.isShowing()) {
+            if (customDialog!!.isShowing) {
                 customDialog!!.dismiss()
             }
             customDialog!!.show()
         }
     }
-
 
     fun getAppVersion(): String {
         return BuildConfig.VERSION_NAME + "/" + BuildConfig.VERSION_CODE.toString()
@@ -50,7 +47,7 @@ public class Global {
             val manager = mActivity.packageManager
             val info = manager.getPackageInfo(mActivity.packageName, PackageManager.GET_ACTIVITIES)
             return info.versionName
-        }catch (ex:Exception){
+        }catch (ex: PackageManager.NameNotFoundException){
             ex.printStackTrace()
         return "1.8"
         }

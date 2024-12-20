@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <com.codersworld.awesalibs.customFonts.SBTextViewBold
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_44dp"
+        android:background="@color/light_txt_bg"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/_10dp"
+        android:paddingEnd="@dimen/_10dp"
+        android:text="@string/select_opponent"
+        android:textColor="@color/black" />
+</layout>

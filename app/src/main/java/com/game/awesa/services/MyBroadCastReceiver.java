@@ -55,20 +55,11 @@ public class MyBroadCastReceiver extends BroadcastReceiver {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static void scheduleJob(Context context) {
         if (jobScheduler == null) {
             jobScheduler = (JobScheduler) context
                     .getSystemService(JOB_SCHEDULER_SERVICE);
         }
-/*
-        ComponentName componentName = new ComponentName(context,
-                JobService.class);
-        JobInfo jobInfo = new JobInfo.Builder(1, componentName)
-                .setOverrideDeadline(0)
-                .setPersisted(true).build();
-        jobScheduler.schedule(jobInfo);
-*/
     }
 
 

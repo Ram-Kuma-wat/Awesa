@@ -1,9 +1,12 @@
 package com.codersworld.awesalibs.database.dao;
 
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.codersworld.awesalibs.beans.matches.InterviewBean;
@@ -25,7 +28,7 @@ public class InterviewsDAO {
     private static final String COLUMN_STATUS = "upload_status";
 
     private SQLiteDatabase mDatabase;
-    private Context mContext;
+    private final Context mContext;
 
     public InterviewsDAO(SQLiteDatabase database, Context context) {
         mDatabase = database;
@@ -33,7 +36,7 @@ public class InterviewsDAO {
     }
 
     public static String getCreateTable() {
-        String CREATE_TABLE = "CREATE TABLE " + TABLE_INTERVIEWS
+        return "CREATE TABLE " + TABLE_INTERVIEWS
                 + "("
                 + COLUMN_KEY_ID + " INTEGER PRIMARY KEY,"
                 + COLUMN_MATCH_ID + " INT ,"
@@ -41,8 +44,6 @@ public class InterviewsDAO {
                 + COLUMN_VIDEO_PATH + " TEXT ,"
                 + COLUMN_STATUS + " INT ,"
                 + COLUMN_CREATED_DATE + " TEXT)";
-
-        return CREATE_TABLE;
     }
 
     public static String getDropTable() {
@@ -58,27 +59,22 @@ public class InterviewsDAO {
         }
     }
 
-    public void deleteAll(String id, int counter) {
+    public void deleteAll(int id) {
         initDBHelper();
         try {
-            String delete_all = " DELETE " + " FROM " + TABLE_INTERVIEWS;
-            if (CommonMethods.isValidString(id)) {
-                delete_all += " where id =" + id;
-            }
-            mDatabase.execSQL(delete_all);
-        } catch (Exception e) {
+            String[] selectionArgs = { String.valueOf(id) };
+
+            mDatabase.delete(TABLE_INTERVIEWS, "id = ?", selectionArgs);
+        } catch (SQLException e) {
             e.printStackTrace();
-            if (counter == 0) {
-                deleteAll(id, 1);
-            }
         }
     }
 
     public void deleteUploadedVideos() {
         initDBHelper();
         try {
-            String delete_all = " DELETE " + " FROM " + TABLE_INTERVIEWS + " where upload_status==1";
-            mDatabase.execSQL(delete_all);
+            String[] selectionArgs = { String.valueOf(1) };
+            mDatabase.delete(TABLE_INTERVIEWS, "upload_status = ?", selectionArgs);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -87,64 +83,57 @@ public class InterviewsDAO {
 
     public void insert(String...param) {
         initDBHelper();
-             String[] bindArgs = {
-                     param[0],
-                     param[1],
-                     param[2],
-                     param[3],
-                     param[4]
-            };
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_MATCH_ID, param[0]);
+        contentValues.put(COLUMN_VIDEO_NAME, param[1]);
+        contentValues.put(COLUMN_VIDEO_PATH, param[2]);
+        contentValues.put(COLUMN_STATUS, param[3]);
+        contentValues.put(COLUMN_CREATED_DATE, param[4]);
 
-            String insertUser = " INSERT INTO "
-                    + TABLE_INTERVIEWS
-                    + " ( "
-                    + COLUMN_MATCH_ID
-                    + " , "
-                    + COLUMN_VIDEO_NAME
-                    + " , "
-                    + COLUMN_VIDEO_PATH
-                    + " , "
-                    + COLUMN_STATUS
-                    + " , "
-                    + COLUMN_CREATED_DATE
-                    + " ) "
-                    + " VALUES "
-                    + " (?,?,?,?,?)";
-            mDatabase.execSQL(insertUser, bindArgs);
+        mDatabase.insert(TABLE_INTERVIEWS, null, contentValues);
     }
 
     public int getRowCount( String match_id) {
         initDBHelper();
-        int count = 0;
-        String query = "SELECT COUNT(*) FROM " + TABLE_INTERVIEWS + " where 1=1";
-        if (CommonMethods.isValidString(match_id)) {
-            query += " AND match_id = " + match_id;
-        }
-        Cursor cursor = mDatabase.rawQuery(query, null);
-        if (cursor.moveToNext()) {
-            count = cursor.getInt(0);
-        }
-        closeCursor(cursor);
+
+        String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
+        String[] selectionArgs = {match_id};
+
+        Cursor cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, selection, selectionArgs, "", "", "");
+
+        int count = cursor.getCount(); // getInt(0);
+        cursor.close();
+
         return count;
     }
 
     public ArrayList<InterviewBean> selectAll(String match_id) {
         initDBHelper();
         String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where 1 = 1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") +" order by id DESC";
-        //String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") +" order by id DESC";
-       // Log.e("interviewquery",getAllDetails);
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<InterviewBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
         return dataList;
     }
 
-    public ArrayList<InterviewBean> selectAllUploaded(String match_id ) {
+    public ArrayList<InterviewBean> selectAllUploaded(@Nullable String match_id) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + " order by id DESC";
-        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-        ArrayList<InterviewBean> dataList = manageCursor(cursor);
-        closeCursor(cursor);
+
+        Cursor cursor;
+        ArrayList<InterviewBean> dataList;
+
+        if (match_id == null) {
+            cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, null, null, null, null,  COLUMN_KEY_ID + " DESC");
+        } else {
+            String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
+            String[] selectionArgs = {match_id};
+
+            cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, selection, selectionArgs, null, null,  COLUMN_KEY_ID + " DESC");
+        }
+
+        dataList = manageCursor(cursor);
+
+        cursor.close();
         return dataList;
     }
 
@@ -168,61 +157,39 @@ public class InterviewsDAO {
         InterviewBean model = new InterviewBean();
         model.setId(cursor.getInt(cursor.getColumnIndex(COLUMN_KEY_ID)));
         model.setMatch_id(cursor.getInt(cursor.getColumnIndex(COLUMN_MATCH_ID)));
-         model.setFile_name(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_NAME)));
+        model.setFile_name(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_NAME)));
         model.setVideo(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_PATH)));
         model.setUpload_status(cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)));
         model.setCreated_date(cursor.getString(cursor.getColumnIndex(COLUMN_CREATED_DATE)));
-         return model;
+        return model;
     }
 
     public void updateVideo(String video_name, String video_path, int id) {
         initDBHelper();
-       // Log.e("video_path",video_path);
-        String[] bindArgs = {
-                String.valueOf(video_name),
-                String.valueOf(video_path),
-                String.valueOf((CommonMethods.isValidString(video_path)) ? 1 : 0),
-                String.valueOf(id)
-        };
-        String update = " UPDATE "
-                + TABLE_INTERVIEWS
-                + " SET "
-                + COLUMN_VIDEO_NAME
-                + " = ?, "
-                + COLUMN_VIDEO_PATH
-                + " = ?, "
-                + COLUMN_STATUS
-                + " = ? WHERE " + COLUMN_KEY_ID + "= ?";
-        mDatabase.execSQL(update, bindArgs);
-    }
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_VIDEO_NAME, video_name);
+        values.put(COLUMN_VIDEO_PATH, video_path);
+        values.put(COLUMN_STATUS, (CommonMethods.isValidString(video_path)) ? 1 : 0);
 
-    public void updateVideoAll() {
-       try {
-           String[] bindArgs = {"180"
-           };
-           String update = " UPDATE "
-                   + TABLE_INTERVIEWS
-                   + " SET "
-                   + COLUMN_MATCH_ID
-                   + " = ? WHERE 1=1";
-           mDatabase.execSQL(update, bindArgs);
-       }catch (Exception e){
+        String selection = COLUMN_KEY_ID + " = ?";
+        String[] selectionArgs = { String.valueOf(id) };
 
-       }
+        mDatabase.update(TABLE_INTERVIEWS, values, selection, selectionArgs);
     }
 
     protected void closeCursor(Cursor cursor) {
-       try{ if (cursor != null) {
-            cursor.close();
-        }
-        }catch (Exception e){
+       try {
+           if (cursor != null) {
+                cursor.close();
+           }
+        } catch (Exception e) {
            e.printStackTrace();
        }
     }
 
     public int getLastInsertedId() {
         initDBHelper();
-        String countQuery = "SELECT  max(id) FROM " + TABLE_INTERVIEWS;
+        String countQuery = "SELECT max(id) FROM " + TABLE_INTERVIEWS;
         Cursor cursor = mDatabase.rawQuery(countQuery, null);
         int maxid = 0;
         if (cursor != null) {
@@ -233,7 +200,6 @@ public class InterviewsDAO {
             closeCursor(cursor);
         }
         return maxid;
-        //return cursor.getCount();
     }
 
     protected ArrayList<InterviewBean> manageCursor(Cursor cursor) {

@@ -1,7 +1,6 @@
 package com.game.awesa.utils;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -10,26 +9,26 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Environment;
 import android.os.StatFs;
 import android.util.Log;
-import org.json.JSONException;
-import org.json.JSONObject;
+
+import androidx.annotation.NonNull;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Random;
 
 public class ErrorReporter implements Thread.UncaughtExceptionHandler {
 
-    private ProgressDialog progdialog;
-    private String[] _recipients = new String[] { "ramniwas8824@gmail.com" };
+    private final String[] _recipients = new String[] { "ramniwas8824@gmail.com", "brian.mwadime@gmail.com" };
     private String _subject = "Awesa Crash Report Android";
 
     String subject, body;
@@ -108,7 +107,7 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
         return totalBlocks * blockSize;
     }
 
-    void RecoltInformations(Context context) {
+    void collectInformation(Context context) {
         try {
             PackageManager pm = context.getPackageManager();
             PackageInfo pi;
@@ -144,7 +143,7 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
     }
 
     public String CreateInformationString() {
-        RecoltInformations(CurContext);
+        collectInformation(CurContext);
 
         String ReturnVal = "";
         ReturnVal += "Version : " + VersionName;
@@ -234,26 +233,13 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
         }
         printWriter.close();
         Report += "**** End of current Report ***";
-        SaveAsFile(Report);
+        saveAsFile(Report);
         // SendErrorMail( Report );
         PreviousHandler.uncaughtException(t, e);
     }
-    public void sendMail(final String msg) {
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                   // GMailSender sender = new GMailSender("kumawatramniwas58@gmail.com","R@9782300124Ram");
-                   // sender.sendMail(CommonMethods.isValidString(_subject)?_subject:"Crash Log for SafeOBuddy " , msg,"kumawatramniwas58@gmail.com","ramniwas8824@gmail.com,gdhanuka@gmail.com");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    //mActivity.showToast("Error.");
-                }
-            }
-        }).start();
-    }
-    private void SendErrorMail(Context _context, String ErrorContent) {
+
+    private void sendErrorMail(Context _context, String ErrorContent) {
        try {
-           //Log.e("ErrorContent",ErrorContent);
            Intent sendIntent = new Intent(Intent.ACTION_SEND);
            String subject = _subject;
            String body = "\n\n" + ErrorContent + "\n\n";
@@ -266,13 +252,12 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
 
            subject = _subject;
            this.body = body;
-       }catch (Exception e){
-           e.printStackTrace();
+       } catch (Exception e) {
+           Log.e("ErrorReporter", e.getLocalizedMessage(), e);
        }
-        // new Getdeductible().execute();
     }
 
-    private void SaveAsFile(String ErrorContent) {
+    private void saveAsFile(String ErrorContent) {
         try {
             Random generator = new Random();
             int random = generator.nextInt(99999);
@@ -303,61 +288,18 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
         return GetErrorFileList().length > 0;
     }
 
-    public void CheckErrorAndSendMail(Context _context) {
+    public void checkErrorAndSendMail(Context _context) {
         try {
-          //  Log.i("call", "call");
             FilePath = _context.getFilesDir().getAbsolutePath();
             if (bIsThereAnyErrorFile()) {
-                String WholeErrorText = "";
+                StringBuilder wholeErrorText = new StringBuilder();
 
                 String[] ErrorFileList = GetErrorFileList();
                 int curIndex = 0;
                 final int MaxSendMail = 5;
                 for (String curString : ErrorFileList) {
                     if (curIndex++ <= MaxSendMail) {
-                        WholeErrorText += "New Trace collected :\n";
-                        WholeErrorText += "=====================\n ";
-                        String filePath = FilePath + "/" + curString;
-                        BufferedReader input = new BufferedReader(
-                                new FileReader(filePath));
-                        String line;
-                        while ((line = input.readLine()) != null) {
-                            WholeErrorText += line + "\n";
-                        }
-                        input.close();
-                    }
-//Log.e("WholeErrorText",WholeErrorText);
-                    // DELETE FILES !!!!
-                    File curFile = new File(FilePath + "/" + curString);
-                    curFile.delete();
-                }
-                SendErrorMail(_context, WholeErrorText);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public void CheckErrorAndSendMail1(Context _context) {
-         try {
-          //  Log.i("call", "call");
-            FilePath = _context.getFilesDir().getAbsolutePath();
-            if (bIsThereAnyErrorFile()) {
-                String WholeErrorText = "";
-
-                String[] ErrorFileList = GetErrorFileList();
-                int curIndex = 0;
-                final int MaxSendMail = 5;
-                for (String curString : ErrorFileList) {
-                    if (curIndex++ <= MaxSendMail) {
-                        WholeErrorText += "New Trace collected :\n";
-                        WholeErrorText += "=====================\n ";
-                        String filePath = FilePath + "/" + curString;
-                        BufferedReader input = new BufferedReader(
-                                new FileReader(filePath));
-                        String line;
-                        while ((line = input.readLine()) != null) {
-                            WholeErrorText += line + "\n";
-                        }
+                        BufferedReader input = getBufferedReader(curString, wholeErrorText);
                         input.close();
                     }
 
@@ -365,58 +307,25 @@ public class ErrorReporter implements Thread.UncaughtExceptionHandler {
                     File curFile = new File(FilePath + "/" + curString);
                     curFile.delete();
                 }
-                String body = "\n\n" + WholeErrorText + "\n\n";
-                //sendMail(body);
-              // new JKHelper().checkService(_context, UploadBackupLockDataSrvice.class);
-                saveErrorLog(_context,body,"success","123123");
-            }/*else{
-                String body = "\n\n" + "Testing crash" + "\n\n";
-                sendMail(body);
-            }*/
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public static int counter=-1;
-    public static void saveErrorLog(Context ctx,String strMsg,String strStatus,String strVno)  {
-
-    }
-
-    public String CheckError(Context _context) {
-        String WholeErrorText = "";
-        try {
-         //   Log.i("call", "call");
-            FilePath = _context.getFilesDir().getAbsolutePath();
-            if (bIsThereAnyErrorFile()) {
-
-                String[] ErrorFileList = GetErrorFileList();
-                int curIndex = 0;
-                final int MaxSendMail = 5;
-                for (String curString : ErrorFileList) {
-                    if (curIndex++ <= MaxSendMail) {
-                        WholeErrorText += "New Trace collected :\n";
-                        WholeErrorText += "=====================\n ";
-                        String filePath = FilePath + "/" + curString;
-                        BufferedReader input = new BufferedReader(
-                                new FileReader(filePath));
-                        String line;
-                        while ((line = input.readLine()) != null) {
-                            WholeErrorText += line + "\n";
-                        }
-                        input.close();
-                    }
-
-                    // DELETE FILES !!!!
-                    File curFile = new File(FilePath + "/" + curString);
-                    //curFile.delete();
-                }
-              //  SendErrorMail(_context, WholeErrorText);
+                sendErrorMail(_context, wholeErrorText.toString());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("ErrorReporter", e.getLocalizedMessage(), e);
         }
+    }
 
-   return WholeErrorText;
+    @NonNull
+    private BufferedReader getBufferedReader(String curString, StringBuilder wholeErrorText) throws IOException {
+        wholeErrorText.append("New Trace collected :\n");
+        wholeErrorText.append("=====================\n ");
+        String filePath = FilePath + "/" + curString;
+        BufferedReader input = new BufferedReader(
+                new FileReader(filePath));
+        String line;
+        while ((line = input.readLine()) != null) {
+            wholeErrorText.append(line).append("\n");
+        }
+        return input;
     }
 
     public static String currentVersionNumber(Context a) {

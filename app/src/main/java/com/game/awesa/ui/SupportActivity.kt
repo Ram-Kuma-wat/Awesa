@@ -3,6 +3,7 @@ package com.game.awesa.ui
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Patterns
 import android.view.View
 import android.widget.EditText
@@ -48,8 +49,11 @@ class SupportActivity : BaseActivity(), OnResponse<UniversalObject> ,OnConfirmLi
         binding.etName.addTextChangedListener(JBWatcher(this@SupportActivity,binding.etName,binding.imgRightName,1))
         binding.etEmail.addTextChangedListener(JBWatcher(this@SupportActivity,binding.etEmail,binding.imgRightEmail,1))
     }
-    fun makeSupport(){
-        strUserId =if ( UserSessions.getUserInfo(this@SupportActivity) !=null ) UserSessions.getUserInfo(this@SupportActivity).id.toString() else "0"
+
+    private fun makeSupport() {
+        strUserId =if (UserSessions.getUserInfo(this@SupportActivity) !=null ) {
+            UserSessions.getUserInfo(this@SupportActivity).id.toString()
+        }  else { "0" }
         strName =binding.etName.text.toString().trim()
         strSubjectId = mListSubjects.get(binding.spSubject.selectedItemPosition).id.toString()
         strSubject = mListSubjects.get(binding.spSubject.selectedItemPosition).title.toString()
@@ -67,7 +71,7 @@ class SupportActivity : BaseActivity(), OnResponse<UniversalObject> ,OnConfirmLi
         } else if (!Patterns.EMAIL_ADDRESS.matcher(this.binding.etEmail.getText().toString()).matches()) {
             this.errorMsg = getString(R.string.error_valid_email);
             this.errorEditText = this.binding.etEmail;
-        } else if (strSubjectId.isEmpty() || strSubjectId.equals("0")) {
+        } else if (strSubjectId.isEmpty() || strSubjectId == "0") {
             errorMsg(getString(R.string.error_subject_required))
         }  else if (this.strMessage.isEmpty()) {
             this.errorMsg = getString(R.string.error_message);
@@ -75,58 +79,69 @@ class SupportActivity : BaseActivity(), OnResponse<UniversalObject> ,OnConfirmLi
         } else if (this.strMessage.length < 10) {
             this.errorMsg = getString(R.string.error_valid_message);
             this.errorEditText = this.binding.etMessage;
-        }else{
-            ApiCall(this@SupportActivity).supportTicket(this,true,strUserId,strName,strEmail,strSubjectId,strSubject,strMessage,"1")
+        } else {
+            ApiCall(this@SupportActivity).supportTicket(
+                this,
+                true,
+                strUserId,
+                strName,
+                strEmail,
+                strSubjectId,
+                strSubject,
+                strMessage,
+                "1"
+            )
         }
     }
-    fun setSubjects(){
+    private fun setSubjects() {
         if (!CommonMethods.isValidArrayList(mListSubjects)){
             mListSubjects = ArrayList()
             mListSubjects.add(SubjectsBean.InfoBean(0,getString(R.string.lbl_select_subject)))
         }
         binding.spSubject.adapter = SubjectsAdapter(this@SupportActivity,mListSubjects)
     }
-    var mListSubjects : ArrayList<SubjectsBean.InfoBean> = ArrayList()
+    private var mListSubjects : ArrayList<SubjectsBean.InfoBean> = ArrayList()
     override fun onSuccess(response: UniversalObject) {
         try{
-            when(response.methodName){
-                Tags.SB_SUPPORT_SUBJECTS_API->{
+            when(response.methodName) {
+                Tags.SB_SUPPORT_SUBJECTS_API -> {
                     try{
                         var mSubjectsBean = response.response as SubjectsBean
                         if (mSubjectsBean.status==1 && CommonMethods.isValidArrayList(mSubjectsBean.info)){
                             mListSubjects = mSubjectsBean.info;
                         }
-                    }catch (ex1:Exception){
+                    }catch (ex1: Exception){
                         ex1.printStackTrace()
                     }
                     setSubjects()
                 }
-                Tags.SB_API_SUPPORT->{
+                Tags.SB_API_SUPPORT -> {
                     try{
-                        var mCommonBean = response.response as TicketsBean
-                        if (mCommonBean.status==1){
-                            binding.llSuccess.visibility=View.VISIBLE
-                            binding.llTicket.visibility=View.GONE
-                            if (CommonMethods.isValidArrayList(mCommonBean.info)){
+                        val mCommonBean = response.response as TicketsBean
+                        if (mCommonBean.status == 1){
+                            binding.llSuccess.visibility = View.VISIBLE
+                            binding.llTicket.visibility = View.GONE
+                            if (CommonMethods.isValidArrayList(mCommonBean.info)) {
                                 binding.txtTicketId.visibility=View.VISIBLE
-                                binding.txtTicketId.setText(getString(R.string.lbl_ticket,mCommonBean.info[0].id.toString()))
-                            }else{
+                                binding.txtTicketId.text = getString(R.string.lbl_ticket,mCommonBean.info[0].id.toString())
+                            } else {
                                 binding.txtTicketId.visibility=View.INVISIBLE
                             }
-                            binding.txtMessage.setText(mCommonBean.msg)
+                            binding.txtMessage.text = mCommonBean.msg
                         } else if (mCommonBean.status == 99) {
                             UserSessions.clearUserInfo(this@SupportActivity)
-                            Global().makeConfirmation(mCommonBean.msg, this@SupportActivity, this)
-                        }else{
+                            Global()
+                                .makeConfirmation(mCommonBean.msg, this@SupportActivity, this)
+                        } else {
                             errorMsg(mCommonBean.msg)
                         }
-                    }catch (ex1:Exception){
+                    } catch (ex1: Exception) {
                         ex1.printStackTrace()
                         errorMsg(getString(R.string.something_wrong))
                     }
                 }
             }
-        }catch (ex:Exception){
+        } catch (ex: Exception) {
             ex.printStackTrace()
             errorMsg(getString(R.string.something_wrong))
         }

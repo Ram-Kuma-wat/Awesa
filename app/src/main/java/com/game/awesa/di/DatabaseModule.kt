@@ -12,7 +12,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
-@Module()
+@Module
 class DatabaseModule {
 
     @Provides

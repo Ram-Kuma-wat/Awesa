@@ -1,6 +1,7 @@
 package com.game.awesa.ui;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -26,7 +27,6 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
 import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.UpdateAvailability;
 
-
 public class BaseActivity extends AppCompatActivity {
 
     @Override
@@ -36,18 +36,11 @@ public class BaseActivity extends AppCompatActivity {
         requestPermissions();
     }
 
-    String strVar;
-
     @Override
     protected void onResume() {
         super.onResume();
-        //checkBackButton();
         appUpdateManager = AppUpdateManagerFactory.create(this);
-        if (UserSessions.getUpdate(BaseActivity.this) == 0 && appUpdateManager != null) {
-            checkUpdate();
-        } else {
-            checkUpdate();
-        }
+        checkUpdate();
     }
 
     AppUpdateManager appUpdateManager;
@@ -56,48 +49,26 @@ public class BaseActivity extends AppCompatActivity {
         // Returns an intent object that you use to check for an update.
         Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
         // Checks that the platform will allow the specified type of update.
-        // Log.d("ASDD", "Checking for updates");
-        appUpdateInfoTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e("appUpdateInfoTask","failed");
-                e.printStackTrace();
-            }
-        });
-        appUpdateInfoTask.addOnSuccessListener(new OnSuccessListener<AppUpdateInfo>() {
-            @Override
-            public void onSuccess(AppUpdateInfo appUpdateInfo) {
-                Log.e("appUpdateInfoTask","success");
-
-                if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
-                    UserSessions.saveUpdate(BaseActivity.this, 1);
-                    //   Log.d("ASDD", "Update available");
-                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(BaseActivity.this);
-                    builder.setTitle((CharSequence) getString(R.string.app_name));
-                    builder.setCancelable(false);
-                    builder.setMessage((CharSequence) getString(R.string.app_update_msg));
-                    builder.setPositiveButton((CharSequence) getString(R.string.lbl_update_now), (DialogInterface.OnClickListener) new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            String packageName = getPackageName();
-                            try {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + packageName)));
-                                finish();
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                                try {
-                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + packageName)));
-                                    finish();
-                                } catch (Exception ex1) {
-                                    ex1.printStackTrace();
-                                }
-                            }
+        appUpdateInfoTask.addOnFailureListener(e -> Log.e("appUpdateInfoTask","failed", e));
+        appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                UserSessions.saveUpdate(BaseActivity.this, 1);
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(BaseActivity.this);
+                builder.setTitle(getString(R.string.app_name));
+                builder.setCancelable(false);
+                builder.setMessage(getString(R.string.app_update_msg));
+                builder.setPositiveButton(getString(R.string.lbl_update_now), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String packageName = getPackageName();
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + packageName)));
+                            finish();
+                        } catch (ActivityNotFoundException notFound) {
+                            Log.e("appUpdateInfoTask", notFound.getLocalizedMessage(), notFound);
                         }
-                    });
-                    //builder.setNegativeButton((CharSequence) "Later", (DialogInterface.OnClickListener) null);
-                    builder.show();
-                } else {
-                    // Log.d("ASDD", "No Update available");
-                }
+                    }
+                });
+                builder.show();
             }
         });
     }
@@ -116,5 +87,4 @@ public class BaseActivity extends AppCompatActivity {
         }
         return super.dispatchTouchEvent(ev);
     }
-
 }

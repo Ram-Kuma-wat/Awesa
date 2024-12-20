@@ -35,6 +35,7 @@ import com.game.awesa.databinding.ActivityOpponentTeamBinding
 import com.game.awesa.ui.BaseActivity
 import com.game.awesa.ui.LoginActivity
 import com.game.awesa.ui.dashboard.MainActivity
+import com.game.awesa.ui.recorder.CaptureFragment
 import com.game.awesa.ui.recorder.TutorialActivity
 import com.game.awesa.utils.Global
 
@@ -128,10 +129,9 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
         }
     }
 
-    private fun hasStoragePermission(): Boolean? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2) {
-            if (//ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity,Manifest.permission.MEDIA_CONTENT_CONTROL) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity,Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED ||
+    private fun hasStoragePermission(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity,Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity, Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
@@ -145,10 +145,9 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
                         Manifest.permission.RECORD_AUDIO
                     )
                 )
-                //multiplePermissionLauncher.launch(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA});
                 return false
             }
-        }else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        } else {
             if (ActivityCompat.checkSelfPermission(
                     this@OpponentTeamsActivity,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -164,17 +163,16 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
                     arrayOf(
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.READ_MEDIA_IMAGES,
                         Manifest.permission.CAMERA,
                         Manifest.permission.RECORD_AUDIO
                     )
                 )
-                //multiplePermissionLauncher.launch(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA});
                 return false
             }
         }
         return true
     }
+
     val requestMultiplePermissions =  registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         permissions.entries.forEach {
             Log.d("DEBUG", "${it.key} = ${it.value}")
@@ -193,40 +191,43 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
 
     override fun onConfirm(isTrue: Boolean, type: String) {
         if (isTrue){
-            if (type.equals("99")){
+            if (type == "99") {
                 UserSessions.clearUserInfo(this@OpponentTeamsActivity)
-                startActivity(Intent(this@OpponentTeamsActivity, LoginActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+                val intent = Intent(this@OpponentTeamsActivity, LoginActivity::class.java)
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
                 finishAffinity()
             }
         }
     }
-    fun hideShow(strMsg:String,type:Int){
+    private fun hideShow(strMsg: String, type: Int){
         binding.txtError.text = strMsg
-        if (type==1) {
+        if (type == 1) {
             binding.llNoData.visibility = View.VISIBLE
             binding.rvTeams.visibility = View.GONE
             binding.llOther.visibility = View.GONE
-        }else{
+        } else {
             binding.llNoData.visibility = View.GONE
             binding.rvTeams.visibility = View.VISIBLE
             binding.llOther.visibility = View.VISIBLE
         }
     }
+
     override fun onSuccess(response: UniversalObject) {
         try {
-            Logs.e(response.methodName.toString())
+            Logs.e(response.methodName)
             when (response.methodName) {
                 Tags.SB_OPPONENT_TEAMS_API -> {
-                    var mTeamsBean: TeamsBean = response.response as TeamsBean
+                    val mTeamsBean: TeamsBean = response.response as TeamsBean
                     if (mTeamsBean.status == 1) {
                         mListTeams = mTeamsBean.info
                         setData(mListTeams)
                         //  moveToNext(mLoginBean.info)
                         hideShow("",0)
-                    }else if (mTeamsBean.status == 99) {
+                    } else if (mTeamsBean.status == 99) {
                         UserSessions.clearUserInfo(this@OpponentTeamsActivity)
                         Global().makeConfirmation(mTeamsBean.msg, this@OpponentTeamsActivity, this)
-                    }else if (CommonMethods.isValidString(mTeamsBean.msg)) {
+                    } else if (CommonMethods.isValidString(mTeamsBean.msg)) {
                         hideShow(mTeamsBean.msg,1)
                     } else {
                         hideShow(getResources().getString(R.string.something_wrong),1);
@@ -236,8 +237,9 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
                     var mMatchesBean: MatchesBean = response.response as MatchesBean
                     if (mMatchesBean.status == 1 && CommonMethods.isValidArrayList(mMatchesBean.info)) {
                         this.mMatchBean = mMatchesBean.info[0]
-                        startActivity(Intent(this@OpponentTeamsActivity,TutorialActivity::class.java).putExtra("MatchBean",mMatchBean))
-                        //startActivity(Intent(this@OpponentTeamsActivity,CameraActivityNew::class.java).putExtra("MatchBean",mMatchBean))
+                        val intent = Intent(this@OpponentTeamsActivity, TutorialActivity::class.java)
+                        intent.putExtra(CaptureFragment.EXTRA_MATCH_BEAN, mMatchBean)
+                        startActivity(intent)
                     }else if (mMatchesBean.status == 99) {
                         UserSessions.clearUserInfo(this@OpponentTeamsActivity)
                         Global().makeConfirmation(mMatchesBean.msg, this@OpponentTeamsActivity, this)
@@ -252,23 +254,26 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
             ex.printStackTrace()
             errorMsg(getResources().getString(R.string.something_wrong));
         }
-        //method body
+
     }
 
     fun errorMsg(strMsg: String) {
-        CommonMethods.errorDialog(this@OpponentTeamsActivity,strMsg,getResources().getString(R.string.app_name),getResources().getString(R.string.lbl_ok));
+        CommonMethods.errorDialog(
+            this@OpponentTeamsActivity,
+            strMsg,
+            getResources().getString(R.string.app_name),
+            getResources().getString(R.string.lbl_ok))
     }
 
     override fun onError(type: String, error: String) {
-        if (type.equals(Tags.SB_OPPONENT_TEAMS_API)){
+        if (type == Tags.SB_OPPONENT_TEAMS_API){
             hideShow(getResources().getString(R.string.something_wrong),1);
         }else {
             errorMsg(error)
         }
-        //method body
     }
 
-    fun getTeams(vararg strParams: String) {
+    private fun getTeams(vararg strParams: String) {
         if (CommonMethods.isNetworkAvailable(this@OpponentTeamsActivity)) {
             mApiCall!!.getOpponentTeams(this, true,strParams[0],
                 UserSessions.getUserInfo(this@OpponentTeamsActivity).id.toString(),game_category,team_id,league)
@@ -282,10 +287,11 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
         }
     }
 
-    fun createMatch(vararg strParams: String) {
+    private fun createMatch(vararg strParams: String) {
         if(mMatchBean !=null && mMatchBean!!.id>0){
-             startActivity(Intent(this@OpponentTeamsActivity,TutorialActivity::class.java).putExtra("MatchBean",mMatchBean))
-             //startActivity(Intent(this@OpponentTeamsActivity,CameraActivityNew::class.java).putExtra("MatchBean",mMatchBean))
+            val intent = Intent(this@OpponentTeamsActivity, TutorialActivity::class.java)
+            intent.putExtra(CaptureFragment.EXTRA_MATCH_BEAN, mMatchBean)
+            startActivity(intent)
         }else{
             if (CommonMethods.isNetworkAvailable(this@OpponentTeamsActivity)) {
                 mApiCall!!.createMatch(this, true,

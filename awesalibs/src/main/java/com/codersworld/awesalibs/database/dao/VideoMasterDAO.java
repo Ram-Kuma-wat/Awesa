@@ -5,13 +5,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
+import com.codersworld.awesalibs.beans.VideoUploadBean;
 import com.codersworld.awesalibs.database.DatabaseHelper;
 import com.codersworld.awesalibs.utils.CommonMethods;
 
 import java.util.ArrayList;
-
 
 public class VideoMasterDAO {
 
@@ -28,39 +29,34 @@ public class VideoMasterDAO {
     private static final String COLUMN_DATE = "date";
 
     private SQLiteDatabase mDatabase;
-    private Context mContext;
+    private final Context mContext;
 
     public VideoMasterDAO(SQLiteDatabase database, Context context) {
         mDatabase = database;
         mContext = context;
     }
 
-    public void updateVideoAll() {
-        String[] bindArgs = {
-                String.valueOf("0"),
-        };
-        String update = " UPDATE "
-                + TABLE_VIDEO_MASTER
-                + " SET "
-                + COLUMN_VIDEO_STATUS
-                + " = ? WHERE 1=1";
-        mDatabase.execSQL(update, bindArgs);
-        /* ContentValues values = new ContentValues();
-        values.put(COLUMN_VIDEO_STATUS, "0");
-        mDatabase.update(TABLE_VIDEO_MASTER, values, "1=?", new String[]{"1"});*/
-    }
-
     public void initDBHelper() {
         try {
             DatabaseHelper mHelper = new DatabaseHelper(mContext);
             mDatabase = mHelper.getWritableDatabase();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLiteException e) {
+            Log.e("VideoMasterDAO", e.getLocalizedMessage());
         }
     }
 
+    public void updateVideoAll() {
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_VIDEO_STATUS, String.valueOf(0));
+
+        String selection = "1 = ?";
+        String[] selectionArgs = { String.valueOf(1) };
+
+        mDatabase.update(TABLE_VIDEO_MASTER, values, selection, selectionArgs);
+    }
+
     public static String getCreateTableVideoMaster() {
-        String CREATE_TABLE = "CREATE TABLE " + TABLE_VIDEO_MASTER
+        return "CREATE TABLE " + TABLE_VIDEO_MASTER
                 + "("
                 + COLUMN_KEY_ID + " INTEGER PRIMARY KEY,"
                 + COLUMN_VIDEO_NAME + " TEXT ,"
@@ -70,8 +66,6 @@ public class VideoMasterDAO {
                 + COLUMN_VIDEO_PATH + " TEXT ,"
                 + COLUMN_VIDEO_STATUS + " TEXT ,"
                 + COLUMN_DATE + " TEXT)";
-
-        return CREATE_TABLE;
     }
 
     public static String getDropTableVideoMaster() {
@@ -80,61 +74,37 @@ public class VideoMasterDAO {
 
     public void deleteAll() {
         initDBHelper();
-        String delete_all = " DELETE "
-                + " FROM "
-                + TABLE_VIDEO_MASTER;
+        String[] selectionArgs = { String.valueOf(1) };
 
-        mDatabase.execSQL(delete_all);
+        mDatabase.delete(TABLE_VIDEO_MASTER, "1 = ?", selectionArgs);
     }
 
-    public void insert(ArrayList<DBVideoUplaodDao> arrayList) {
+    public void insert(ArrayList<VideoUploadBean> arrayList) {
         initDBHelper();
-        for (DBVideoUplaodDao singleInput : arrayList) {
-            String[] bindArgs = {
-                    singleInput.getVideo_name(),
-                    singleInput.getMatch_id(),
-                    String.valueOf(singleInput.getVideo_ext()),
-                    String.valueOf(singleInput.getVideo_half()),
-                    String.valueOf(singleInput.getVideo_path()),
-                    String.valueOf(singleInput.getUpload_status()),
-                    String.valueOf(singleInput.getDate()),
-            };
+        for (VideoUploadBean videoUpload : arrayList) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(COLUMN_MATCH_ID, videoUpload.getMatch_id());
+            contentValues.put(COLUMN_VIDEO_NAME, videoUpload.getVideo_name());
+            contentValues.put(COLUMN_VIDEO_HALF, videoUpload.getVideo_half());
+            contentValues.put(COLUMN_VIDEO_STATUS, videoUpload.getUpload_status());
+            contentValues.put(COLUMN_VIDEO_TYPE, videoUpload.getVideo_ext());
+            contentValues.put(COLUMN_VIDEO_PATH, videoUpload.getVideo_path());
+            contentValues.put(COLUMN_DATE, videoUpload.getDate());
 
-            String insertUser = " INSERT INTO "
-                    + TABLE_VIDEO_MASTER
-                    + " ( "
-                    + COLUMN_VIDEO_NAME
-                    + " , "
-                    + COLUMN_MATCH_ID
-                    + " , "
-                    + COLUMN_VIDEO_TYPE
-                    + " , "
-                    + COLUMN_VIDEO_HALF
-                    + " , "
-                    + COLUMN_VIDEO_PATH
-                    + " , "
-                    + COLUMN_VIDEO_STATUS
-                    + " , "
-                    + COLUMN_DATE
-                    + " ) "
-                    + " VALUES "
-                    + " (?,?,?,?,?,?,?)";
-            mDatabase.execSQL(insertUser, bindArgs);
+            mDatabase.insert(TABLE_VIDEO_MASTER, null, contentValues);
         }
     }
 
     public void updateVideo(int id, int isUploaded) {
-        String[] bindArgs = {
-                String.valueOf(isUploaded),
-                String.valueOf(id)
-        };
-        String update = " UPDATE "
-                + TABLE_VIDEO_MASTER
-                + " SET "
-                + COLUMN_VIDEO_STATUS
-                + " = ? WHERE " + COLUMN_KEY_ID + "= ?";
-        mDatabase.execSQL(update, bindArgs);
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_VIDEO_STATUS, String.valueOf(isUploaded));
+
+        String selection = COLUMN_KEY_ID + " = ?";
+        String[] selectionArgs = { String.valueOf(id) };
+
+        mDatabase.update(TABLE_VIDEO_MASTER, values, selection, selectionArgs);
     }
+
     public int getTotalCount(String id) {
         initDBHelper();
         int count = 0;
@@ -149,6 +119,7 @@ public class VideoMasterDAO {
         closeCursor(cursor);
         return count;
     }
+
     public boolean deleteVideoById(int id) {
         initDBHelper();
         try {
@@ -216,31 +187,31 @@ public class VideoMasterDAO {
         return cnt;
     }
 
-    public ArrayList<DBVideoUplaodDao> selectAll() {
+    public ArrayList<VideoUploadBean> selectAll() {
         initDBHelper();
         String getAllDetails = " SELECT " + " * " + " FROM "
                 + TABLE_VIDEO_MASTER + " where 1=1 order by _id DESC";
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-        ArrayList<DBVideoUplaodDao> dataList = manageCursor(cursor);
+        ArrayList<VideoUploadBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
         return dataList;
     }
 
-    public ArrayList<DBVideoUplaodDao> selectAll1(String match_id, String half) {
+    public ArrayList<VideoUploadBean> selectAll(String match_id, String half) {
         initDBHelper();
         String getAllDetails = " SELECT " + " * " + " FROM "
                 + TABLE_VIDEO_MASTER + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND video_half=" + half : "") + " order by _id DESC";
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-        ArrayList<DBVideoUplaodDao> dataList = manageCursor(cursor);
+        ArrayList<VideoUploadBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
         return dataList;
     }
 
 
     @SuppressLint("Range")
-    protected DBVideoUplaodDao cursorToData(Cursor cursor) {
-        DBVideoUplaodDao model = new DBVideoUplaodDao();
-        model.setmId(cursor.getInt(cursor.getColumnIndex(COLUMN_KEY_ID)));
+    protected VideoUploadBean cursorToData(Cursor cursor) {
+        VideoUploadBean model = new VideoUploadBean();
+        model.setId(cursor.getInt(cursor.getColumnIndex(COLUMN_KEY_ID)));
         model.setVideo_name(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_NAME)));
         model.setMatch_id(cursor.getString(cursor.getColumnIndex(COLUMN_MATCH_ID)));
         model.setVideo_ext(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_TYPE)));
@@ -260,12 +231,12 @@ public class VideoMasterDAO {
         }
     }
 
-    protected ArrayList<DBVideoUplaodDao> manageCursor(Cursor cursor) {
-        ArrayList<DBVideoUplaodDao> dataList = new ArrayList<DBVideoUplaodDao>();
+    protected ArrayList<VideoUploadBean> manageCursor(Cursor cursor) {
+        ArrayList<VideoUploadBean> dataList = new ArrayList<VideoUploadBean>();
         if (cursor != null) {
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
-                DBVideoUplaodDao singleModel = cursorToData(cursor);
+                VideoUploadBean singleModel = cursorToData(cursor);
                 if (singleModel != null) {
                     dataList.add(singleModel);
                 }

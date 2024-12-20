@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,35 +17,36 @@ import com.game.awesa.databinding.HistoryItemLayoutBinding;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class HistoryAdapter extends RecyclerView.Adapter {
-     public Context context;
-     public List<MatchesBean.InfoBean> list;
+public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.GameHolder> {
+    public Context context;
+    public List<MatchesBean.InfoBean> list;
+
     OnMatchListener mListener;
-    public HistoryAdapter(Context context2, List<MatchesBean.InfoBean> list, OnMatchListener mListener) {
-        this.context = context2;
+    public HistoryAdapter(Context context, List<MatchesBean.InfoBean> list, OnMatchListener mListener) {
+        this.context = context;
         this.mListener = mListener;
         this.list = list;
     }
-    public HistoryAdapter(Context context2, List<MatchesBean.InfoBean> list ) {
-        this.context = context2;
-         this.list = list;
-    }
 
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+    @NonNull
+    public HistoryAdapter.GameHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int position) {
         return new GameHolder(LayoutInflater.from(this.context).inflate(R.layout.history_item_layout, viewGroup, false));
     }
 
-    public void addAll(ArrayList<MatchesBean.InfoBean> mList){
+    public void addAll(ArrayList<MatchesBean.InfoBean> mList) {
         if (CommonMethods.isValidArrayList(mList)){
             list = mList;
-            notifyDataSetChanged();
+            notifyItemRangeChanged(0, list.size());
         }
     }
-    public int checkSize(){
+
+    public int checkSize() {
             return list.size();
     }
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int i) {
+
+    public void onBindViewHolder(@NonNull HistoryAdapter.GameHolder viewHolder, int i) {
         GameHolder mHolder = (GameHolder) viewHolder;
         MatchesBean.InfoBean mBean = list.get(i);
         mHolder.binding.tvTeam1.setText(mBean.getTeam1());
@@ -52,7 +54,7 @@ public class HistoryAdapter extends RecyclerView.Adapter {
         mHolder.binding.tvTeam2.setText(mBean.getTeam2());
         CommonMethods.loadImage(context, mBean.getTeam2_image(), mHolder.binding.imgTeam2);
         mHolder.binding.txtDate.setText( mBean.getCreated_date() );
-        mHolder.binding.txtId.setText( "#"+mBean.getId() );
+        mHolder.binding.txtId.setText(String.format(Locale.US, "#%d", mBean.getId()));
     }
 
     public int getItemCount() {
@@ -69,10 +71,9 @@ public class HistoryAdapter extends RecyclerView.Adapter {
         }
 
         public void onClick(View view) {
-            if (mListener !=null){
-                mListener.onMatchClick(list.get(getAdapterPosition()));
+            if (mListener != null) {
+                mListener.onMatchClick(list.get(getBindingAdapterPosition()));
             }
-           //     context.startActivity(new Intent(context, TeamsActivity.class).putExtra("game_category", list.get(getAdapterPosition()).getId() + "").putExtra("county", list.get(getAdapterPosition()).getCounty_id() + ""));
         }
     }
 }

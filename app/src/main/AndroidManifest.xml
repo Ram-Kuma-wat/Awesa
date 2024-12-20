@@ -12,7 +12,6 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <!-- To handle the reselection within the app on devices running Android 14
@@ -23,7 +22,6 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature
@@ -50,8 +48,7 @@
         tools:ignore="UnusedAttribute">
         <activity
             android:name=".ui.SplashActivity"
-            android:exported="true"
-            android:screenOrientation="portrait">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -59,48 +56,38 @@
         </activity>
         <activity
             android:name=".ui.dashboard.MainActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
+            android:exported="false"/>
         <activity
             android:name=".ui.LoginActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.SignUpActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.forgotpassword.ForgotPasswordActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.forgotpassword.ResetPassActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.VerifyActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.teams.TeamsActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.league.LeagueActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.county.CountyActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.teams.OpponentTeamsActivity"
-            android:exported="true"
-            android:screenOrientation="portrait">
+            android:exported="true">
         </activity>
 
     <activity
-            android:name=".ui.recorder.CameraActivityNew"
+            android:name=".ui.recorder.CameraActivity"
             android:exported="true"
             android:screenOrientation="landscape">
         </activity>
@@ -120,24 +107,19 @@
             android:screenOrientation="landscape"/>
     <activity
             android:name=".ui.recorder.ProcessingActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"/>
+            android:exported="true"/>
         <activity
             android:name=".ui.SupportActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.matches.MatchDetailActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.WebViewActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
         <activity
             android:name=".ui.recorder.MatchOverviewActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
+            android:exported="true" />
 
         <activity
             android:name="com.codersworld.awesalibs.mediapicker.ui.activity.ImagePickerActivity"
@@ -155,12 +137,8 @@
         <service
             android:name=".services.VideoUploadJobService"
             android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
-
-        <service
-            android:name=".services.InterviewUploadService"
-            android:exported="false" />
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            tools:targetApi="upside_down_cake" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"

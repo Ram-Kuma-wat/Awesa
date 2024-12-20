@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Awesa</string>
+    <string name="app_name" translatable="false">Awesa</string>
     <string name="welcome">Willkommen zurück!</string>
     <string name="lbl_welcome_back">Willkommen zurück</string>
     <string name="username">Benutzername</string>
@@ -22,7 +22,7 @@
     <string name="lbl_name">Name</string>
     <string name="lbl_verify">Überprüfen Sie</string>
     <string name="lbl_resend">Senden Sie den Code erneut</string>
-    <string name="lbl_wait_time">Warten Sie XXXX Sekunden, um den Code erneut zu senden!</string>
+    <string name="lbl_wait_time">Warten Sie 00:%d Sekunden, um den Code erneut zu senden!</string>
     <string name="error_otp_required">Bitte OTP eingeben.</string>
     <string name="lbl_privacy">Mit der Anmeldung erklären Sie sich mit unserem</string>
     <string name="lbl_privacy_policy">Datenschutzbestimmungen</string>
@@ -83,7 +83,7 @@
     <string name="error_email">Bitte geben Sie Ihre E-Mail Adresse ein.</string>
     <string name="error_valid_email">Bitte geben Sie eine gültige E-Mail Adresse ein.</string>
     <string name="lbl_ticket"><b>Ticket ID : #</b> %1$s</string>
-    <string name="lbl_logout">Logout</string>
+    <string name="lbl_logout" translatable="false">Logout</string>
     <string name="lbl_delete_account">Konto löschen</string>
     <string name="sport_not_include">Ihr Sport ist nicht dabei? <font color="#E00169"><b>Kontakt.</b></font></string>
     <string name="team_not_include">Ihr Team ist nicht da? <font color="#E00169"><b>Kontaktieren Sie uns.</b></font></string>
@@ -121,21 +121,22 @@
     <string name="msg_videos_are_under_uploading">Das Hochladen der Videos für dieses Spiel ist noch im Gange. Die Videos werden verfügbar sein, sobald das Hochladen abgeschlossen ist.</string>
     <string name="msg_logout_on_login">Wenn Sie sich auf diesem Gerät anmelden, werden Sie von allen anderen Geräten abgemeldet.</string>
     <string name="lbl_action_hint">Wählen Sie eine Aktion aus, die Sie ändern möchten </string>
-    <string name="lbl_goal">Tor</string>
-    <string name="lbl_chance">Chance</string>
-    <string name="lbl_wow">Wow</string>
-    <string name="lbl_fail">Fail</string>
-    <string name="lbl_highlight">Highlight</string>
+    <string name="lbl_goal" translatable="false">Tor</string>
+    <string name="lbl_chance" translatable="false">Chance</string>
+    <string name="lbl_wow" translatable="false">Wow</string>
+    <string name="lbl_fail" translatable="false">Fail</string>
+    <string name="lbl_highlight" translatable="false">Highlight</string>
     <string name="lbl_pull_down">Ziehen Sie nach unten, um die hochgeladenen Szenen zu aktualisieren.</string>
     <string name="lbl_storage_hint">Achtung: Die Nutzung der App erfordert aufgrund von Videoaufnahmen viel Speicherplatz. Stelle sicher, dass Du genügend Speicherplatz zur Verfügung hast, um probleme zu vermeiden!</string>
     <string name="lbl_continue">Weitermachen</string>
-    <string name="lbl_video_trimming">Video trimming in process…</string>
+    <string name="lbl_video_trimming">Das Zuschneiden des Videos läuft...</string>
     <string name="video_uploading_single_notif_message">Uploading Video..</string>
     <string name="video_uploading_multi_notif_message">Uploading videos…%1$d of %2$d</string>
-    <string name="videos_upload_channel_title">Uploads</string>
+    <string name="videos_upload_channel_title" translatable="false">Uploads</string>
     <string name="video_update_notification">Updating video %1$s</string>
     <string name="video_update_success_notification_title">Video Updated</string>
     <string name="video_update_success_notification_content">%1$d videos have been added to the match %2$s</string>
     <string name="video_update_failure_notification">Updating video %1$s failed</string>
+    <string name="no_match_videos_available">No match videos available</string>
 
 </resources>
