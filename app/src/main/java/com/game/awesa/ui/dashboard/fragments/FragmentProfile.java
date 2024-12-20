@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
@@ -55,7 +56,7 @@ import okhttp3.RequestBody;
 public class FragmentProfile extends Fragment implements View.OnClickListener,
         SSPickerOptionsBottomSheet.ImagePickerClickListener, OnConfirmListener,
         ImagePickerResultListener, OnResponse<UniversalObject> {
-    ApiCall mApiCall = null;
+    ApiCall mApiCall = new ApiCall(requireActivity());
 
     ImagePicker mImagePicker;
     @NotNull
@@ -63,16 +64,6 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
 
     public FragmentProfile() {
         //if required
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
     }
 
     @Override
@@ -92,27 +83,25 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
         final View view = inflater.inflate(R.layout.fragment_profile, container, false);
         binding = DataBindingUtil.bind(view);
         mImagePicker = new ImagePicker(this, requireActivity());
-        initApiCall();
-
-        UserBean mBeanUser = UserSessions.getUserInfo(requireActivity());
-        if (mBeanUser != null) {
-            binding.etFirstname.setText(CommonMethods.isValidString(mBeanUser.getFirstname()) ? mBeanUser.getFirstname() : "");
-            binding.etLastname.setText(CommonMethods.isValidString(mBeanUser.getLastname()) ? mBeanUser.getLastname() : "");
-            binding.etEmail.setText(CommonMethods.isValidString(mBeanUser.getEmail()) ? mBeanUser.getEmail() : "");
-            binding.etPhone.setText(CommonMethods.isValidString(mBeanUser.getPhone()) ? mBeanUser.getPhone() : "");
-            binding.etUsername.setText(CommonMethods.isValidString(mBeanUser.getUsername()) ? mBeanUser.getUsername() : "");
-            if (CommonMethods.isValidString(mBeanUser.getImage())) {
-                CommonMethods.loadImage(requireActivity(), mBeanUser.getImage(), binding.imgProfile);
-            }
-        }
         binding.btnSubmit.setOnClickListener(this);
         binding.imgEdit.setOnClickListener(this);
         return view;
     }
 
-    public void initApiCall() {
-        if (mApiCall == null) {
-            mApiCall = new ApiCall(requireActivity());
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        UserBean mBeanUser = UserSessions.getUserInfo(requireActivity());
+        if (mBeanUser != null) {
+            binding.etFirstname.setText(mBeanUser.getFirstname());
+            binding.etLastname.setText(mBeanUser.getLastname());
+            binding.etEmail.setText(mBeanUser.getEmail());
+            binding.etPhone.setText(mBeanUser.getPhone());
+            binding.etUsername.setText(mBeanUser.getUsername());
+            if (CommonMethods.isValidString(mBeanUser.getImage())) {
+                CommonMethods.loadImage(requireActivity(), mBeanUser.getImage(), binding.imgProfile);
+            }
         }
     }
 
@@ -133,9 +122,7 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
         super.onAttach(context);
         try {
             mListener = (OnPageChangeListener) context;
-            if (mListener != null) {
-                mListener.onPageChange("profile");
-            }
+            mListener.onPageChange("profile");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -164,15 +151,15 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
             } else if (!CommonMethods.isValidString(strUsername)) {
                 CommonMethods.setError(binding.etUsername,requireActivity(),getString(R.string.error_username),getString(R.string.error_username));
             } else {
-                RequestBody user_id = new RetrofitUtils().createPartFromString(UserSessions.getUserInfo(requireActivity()).getId()+"");
-                RequestBody fname = new RetrofitUtils().createPartFromString(strFName+"");
-                RequestBody lname = new RetrofitUtils().createPartFromString(strLName+"");
-                RequestBody email = new RetrofitUtils().createPartFromString(strEmail+"");
-                RequestBody username = new RetrofitUtils().createPartFromString(strUsername+"");
-                RequestBody phone = new RetrofitUtils().createPartFromString(strPhone+"");
+                RequestBody user_id = RetrofitUtils.createPartFromString(UserSessions.getUserInfo(requireActivity()).getId()+"");
+                RequestBody fname = RetrofitUtils.createPartFromString(strFName+"");
+                RequestBody lname = RetrofitUtils.createPartFromString(strLName+"");
+                RequestBody email = RetrofitUtils.createPartFromString(strEmail+"");
+                RequestBody username = RetrofitUtils.createPartFromString(strUsername+"");
+                RequestBody phone = RetrofitUtils.createPartFromString(strPhone+"");
                 MultipartBody.Part part =null;
                 if (CommonMethods.isValidString(strFilePath)) {
-                    part = new RetrofitUtils().createFilePart("image", strFilePath, MediaType.parse("image/jpeg"));
+                    part = RetrofitUtils.createFilePart("image", strFilePath, MediaType.parse("image/jpeg"));
                 }
                 //firstname,lastname, user_id,phone,username,email
                 mApiCall.updateProfile(this, fname,lname,user_id,phone,username,email,CommonMethods.isValidString(strFilePath)?part:null);
@@ -224,9 +211,7 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
     public void onImagePick(Uri uri) {
         strFilePath = "";
         binding.imgProfile.setImageURI(uri);
-        //String strFilePath1 = getPath(uri);
         strFilePath = getRealPathFromURI(uri);
-        //  uri.let { updateImageList(listOf(it)) }
     }
 
     public String getRealPathFromURI(Uri contentUri) {
@@ -234,7 +219,6 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
         String[] proj = {MediaStore.Images.Media.DATA};
         Cursor cursor = requireActivity().getContentResolver().query(contentUri, proj, null, null, null);
         if (cursor.moveToFirst()) {
-            ;
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             res = cursor.getString(column_index);
         }
@@ -252,19 +236,14 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
     }
 
     @Override
-    public void onMultiImagePick(List<? extends Uri> uris) {
-        //  uri.let { updateImageList(listOf(it)) }
-    }
+    public void onMultiImagePick(List<? extends Uri> uris) {}
 
-    // val requestMultiplePermissions =  registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {permissions ->
-    private ActivityResultLauncher<String[]> requestMultiplePermissions = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), isGranted -> {
-        if (isGranted.containsValue(false)) {
-            //requestMultiplePermissions.launch(PERMISSIONS);
-        }
+    private final ActivityResultLauncher<String[]> requestMultiplePermissions = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), isGranted -> {
+        if (isGranted.containsValue(false)) {}
     });
 
     private Boolean hasStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(requireActivity(),
                     Manifest.permission.MEDIA_CONTENT_CONTROL
             ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
@@ -285,10 +264,10 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
                                 Manifest.permission.READ_MEDIA_VIDEO,
                                 Manifest.permission.CAMERA,
                                 Manifest.permission.RECORD_AUDIO});
-                //multiplePermissionLauncher.launch(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA});
+
                 return false;
             }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        } else {
             if (ActivityCompat.checkSelfPermission(
                     requireActivity(),
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -304,12 +283,11 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
                         new String[]{
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                                Manifest.permission.READ_MEDIA_IMAGES,
                                 Manifest.permission.CAMERA,
                                 Manifest.permission.RECORD_AUDIO
                         }
                 );
-                //multiplePermissionLauncher.launch(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA});
+
                 return false;
             }
         }
