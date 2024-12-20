@@ -5,4 +5,8 @@ import dagger.hilt.android.HiltAndroidApp
 
 @UnstableApi
 @HiltAndroidApp
-class MyAppRelease: MyApp()
+class AwesaRelease: AWesa() {
+    override fun onCreate() {
+        super.onCreate()
+        instance = this
+    }
