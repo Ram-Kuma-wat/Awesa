@@ -445,7 +445,7 @@
                 android:textColor="@color/colorAccent"
                 android:textSize="100sp"
                 android:textStyle="bold"
-                android:visibility="visible"
+                android:visibility="gone"
                 tools:ignore="HardcodedText" />
             <!--Zoom Controls-->
             <LinearLayout
