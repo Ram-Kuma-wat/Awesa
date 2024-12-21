@@ -16,6 +16,7 @@ import java.util.ArrayList;
 
 public class VideoMasterDAO {
 
+    private static final String TAG = VideoMasterDAO.class.getSimpleName();
     private static final String TABLE_VIDEO_MASTER = "video_master";
 
     // Contacts Table Columns names
@@ -41,7 +42,7 @@ public class VideoMasterDAO {
             DatabaseHelper mHelper = new DatabaseHelper(mContext);
             mDatabase = mHelper.getWritableDatabase();
         } catch (SQLiteException e) {
-            Log.e("VideoMasterDAO", e.getLocalizedMessage());
+            Log.e("VideoMasterDAO", e.getLocalizedMessage(), e);
         }
     }
 
@@ -77,6 +78,20 @@ public class VideoMasterDAO {
         String[] selectionArgs = { String.valueOf(1) };
 
         mDatabase.delete(TABLE_VIDEO_MASTER, "1 = ?", selectionArgs);
+    }
+
+    public void insert(VideoUploadBean videoUpload) {
+        initDBHelper();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_MATCH_ID, videoUpload.getMatch_id());
+        contentValues.put(COLUMN_VIDEO_NAME, videoUpload.getVideo_name());
+        contentValues.put(COLUMN_VIDEO_HALF, videoUpload.getVideo_half());
+        contentValues.put(COLUMN_VIDEO_STATUS, videoUpload.getUpload_status());
+        contentValues.put(COLUMN_VIDEO_TYPE, videoUpload.getVideo_ext());
+        contentValues.put(COLUMN_VIDEO_PATH, videoUpload.getVideo_path());
+        contentValues.put(COLUMN_DATE, videoUpload.getDate());
+
+        mDatabase.insert(TABLE_VIDEO_MASTER, null, contentValues);
     }
 
     public void insert(ArrayList<VideoUploadBean> arrayList) {
@@ -120,46 +135,24 @@ public class VideoMasterDAO {
         return count;
     }
 
-    public boolean deleteVideoById(int id) {
+    public int deleteVideoById(int id) {
         initDBHelper();
-        try {
-            String deleteSingleRow = " DELETE "
-                    + " FROM "
-                    + TABLE_VIDEO_MASTER
-                    + " WHERE "
-                    + COLUMN_KEY_ID
-                    + " = "
-                    + id;
-            if (getTotalCount(id+"")==0) {
-                mDatabase.execSQL(deleteSingleRow);
-                return true;
-            }else{
-                return false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return deleteVideoById(id);
-        }
+
+        String selection = "1 = 1 AND " + COLUMN_MATCH_ID + " = ?";
+        String[] selectionArgs = {String.valueOf(id)};
+
+        return mDatabase.delete(TABLE_VIDEO_MASTER, selection, selectionArgs);
     }
 
-    public void deleteVideoByMatch(int id, int video_half) {
+    public int deleteVideoByMatch(int id, int video_half) {
         initDBHelper();
-        try {
-            String deleteSingleRow = " DELETE "
-                    + " FROM "
-                    + TABLE_VIDEO_MASTER
-                    + " WHERE "
-                    + COLUMN_MATCH_ID
-                    + " = "
-                    + id
-                    + " AND video_half = " + video_half;
-            if (getTotalCount(id+"")==0) {
-                mDatabase.execSQL(deleteSingleRow);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            deleteVideoByMatch(id, video_half);
-        }
+        String selection = "1 = 1 AND " + COLUMN_MATCH_ID + " = ? AND " + COLUMN_VIDEO_HALF + " = ?";
+        String[] selectionArgs = {
+            String.valueOf(id),
+            String.valueOf(video_half)
+        };
+
+        return mDatabase.delete(TABLE_VIDEO_MASTER, selection, selectionArgs);
     }
 
     public int getLatestInsertedId() {
@@ -175,16 +168,6 @@ public class VideoMasterDAO {
             closeCursor(cursor);
         }
         return maxid;
-        //return cursor.getCount();
-    }
-
-    public int getTodoItemCount() {
-        initDBHelper();
-        String countQuery = "SELECT  * FROM " + TABLE_VIDEO_MASTER;
-        Cursor cursor = mDatabase.rawQuery(countQuery, null);
-        int cnt = cursor.getCount();
-        closeCursor(cursor);
-        return cnt;
     }
 
     public ArrayList<VideoUploadBean> selectAll() {
@@ -207,7 +190,6 @@ public class VideoMasterDAO {
         return dataList;
     }
 
-
     @SuppressLint("Range")
     protected VideoUploadBean cursorToData(Cursor cursor) {
         VideoUploadBean model = new VideoUploadBean();
@@ -223,11 +205,8 @@ public class VideoMasterDAO {
     }
 
     protected void closeCursor(Cursor cursor) {
-        try{ if (cursor != null) {
+        if (cursor != null) {
             cursor.close();
-        }
-        }catch (Exception e){
-            e.printStackTrace();
         }
     }
 

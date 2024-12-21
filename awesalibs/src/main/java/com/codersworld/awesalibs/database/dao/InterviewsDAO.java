@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 
 public class InterviewsDAO {
 
+    private static final String TAG = InterviewsDAO.class.getSimpleName();
     private static final String TABLE_INTERVIEWS = "interviews";
 
     // Contacts Table Columns names
@@ -54,30 +56,24 @@ public class InterviewsDAO {
         try {
             DatabaseHelper mHelper = new DatabaseHelper(mContext);
             mDatabase = mHelper.getWritableDatabase();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLiteException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
         }
     }
 
     public void deleteAll(int id) {
         initDBHelper();
-        try {
-            String[] selectionArgs = { String.valueOf(id) };
 
-            mDatabase.delete(TABLE_INTERVIEWS, "id = ?", selectionArgs);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        String[] selectionArgs = { String.valueOf(id) };
+
+        mDatabase.delete(TABLE_INTERVIEWS, "id = ?", selectionArgs);
     }
 
     public void deleteUploadedVideos() {
         initDBHelper();
-        try {
-            String[] selectionArgs = { String.valueOf(1) };
-            mDatabase.delete(TABLE_INTERVIEWS, "upload_status = ?", selectionArgs);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        String[] selectionArgs = { String.valueOf(1) };
+        mDatabase.delete(TABLE_INTERVIEWS, "upload_status = ?", selectionArgs);
     }
 
 
@@ -145,12 +141,11 @@ public class InterviewsDAO {
             ArrayList<InterviewBean> dataList = manageCursor(cursor);
             closeCursor(cursor);
             return dataList;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLiteException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
             return (counter == 0) ? selectSingle(1) : new ArrayList<>();
         }
     }
-
 
     @SuppressLint("Range")
     protected InterviewBean cursorToData(Cursor cursor) {
@@ -178,13 +173,9 @@ public class InterviewsDAO {
     }
 
     protected void closeCursor(Cursor cursor) {
-       try {
-           if (cursor != null) {
-                cursor.close();
-           }
-        } catch (Exception e) {
-           e.printStackTrace();
-       }
+        if (cursor != null) {
+            cursor.close();
+        }
     }
 
     public int getLastInsertedId() {

@@ -6,7 +6,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.codersworld.awesalibs.beans.matches.InterviewBean;
 import com.codersworld.awesalibs.beans.matches.ReactionsBean;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 
 public class MatchActionsDAO {
 
+    private static final String TAG = MatchActionsDAO.class.getSimpleName();
     private static final String TABLE_MATCH_REACTIONS = "match_reactions";
 
     // Contacts Table Columns names
@@ -66,8 +69,8 @@ public class MatchActionsDAO {
         try {
             DatabaseHelper mHelper = new DatabaseHelper(mContext);
             mDatabase = mHelper.getWritableDatabase();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLiteException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
         }
     }
 
@@ -81,20 +84,11 @@ public class MatchActionsDAO {
 
     public void deleteByMatch(String id, String half, int counter) {
         initDBHelper();
-        try {
-            String selection = "1 = 1 AND match_id = ? AND half = ?";
-            String[] selectionArgs = {
-                    id,
-                    half
-            };
 
-            mDatabase.delete(TABLE_MATCH_REACTIONS, selection, selectionArgs);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            if (counter == 0) {
-                deleteByMatch(id, half, 1);
-            }
-        }
+        String selection = "1 = 1 AND match_id = ? AND half = ?";
+        String[] selectionArgs = { id, half };
+
+        mDatabase.delete(TABLE_MATCH_REACTIONS, selection, selectionArgs);
     }
 
     public void deleteUploadedVideos() {
@@ -106,25 +100,22 @@ public class MatchActionsDAO {
 
     public void insert(ArrayList<ReactionsBean> arrayList) {
         initDBHelper();
-        try {
-            for (ReactionsBean mBean : arrayList) {
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(COLUMN_MATCH_ID, mBean.getMatch_id());
-                contentValues.put(COLUMN_TEAM_ID, mBean.getTeam_id());
-                contentValues.put(COLUMN_HALF, mBean.getHalf());
-                contentValues.put(COLUMN_TIME, mBean.getTime());
-                contentValues.put(COLUMN_TIMESTAMP, mBean.getTimestamp());
-                contentValues.put(COLUMN_REACTION, mBean.getReaction());
-                contentValues.put(COLUMN_VIDEO_NAME, mBean.getFile_name());
-                contentValues.put(COLUMN_VIDEO_PATH, mBean.getVideo());
-                contentValues.put(COLUMN_STATUS, 0);
-                contentValues.put(COLUMN_CREATED_DATE, mBean.getCreated_date());
-                contentValues.put(COLUMN_TEAM_NAME, mBean.getTeam_name());
 
-                mDatabase.insert(TABLE_MATCH_REACTIONS, null, contentValues);
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        for (ReactionsBean mBean : arrayList) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(COLUMN_MATCH_ID, mBean.getMatch_id());
+            contentValues.put(COLUMN_TEAM_ID, mBean.getTeam_id());
+            contentValues.put(COLUMN_HALF, mBean.getHalf());
+            contentValues.put(COLUMN_TIME, mBean.getTime());
+            contentValues.put(COLUMN_TIMESTAMP, mBean.getTimestamp());
+            contentValues.put(COLUMN_REACTION, mBean.getReaction());
+            contentValues.put(COLUMN_VIDEO_NAME, mBean.getFile_name());
+            contentValues.put(COLUMN_VIDEO_PATH, mBean.getVideo());
+            contentValues.put(COLUMN_STATUS, 0);
+            contentValues.put(COLUMN_CREATED_DATE, mBean.getCreated_date());
+            contentValues.put(COLUMN_TEAM_NAME, mBean.getTeam_name());
+
+            mDatabase.insert(TABLE_MATCH_REACTIONS, null, contentValues);
         }
     }
 
@@ -158,7 +149,6 @@ public class MatchActionsDAO {
     public ArrayList<ReactionsBean> selectAllForDelete(String match_id, String half) {
         initDBHelper();
         String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") +  " AND video_path =''"  + " order by id DESC";
-        //Log.e("Query_exc",getAllDetails);
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<ReactionsBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
@@ -186,18 +176,12 @@ public class MatchActionsDAO {
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<ReactionsBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
-        try {
-            DatabaseHelper mHelper = new DatabaseHelper(mContext);
-            mHelper.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+
         return dataList;
     }
 
     public ArrayList<ReactionsBean> selectAllUploaded(@Nullable String match_id, String half, int type) {
         initDBHelper();
-//        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND half=" + half : "") + ((type == 0) ? " AND video_path !=''" : "") + " order by id ASC, match_id DESC";
 
         Cursor cursor;
         ArrayList<ReactionsBean> dataList;
@@ -276,11 +260,8 @@ public class MatchActionsDAO {
     }
 
     protected void closeCursor(Cursor cursor) {
-        try{ if (cursor != null) {
+        if (cursor != null) {
             cursor.close();
-        }
-        }catch (Exception e){
-            e.printStackTrace();
         }
     }
 
