@@ -28,8 +28,8 @@ class VideoUploadJobService : JobService() {
         builder.setJobSchedulerJobIdRange(MIN_JOB_ID, MAX_JOB_ID)
     }
 
-    override fun onStartJob(params: JobParameters?): Boolean {
-        notifHandler.attachToService(this, params!!)
+    override fun onStartJob(params: JobParameters): Boolean {
+        notifHandler.attachToService(this, params)
         return true
     }
 
