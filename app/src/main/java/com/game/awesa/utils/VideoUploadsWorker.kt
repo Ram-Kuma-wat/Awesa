@@ -229,6 +229,12 @@ class VideoUploadsWorker @Inject constructor(
                             }
                         try {
                             uploadList[index] = uploadList[index].copy(isDone = true)
+
+                            val model = it.error.model as ReactionsBean
+                            databaseManager.executeQuery { database ->
+                                val dao = MatchActionsDAO(database, context)
+                                dao.deleteAll(model.id)
+                            }
                         } catch (e: ConcurrentModificationException) {
                             Log.e(TAG, e.localizedMessage, e)
                         }
@@ -300,7 +306,11 @@ class VideoUploadsWorker @Inject constructor(
                 when (it) {
                     is UploadFailure -> {
                         Log.w(TAG, "-> Upload interview failed for ${work.localUri}")
-
+                        val model = it.error.model as InterviewBean
+                        databaseManager.executeQuery { database ->
+                            val dao = InterviewsDAO(database, context)
+                            dao.deleteAll(model.id)
+                        }
                     }
                     is UploadProgress -> notificationHandler.setProgress(it.progress)
                     is UploadInterviewSuccess -> {
