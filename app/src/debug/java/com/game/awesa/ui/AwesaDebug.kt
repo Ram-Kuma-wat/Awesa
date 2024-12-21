@@ -13,7 +13,6 @@ import dagger.hilt.android.HiltAndroidApp
 class AwesaDebug: Awesa() {
     override fun onCreate() {
         super.onCreate()
-        instance = this
         enableStrictMode()
     }
 
