@@ -6,8 +6,15 @@ import android.os.Build
 import android.util.Log
 import androidx.camera.camera2.Camera2Config
 import androidx.camera.core.CameraXConfig
+import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.video.PendingRecording
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
@@ -49,11 +56,29 @@ open class Awesa : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
 
     @Inject lateinit var databaseManager: DatabaseManager
 
+    val recorder: Recorder by lazy {
+        Recorder.Builder()
+            .setQualitySelector(QualitySelector.from(Quality.HD))
+            .build()
+    }
+
+    val preview: Preview by lazy {
+        val resolutionSelector = ResolutionSelector.Builder().setAspectRatioStrategy(
+            AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY).build()
+        Preview.Builder()
+            .setResolutionSelector(resolutionSelector)
+            .build()
+    }
+
+    val videoCapture: VideoCapture<Recorder> by lazy {
+        VideoCapture.withOutput(recorder)
+    }
+
     val currentRecording: MutableLiveData<Recording?> by lazy {
         MutableLiveData()
     }
 
-    val recordEvent: MutableLiveData<VideoRecordEvent> by lazy {
+    val recordEvent: MutableLiveData<VideoRecordEvent?> by lazy {
         MutableLiveData()
     }
 
@@ -66,7 +91,6 @@ open class Awesa : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
     companion object {
         val TAG: String = Awesa::class.java.simpleName
         lateinit var simpleCache: SimpleCache
-        lateinit var instance: Awesa
         const val EXO_PLAYER_CACHE_SIZE: Long = 90 * 1024 * 1024
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
         lateinit var exoDatabaseProvider: StandaloneDatabaseProvider
