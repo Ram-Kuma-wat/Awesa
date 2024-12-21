@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.IdRes
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.codersworld.awesalibs.listeners.OnConfirmListener
@@ -14,7 +15,9 @@ import com.game.awesa.ui.BaseActivity
 import com.game.awesa.ui.dashboard.extension.JBNavigationPosition
 import com.game.awesa.ui.dashboard.extension.active
 import com.game.awesa.ui.dashboard.extension.createFragment
+import com.game.awesa.ui.dashboard.extension.findNavigationByPosition
 import com.game.awesa.ui.dashboard.extension.findNavigationPositionById
+import com.game.awesa.ui.dashboard.extension.findTabByPosition
 import com.game.awesa.ui.dashboard.extension.getTag
 import com.game.awesa.ui.dashboard.extension.switchFragment
 import com.game.awesa.ui.dialogs.CustomDialog
@@ -26,6 +29,11 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
+    companion object {
+        const val EXTRA_ACTIVE_TAB = "mActiveTab"
+        val TAG: String = MainActivity::class.java.simpleName
+    }
+
     lateinit var binding: ActivityMainBinding
     private var navPosition: JBNavigationPosition = JBNavigationPosition.HOME
 
@@ -36,21 +44,50 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this@MainActivity,R.layout.activity_main)
-        binding.bottomNavigation.apply {
-            // Set a default position
-            active(navPosition.position) // Extension function
-            // Set a listener for handling selection events on bottom navigation items
-            setOnItemSelectedListener { item ->
-                navPosition = findNavigationPositionById(item.itemId)
-                switchFragment(navPosition)
+
+        if(savedInstanceState != null) {
+            val position = savedInstanceState.getInt(EXTRA_ACTIVE_TAB, 0)
+            navPosition = findNavigationByPosition(position)
+            binding.bottomNavigation.apply {
+                // Set a default position
+                active(navPosition.position) // Extension function
+                // Set a listener for handling selection events on bottom navigation items
+                setOnItemSelectedListener { item ->
+                    navPosition = findNavigationPositionById(item.itemId)
+                    switchFragment(navPosition)
+                }
+            }
+        } else {
+            binding.bottomNavigation.apply {
+                // Set a default position
+                active(navPosition.position) // Extension function
+                // Set a listener for handling selection events on bottom navigation items
+                setOnItemSelectedListener { item ->
+                    navPosition = findNavigationPositionById(item.itemId)
+                    switchFragment(navPosition)
+                }
             }
         }
+
+
         binding.bottomNavigation.selectedItemId = R.id.navHome
         val errReporter = ErrorReporter()
         errReporter.Init(this)
         errReporter.checkErrorAndSendMail(this)
 
 
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt(EXTRA_ACTIVE_TAB, navPosition.position)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        val position = savedInstanceState.getInt(EXTRA_ACTIVE_TAB, 0)
+        navPosition = findNavigationByPosition(position)
+        binding.bottomNavigation.selectedItemId = findTabByPosition(position)
     }
 
     private fun switchFragment(navPosition: JBNavigationPosition): Boolean {
@@ -64,33 +101,14 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
             ?: position.createFragment()
     }
 
-    override fun onPageChange(mPage: String?) {
+    override fun onPageChange(mPage: Int) {
         makePageChange(mPage)
     }
 
-    private fun makePageChange(mPage: String?) {
+    private fun makePageChange(mPage: Int) {
+        navPosition = findNavigationPositionById(binding.bottomNavigation.selectedItemId)
         binding.llHeader.visibility = View.VISIBLE
-        try {
-            when (mPage) {
-                "home" -> {
-                     binding.bottomNavigation.selectedItemId = R.id.navHome
-                }
-
-                "profile" -> {
-                    binding.bottomNavigation.selectedItemId = R.id.navProfile
-                }
-
-                "history" -> {
-                    binding.bottomNavigation.selectedItemId = R.id.navHistory
-                }
-
-                "settings" -> {
-                    binding.bottomNavigation.selectedItemId = R.id.navMore
-                }
-            }
-        } catch (ex1: Exception) {
-            makePageChange(mPage)
-        }
+        binding.bottomNavigation.selectedItemId = mPage
     }
 
     override fun onBackPressed() {

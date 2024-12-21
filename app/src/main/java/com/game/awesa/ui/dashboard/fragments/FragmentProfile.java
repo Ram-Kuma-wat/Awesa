@@ -56,7 +56,7 @@ import okhttp3.RequestBody;
 public class FragmentProfile extends Fragment implements View.OnClickListener,
         SSPickerOptionsBottomSheet.ImagePickerClickListener, OnConfirmListener,
         ImagePickerResultListener, OnResponse<UniversalObject> {
-    ApiCall mApiCall = new ApiCall(requireActivity());
+    ApiCall mApiCall = null;
 
     ImagePicker mImagePicker;
     @NotNull
@@ -69,6 +69,7 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mApiCall = new ApiCall(requireActivity());
     }
 
     @Override
@@ -122,7 +123,7 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
         super.onAttach(context);
         try {
             mListener = (OnPageChangeListener) context;
-            mListener.onPageChange("profile");
+            mListener.onPageChange(R.id.navProfile);
         } catch (Exception e) {
             e.printStackTrace();
         }

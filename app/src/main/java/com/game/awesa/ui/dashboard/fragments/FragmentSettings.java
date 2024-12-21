@@ -95,7 +95,7 @@ public class FragmentSettings extends Fragment implements View.OnClickListener, 
         try {
             mListener = (OnPageChangeListener) context;
             if (mListener != null) {
-                mListener.onPageChange("settings");
+                mListener.onPageChange(R.id.navMore);
             }
         } catch (Exception e) {
             e.printStackTrace();

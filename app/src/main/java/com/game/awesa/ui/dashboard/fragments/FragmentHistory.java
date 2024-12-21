@@ -118,7 +118,7 @@ public class FragmentHistory extends Fragment implements SwipeRefreshLayout.OnRe
         super.onAttach(context);
         try {
             mListener = (OnPageChangeListener) context;
-            mListener.onPageChange("history");
+            mListener.onPageChange(R.id.navHistory);
         } catch (Exception e) {
             e.printStackTrace();
         }

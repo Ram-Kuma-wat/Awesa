@@ -119,7 +119,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
         super.onAttach(context);
         try {
             mListener = (OnPageChangeListener) context;
-            mListener.onPageChange("home");
+            mListener.onPageChange(R.id.navHome);
         } catch (Exception e) {
             e.printStackTrace();
         }
