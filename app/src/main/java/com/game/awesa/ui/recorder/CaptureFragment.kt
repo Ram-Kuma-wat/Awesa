@@ -108,7 +108,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
     @Inject
     lateinit var databaseManager: DatabaseManager
-
     // UI with ViewBinding
     private lateinit var captureViewBinding: FragmentCaptureBinding
 
@@ -184,9 +183,9 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                 File(getAbsolutePathFromUri(event.outputResults.outputUri))
             }
             saveVideo()
-            captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
-            captureViewBinding.llUpload.visibility = View.VISIBLE
-            captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
+            captureViewBinding.statusOverlay.visibility = View.VISIBLE
+            captureViewBinding.progressLayout.visibility = View.VISIBLE
+            captureViewBinding.btnStartVideo.visibility = View.VISIBLE
         }
     }
 
@@ -460,15 +459,15 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
 
          when(mHalf) {
              1 -> {
-                 captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
-                 captureViewBinding.rlAnotherVideo.visibility = View.VISIBLE
-                 captureViewBinding.llUpload.visibility = View.GONE
-                 captureViewBinding.btnReTakeVideo.text = getString(com.game.awesa.R.string.lbl_start_first_half)
-                 captureViewBinding.btnReTakeVideo.setOnClickListener {
+                 captureViewBinding.btnStartVideo.visibility = View.VISIBLE
+                 captureViewBinding.statusOverlay.visibility = View.VISIBLE
+                 captureViewBinding.progressLayout.visibility = View.GONE
+                 captureViewBinding.btnStartVideo.text = getString(com.game.awesa.R.string.lbl_start_first_half)
+                 captureViewBinding.btnStartVideo.setOnClickListener {
                      mHalf = 1
-                     captureViewBinding.btnReTakeVideo.visibility = View.GONE
-                     captureViewBinding.rlAnotherVideo.visibility = View.GONE
-                     captureViewBinding.llUpload.visibility = View.GONE
+                     captureViewBinding.btnStartVideo.visibility = View.GONE
+                     captureViewBinding.statusOverlay.visibility = View.GONE
+                     captureViewBinding.progressLayout.visibility = View.GONE
                      initVideo()
                      startTimerCounter()
                  }
@@ -594,7 +593,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         super.onResume()
         if (currentRecording != null) {
             currentRecording?.resume()
-            resumeTimer()
         }
     }
 
@@ -602,7 +600,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
         super.onPause()
         if (currentRecording != null) {
             currentRecording?.pause()
-            pauseTimer()
         }
     }
 
@@ -724,11 +721,9 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             com.game.awesa.R.id.imgZoomIn -> {
                 zoomIn()
             }
-
             com.game.awesa.R.id.imgZoomOut -> {
                 zoomOut()
             }
-
             com.game.awesa.R.id.iv_stop -> {
                 stopRecording()
             }
@@ -875,14 +870,13 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             val mList: ArrayList<VideoUploadBean> = ArrayList()
             mList.add(mBean)
             dao.insert(mList)
-            captureViewBinding.llUpload.visibility = View.GONE
-
+            captureViewBinding.progressLayout.visibility = View.GONE
             CommonMethods.checkTrimServiceWithData(requireActivity(), TrimService::class.java, matchId)
             when (mHalf) {
                 1 -> {
-                    captureViewBinding.btnReTakeVideo.text = getString(com.game.awesa.R.string.lbl_start_second_half)
-                    captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
-                    captureViewBinding.btnReTakeVideo.setOnClickListener {
+                    captureViewBinding.btnStartVideo.text = getString(com.game.awesa.R.string.lbl_start_second_half)
+                    captureViewBinding.btnStartVideo.visibility = View.VISIBLE
+                    captureViewBinding.btnStartVideo.setOnClickListener {
                         startActivity(
                             Intent(
                                 context,
@@ -893,13 +887,13 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                     }
                 }
                 0, 3 -> {
-                    captureViewBinding.btnReTakeVideo.visibility = View.VISIBLE
-                    captureViewBinding.btnReTakeVideo.setOnClickListener {
+                    captureViewBinding.btnStartVideo.visibility = View.VISIBLE
+                    captureViewBinding.btnStartVideo.setOnClickListener {
                         mHalf = if (mHalf == 3) 2 else 1
                         initVideo()
-                        captureViewBinding.btnReTakeVideo.visibility = View.GONE
-                        captureViewBinding.rlAnotherVideo.visibility = View.GONE
-                        captureViewBinding.llUpload.visibility = View.GONE
+                        captureViewBinding.btnStartVideo.visibility = View.GONE
+                        captureViewBinding.statusOverlay.visibility = View.GONE
+                        captureViewBinding.progressLayout.visibility = View.GONE
                         startTimerCounter()
                     }
                 }
