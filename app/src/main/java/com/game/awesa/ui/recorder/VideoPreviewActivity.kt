@@ -76,6 +76,8 @@ class VideoPreviewActivity : AppCompatActivity() {
                     }
                 } catch (ex: IllegalStateException) {
                     Log.e(TAG, ex.localizedMessage, ex)
+                } catch (ex: UninitializedPropertyAccessException) {
+                    Log.e(TAG, ex.localizedMessage, ex)
                 }
             }
         })
