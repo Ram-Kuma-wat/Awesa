@@ -68,7 +68,7 @@ class TrimService : Service() {
         databaseManager.executeQuery { database ->
             val actionsDao = MatchActionsDAO(database, applicationContext)
             val matchId = strMatchId.ifEmpty { "" }
-            val mListReaction = actionsDao.selectAllForTrim(matchId,0) // 1 - LIMIT 1, 0 - ALL
+            val mListReaction = actionsDao.selectAllForTrim(matchId, 0) // 1 - LIMIT 1, 0 - ALL
 
             val videoDao = VideoMasterDAO(database, applicationContext)
             list = videoDao.selectAll(
