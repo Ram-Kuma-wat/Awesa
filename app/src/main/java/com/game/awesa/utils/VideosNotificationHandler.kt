@@ -16,7 +16,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
 import com.game.awesa.services.VideoUploadJobService
-import com.game.awesa.ui.MyApp
 import com.game.awesa.ui.matches.MatchDetailActivity
 import javax.inject.Inject
 import javax.inject.Singleton
