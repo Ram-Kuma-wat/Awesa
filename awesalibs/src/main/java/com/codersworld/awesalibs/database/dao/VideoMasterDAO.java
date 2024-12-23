@@ -172,21 +172,31 @@ public class VideoMasterDAO {
 
     public ArrayList<VideoUploadBean> selectAll() {
         initDBHelper();
-        String getAllDetails = " SELECT " + " * " + " FROM "
-                + TABLE_VIDEO_MASTER + " where 1=1 order by _id DESC";
-        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-        ArrayList<VideoUploadBean> dataList = manageCursor(cursor);
-        closeCursor(cursor);
+
+        String selection = "1 = 1";
+
+        Cursor cursor = mDatabase.query(TABLE_VIDEO_MASTER, new String[] {"*"}, selection, null, null, null,  COLUMN_KEY_ID + " DESC");
+
+        ArrayList<VideoUploadBean>  dataList = manageCursor(cursor);
+
+        cursor.close();
         return dataList;
     }
 
-    public ArrayList<VideoUploadBean> selectAll(String match_id, String half) {
+    public ArrayList<VideoUploadBean> selectAll(String match_id, String video_half) {
         initDBHelper();
-        String getAllDetails = " SELECT " + " * " + " FROM "
-                + TABLE_VIDEO_MASTER + " where upload_status = 0 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + ((CommonMethods.isValidString(half)) ? " AND video_half=" + half : "") + " order by _id DESC";
-        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-        ArrayList<VideoUploadBean> dataList = manageCursor(cursor);
-        closeCursor(cursor);
+
+        String selection = COLUMN_MATCH_ID + " = ? AND " + COLUMN_VIDEO_HALF + " = ?";
+        String[] selectionArgs = {
+                String.valueOf(match_id),
+                String.valueOf(video_half)
+        };
+
+        Cursor cursor = mDatabase.query(TABLE_VIDEO_MASTER, new String[] {"*"}, selection, selectionArgs, null, null,  COLUMN_KEY_ID + " DESC");
+
+        ArrayList<VideoUploadBean>  dataList = manageCursor(cursor);
+
+        cursor.close();
         return dataList;
     }
 

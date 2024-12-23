@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.codersworld.awesalibs.beans.VideoUploadBean;
 import com.codersworld.awesalibs.beans.matches.InterviewBean;
 import com.codersworld.awesalibs.beans.matches.ReactionsBean;
 import com.codersworld.awesalibs.database.DatabaseHelper;
@@ -157,23 +158,33 @@ public class MatchActionsDAO {
 
     public ArrayList<ReactionsBean> selectAllForPreview(String match_id) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where 1=1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") + " order by half,time ASC";
-        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-        ArrayList<ReactionsBean> dataList = manageCursor(cursor);
-        closeCursor(cursor);
-        try {
-            DatabaseHelper mHelper = new DatabaseHelper(mContext);
-            mHelper.close();
-        } catch (Exception e) {
 
-        }
+        String selection = "1 = 1 AND " + COLUMN_MATCH_ID + " = ?";
+        String[] selectionArgs = {
+                match_id,
+        };
+
+        Cursor cursor = mDatabase.query(
+            TABLE_MATCH_REACTIONS, new String[] {"*"},
+            selection,
+            selectionArgs,
+            null,
+            null,
+            COLUMN_HALF + ", " + COLUMN_TIME + " ASC"
+        );
+
+        ArrayList<ReactionsBean>  dataList = manageCursor(cursor);
+        cursor.close();
         return dataList;
     }
 
-    public ArrayList<ReactionsBean> selectAllForTrim(String matchId, int type) {
+    public ArrayList<ReactionsBean> selectAllForTrim(String matchId) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_MATCH_REACTIONS + " where video_path='' " + ((CommonMethods.isValidString(matchId)) ? " AND match_id=" + matchId : "") + " order by half, time ASC " + ((type==1) ? "LIMIT 1" : "");
-        Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
+        String getAllDetails = "SELECT * FROM " + TABLE_MATCH_REACTIONS + " where " + COLUMN_VIDEO_PATH + " = ? AND " + COLUMN_MATCH_ID + " = ? ORDER BY half, time ASC";
+        Cursor cursor = mDatabase.rawQuery(getAllDetails, new String[]{
+                "",
+                matchId
+        });
         ArrayList<ReactionsBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
 
