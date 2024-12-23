@@ -127,4 +127,7 @@
     <string name="video_update_success_notification_content">%1$d Videos wurden zum Spiel hinzugefügt %2$s</string>
     <string name="video_update_failure_notification">Aktualisierung von Video %1$s ist fehlgeschlagen</string>
     <string name="no_match_videos_available">Keine Match-Videos verfügbar</string>
+    <string name="lbl_start_extratime">Beginnen verlängerung</string>
+    <string name="lbl_record_extratime">Extra time aufzeichnen</string>
+    <string name="lbl_extratime">Extra time</string>
 </resources>
