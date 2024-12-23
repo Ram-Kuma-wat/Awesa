@@ -96,7 +96,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                         if (mBean.match_id != matchId.toInt()) return
 
                         val currentList = mAdapter?.currentList?.toMutableList()
-                        currentList?.removeIf { intArrayOf(-1, -2, -3).contains(it.local_id) }
+                        currentList?.removeIf { intArrayOf(-1, -2, -3, -4).contains(it.local_id) }
 
                         currentList?.replaceAll {
                             if(it.local_id == mBean.local_id) mBean else it
@@ -117,11 +117,11 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
 
                         if (mInterview.match_id != matchId.toInt()) return
 
-                        mInterview.half = 3
+                        mInterview.half = 4
                         mInterview.local_id = Int.MAX_VALUE
 
                         val currentList = mAdapter?.currentList?.toMutableList()
-                        currentList?.removeIf { intArrayOf(-1, -2, -3).contains(it.local_id) }
+                        currentList?.removeIf { intArrayOf(-1, -2, -3, -4).contains(it.local_id) }
 
                         currentList?.replaceAll {
                             if(it.local_id == Int.MAX_VALUE) mInterview else it
@@ -146,7 +146,6 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
     override fun onStart() {
         super.onStart()
         setupObserver()
-//        videoUploadsWorker.fetchVideos(matchId = matchId)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -194,10 +193,6 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
         }
 
         binding.swRefresh.setOnRefreshListener {
-//            matchId.let {
-//                videoUploadsWorker.cancelUpload(it.toLong())
-//            }
-
             loadVideos(isRefreshing = true)
         }
     }
@@ -227,16 +222,16 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
 
                         mAdapter?.submitList(null)
 
-                        var currentList = (response.daos as? List<VideosBean>)?.toMutableList()
+                        val currentList = (response.daos as? List<VideosBean>)?.toMutableList()
                         currentList?.addAll(0, mBeanMatch.info[0].videos)
 
                         if (!mBeanMatch.info[0].interview.isNullOrEmpty()) {
                             // Add uploaded interview to uploaded count
                             uploadedCount += 1
                             val interview = VideosBean()
-                            interview.id = -3
+                            interview.id = -4
                             interview.local_id = Int.MAX_VALUE
-                            interview.half = 3
+                            interview.half = 4
                             interview.match_id = matchId.toInt()
                             interview.thumbnail = mBeanMatch.info[0].interview_thumbnail
                             interview.video = mBeanMatch.info[0].interview
@@ -257,7 +252,6 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                         CommonMethods.changeView(binding.mNestedScroll, binding.llNoData)
 
                         updateProgressCount()
-//                        videoUploadsWorker.fetchVideos(matchId)
                     } else if (mBeanMatch.status == 99) {
                         UserSessions.clearUserInfo(this@MatchDetailActivity)
                         Global().makeConfirmation(mBeanMatch.msg, this@MatchDetailActivity, this)
@@ -282,7 +276,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                         }
 
                         val currentList = mAdapter?.currentList?.toMutableList()
-                        currentList?.removeIf { intArrayOf(-1, -2, -3).contains(it.local_id) }
+                        currentList?.removeIf { intArrayOf(-1, -2, -3, -4).contains(it.local_id) }
                         currentList?.removeIf { it.local_id == mCommonBean.localId }
 
                         mAdapter?.submitList(formatList(currentList ?: emptyList()))
@@ -340,7 +334,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             if (interviews.isNotEmpty()) {
                 val interview = VideosBean()
                 interview.local_id = Int.MAX_VALUE
-                interview.half = 3
+                interview.half = 4
                 interview.match_id = matchId.toInt()
                 interview.local_video = interviews[0].video
                 mList.add(interview)
@@ -372,6 +366,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                 1 -> headerItem.local_id = -1
                 2 -> headerItem.local_id = -2
                 3 -> headerItem.local_id = -3
+                4 -> headerItem.local_id = -4
             }
 
             when (header) {
@@ -382,6 +377,9 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                     headerItem.title = getString(R.string.lbl_second_half)
                 }
                 3 -> {
+                    headerItem.title = getString(R.string.lbl_extratime)
+                }
+                4 -> {
                     headerItem.title = getString(R.string.lbl_interview)
                 }
             }

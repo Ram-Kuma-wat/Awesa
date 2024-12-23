@@ -131,7 +131,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
 
         if (mMatchBean != null) {
             matchId = mMatchBean!!.id.toString()
-            CommonMethods.checkTrimServiceWithData(this@MatchOverviewActivity, TrimService::class.java, matchId)
             CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team1_image,binding.imgTeam1)
             CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team2_image,binding.imgTeam2)
         }
