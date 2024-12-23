@@ -102,9 +102,9 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
         return view;
     }
 
-    public void initApiCall(){
-        if (mApiCall ==null){
-            mApiCall=new ApiCall(requireActivity());
+    public void initApiCall() {
+        if (mApiCall == null){
+            mApiCall= new ApiCall(requireActivity());
         }
     }
     @NotNull
@@ -171,7 +171,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
         getDBGames();
     }
 
-    public void getDBGames(){
+    public void getDBGames() {
         SQLiteDatabase database = databaseManager.openDatabase();
         GamesCategoryDAO mDAO=new GamesCategoryDAO(database,requireActivity());
         if (mDAO !=null){
@@ -186,7 +186,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
             errorMsg(getString(R.string.something_wrong));
         }
     }
-    public void getGames(){
+    public void getGames() {
         if (CommonMethods.isNetworkAvailable(requireActivity())) {
             mApiCall.getGames(this, true,UserSessions.getUserInfo(requireActivity()).getId()+"", UserSessions.getFcmToken(requireActivity()));
         }else{
