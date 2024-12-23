@@ -141,7 +141,9 @@ open class Awesa : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
             if (CommonMethods.isValidArrayList(mList)) {
                 loop@ for (index in mList.indices) {
                     val mIntent = Intent(this, TrimService::class.java)
-                    mIntent.putExtra("matchId", mList[index].match_id)
+                    mIntent.putExtra(TrimService.EXTRA_MATCH_ID, mList[index].match_id)
+                    mIntent.putExtra(TrimService.EXTRA_MATCH_HALF, mList[index].video_half.toInt())
+                    mIntent.putExtra(TrimService.EXTRA_MATCH_FILE, File(mList[index].video_path))
                     this.startService(mIntent)
                     break@loop
                 }
