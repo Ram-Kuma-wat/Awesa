@@ -51,7 +51,7 @@ public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.GameHo
     public void addAll(ArrayList<ReactionsBean> mList){
         if (CommonMethods.isValidArrayList(mList)) {
             list = mList;
-            notifyItemRangeInserted(0, list.size());
+            notifyItemRangeChanged(0, list.size());
         }
     }
     public void delete(int position){
@@ -69,7 +69,7 @@ public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.GameHo
         }
     }
 
-    Integer half = null;
+    Integer half = -1;
     public void onBindViewHolder(@NonNull OverviewAdapter.GameHolder viewHolder, int position) {
         ReactionsBean mBean = list.get(position);
         viewHolder.binding.imgDelete.setVisibility(View.VISIBLE);
