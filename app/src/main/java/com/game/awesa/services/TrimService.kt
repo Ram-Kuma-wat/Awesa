@@ -21,12 +21,12 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class TrimService : Service() {
-    var list: ArrayList<VideoUploadBean> = ArrayList()
-    private var strMatchId = ""
 
     companion object {
         private val TAG = TrimService::class.java.simpleName
-        private const val EXTRA_MATCH_ID = "matchId"
+        const val EXTRA_MATCH_ID = "matchId"
+        const val EXTRA_MATCH_HALF = "mHalf"
+        const val EXTRA_MATCH_FILE = "mFile"
     }
 
     @Inject
@@ -55,32 +55,33 @@ class TrimService : Service() {
             // so we'll just stop it
             stopSelf()
         } else {
-            if (intent.hasExtra(EXTRA_MATCH_ID)) {
-                strMatchId = intent.getStringExtra(EXTRA_MATCH_ID) as String
-                getActions()
+            if (intent.hasExtra(EXTRA_MATCH_ID)
+                && intent.hasExtra(EXTRA_MATCH_HALF)
+                && intent.hasExtra(EXTRA_MATCH_FILE)) {
+                getActions(
+                    matchId = intent.getStringExtra(EXTRA_MATCH_ID) as String,
+                    mHalf = intent.getIntExtra(EXTRA_MATCH_HALF, -1),
+                    mFile = intent.getSerializableExtra(EXTRA_MATCH_FILE) as File
+                )
             }
         }
 
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun getActions() {
+    private fun getActions(matchId: String, mHalf: Int, mFile: File) {
         databaseManager.executeQuery { database ->
             val actionsDao = MatchActionsDAO(database, applicationContext)
-            val matchId = strMatchId.ifEmpty { "" }
-            val mListReaction = actionsDao.selectAllForTrim(matchId, 0) // 1 - LIMIT 1, 0 - ALL
+            val mListReaction = actionsDao.selectAllForTrim(matchId) // 1 - LIMIT 1, 0 - ALL
 
-            val videoDao = VideoMasterDAO(database, applicationContext)
-            list = videoDao.selectAll(
-                mListReaction[0].match_id.toString(),
-                mListReaction[0].half.toString()
-            )
-
-            media3Transformer.trimVideo(
-                matchId = matchId.toInt(),
-                inputUri = File(list[0].video_path).toUri(),
-                actions = mListReaction
-            )
+            if (!mListReaction.isNullOrEmpty()) {
+                media3Transformer.trimVideo(
+                    matchId = matchId.toInt(),
+                    half = mHalf,
+                    inputUri = mFile.toUri(),
+                    actions = mListReaction
+                )
+            }
         }
     }
 }

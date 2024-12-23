@@ -49,6 +49,7 @@ class Media3Transformer @Inject constructor(
     @SuppressLint("UnusedParameter")
     fun trimVideo(
         matchId: Int,
+        half: Int,
         inputUri: Uri,
         actions: List<ReactionsBean>
     ) {
@@ -64,7 +65,7 @@ class Media3Transformer @Inject constructor(
             if (videoFile.exists()) {
                 databaseManager.executeQuery { database ->
                     val dao = VideoMasterDAO(database, context)
-                    dao.deleteVideoById(matchId)
+                    dao.deleteVideoByMatch(matchId, half)
                     videoFile.delete()
                 }
             }
@@ -94,7 +95,7 @@ class Media3Transformer @Inject constructor(
                 if (videoFile.exists()) {
                     databaseManager.executeQuery { database ->
                         val dao = VideoMasterDAO(database, context)
-                        dao.deleteVideoById(matchId)
+                        dao.deleteVideoByMatch(matchId, half)
                         videoFile.delete()
                     }
                 }
