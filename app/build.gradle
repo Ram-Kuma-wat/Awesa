@@ -16,8 +16,8 @@ android {
         applicationId "com.itech.game.awesa"
         minSdk gradle.ext.minSdkVersion
         targetSdk gradle.ext.targetSdkVersion
-        versionCode 20
-        versionName "1.1.8"
+        versionCode 21
+        versionName "1.1.9"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
