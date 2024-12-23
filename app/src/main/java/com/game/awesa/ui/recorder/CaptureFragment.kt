@@ -871,7 +871,10 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
             mList.add(mBean)
             dao.insert(mList)
             captureViewBinding.progressLayout.visibility = View.GONE
-            CommonMethods.checkTrimServiceWithData(requireActivity(), TrimService::class.java, matchId)
+            val intent = Intent(requireActivity(), TrimService::class.java)
+            intent.putExtra(TrimService.EXTRA_MATCH_HALF, mHalf)
+            intent.putExtra(TrimService.EXTRA_MATCH_ID, mMatchBean?.id)
+            CommonMethods.checkTrimServiceWithData(requireActivity(), intent)
             when (mHalf) {
                 1 -> {
                     captureViewBinding.btnStartVideo.text = getString(com.game.awesa.R.string.lbl_start_second_half)

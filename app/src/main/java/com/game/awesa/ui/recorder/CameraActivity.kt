@@ -7,8 +7,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.database.CursorIndexOutOfBoundsException
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -21,6 +19,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.ScaleAnimation
 import android.widget.ImageView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
@@ -53,7 +52,7 @@ import com.game.awesa.services.TrimService
 import com.game.awesa.ui.Awesa
 import com.game.awesa.ui.BaseActivity
 import com.game.awesa.ui.LoginActivity
-import com.game.awesa.ui.dialogs.CustomDialog
+import com.game.awesa.ui.dialogs.RecordingDialog
 import com.game.awesa.utils.Global
 import com.google.gson.JsonSyntaxException
 import dagger.hilt.android.AndroidEntryPoint
@@ -74,7 +73,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         const val SIXTY = 60
         const val FIVE_MILLISECONDS = 5000L
         const val SECOND_HALF_TIME = 2700L
-        const val EXTRA_TIME = 900L
+        const val EXTRA_TIME = 2400L
         const val EXTRA_MATCH_HALF = "mHalf"
         const val EXTRA_MATCH_BEAN = "MatchBean"
         const val EXTRA_RECORDING_ID = "PendingRecordingId"
@@ -121,9 +120,6 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
 
     private val mArrayZoom = floatArrayOf(0.2f, 0.4f, 0.6f, 0.8f, 1.0f)
 
-    private var customDialog: CustomDialog? = null
-    private var isDialogOpen = false
-
     private val requestAudioPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -135,6 +131,23 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
 
     private var mMatchBean: MatchesBean.InfoBean? = null
     private var mHalf = 1
+
+    private var canExit: Boolean = true
+
+    private var callback = object: OnBackPressedCallback(canExit) {
+        override fun handleOnBackPressed() {
+//            if (doubleBackPressed) {
+//                finish()
+//                return
+//            }
+//            doubleBackPressed = true
+//            showMessage()
+//            Handler(Looper.getMainLooper()).postDelayed({
+//                doubleBackPressed = false
+//            }, 2000)
+        }
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -153,6 +166,8 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
             updateGoals()
             startTimerCounter()
         }
+
+        onBackPressedDispatcher.addCallback(this, callback)
 
         awesa.preview.surfaceProvider = binding.previewView.surfaceProvider
 
@@ -315,6 +330,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
     }
 
     @OptIn(ExperimentalPersistentRecording::class)
+    @Suppress("MagicNumber")
     private fun startRecording() {
 
         if (viewModel.currentRecording.value != null) {
@@ -323,7 +339,14 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
             return
         }
 
-        val name = "match_" + mMatchBean?.id + "_half_" + mHalf + ".mp4"
+        val name = when(mHalf) {
+            1 -> "match_" + mMatchBean?.id + "_half_" + mHalf + ".mp4"
+            2 -> "match_" + mMatchBean?.id + "_half_" + mHalf + ".mp4"
+            3 -> "match_" + mMatchBean?.id + "_extratime" + ".mp4"
+            4 -> "match_" + mMatchBean?.id + "_interview" + ".mp4"
+            else -> error("Match Period $mHalf is invalid")
+        }
+
         val contentValues = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, name)
         }
@@ -447,6 +470,25 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
                     UiState.IDLE -> {
                         Log.d(TAG, uiState.toString())
                         binding.statusOverlay.visibility = View.VISIBLE
+                        binding.btnStartVideo.text = getString(R.string.lbl_start_extratime)
+                    }
+                    UiState.RECORDING -> {
+                        binding.statusOverlay.visibility = View.GONE
+                        Log.d(TAG, uiState.toString())
+                    }
+                    UiState.FINALIZED -> {
+                        Log.d(TAG, uiState.toString())
+                    }
+                    UiState.RECOVERY -> {
+                        Log.d(TAG, uiState.toString())
+                    }
+                }
+            }
+            4 -> {
+                when (uiState) {
+                    UiState.IDLE -> {
+                        Log.d(TAG, uiState.toString())
+                        binding.statusOverlay.visibility = View.VISIBLE
                         binding.btnStartVideo.text = getString(R.string.lbl_start_interview1)
                     }
                     UiState.RECORDING -> {
@@ -485,24 +527,32 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
                 var recordedSeconds = TimeUnit.NANOSECONDS.toSeconds(event.recordingStats.recordedDurationNanos)
                 if (mHalf == 2) {
                     recordedSeconds += SECOND_HALF_TIME
+                } else if (mHalf == 3) {
+                    recordedSeconds += (SECOND_HALF_TIME * 2)
                 }
                 val time = convertRecordedTime(recordedSeconds)
                 binding.tvTimer.text = time
 
                 when(mHalf) {
                     1 -> {
-                        if (uiState == UiState.RECORDING && recordedSeconds >= SECOND_HALF_TIME + EXTRA_TIME) {
+                        if (uiState == UiState.RECORDING && recordedSeconds >= SECOND_HALF_TIME) {
                             stopRecording()
                             return
                         }
                     }
                     2 -> {
-                        if (uiState == UiState.RECORDING && recordedSeconds >= (SECOND_HALF_TIME * 2) + EXTRA_TIME) {
+                        if (uiState == UiState.RECORDING && recordedSeconds >= (SECOND_HALF_TIME * 2)) {
                             stopRecording()
                             return
                         }
                     }
                     3 -> {
+                        if (uiState == UiState.RECORDING && recordedSeconds >= (SECOND_HALF_TIME * 2) + EXTRA_TIME) {
+                            stopRecording()
+                            return
+                        }
+                    }
+                    4 -> {
 
                     }
                 }
@@ -689,7 +739,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
     @Suppress("MagicNumber")
     private fun startTimerCounter() {
         if (secondsPassed + 1 < Tags.recording_duration / BYTE) {
-            binding.countdownTimerTxt.text = "3"
+            binding.countdownTimerTxt.text = "5"
             binding.countdownTimerTxt.visibility = View.VISIBLE
             val scaleAnimation: Animation = ScaleAnimation(
                 1.0f,
@@ -708,11 +758,14 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
                 override fun onTick(millisUntilFinished: Long) {
                     binding.countdownTimerTxt.text = "${millisUntilFinished / BYTE}"
                     binding.countdownTimerTxt.setAnimation(scaleAnimation)
-                    binding.tvHalfStatus.setText(
-                        if (mHalf == 1) getString(R.string.lbl_first_half) else getString(
-                            R.string.lbl_second_half
-                        )
-                    )
+
+                    binding.tvHalfStatus.text = when(mHalf) {
+                        1 -> getString(R.string.lbl_first_half)
+                        2 -> getString(R.string.lbl_second_half)
+                        3 -> getString(R.string.lbl_extratime)
+                        4 -> getString(R.string.lbl_interview1)
+                        else -> error("Unknown State")
+                    }
                 }
 
                 override fun onFinish() {
@@ -729,16 +782,12 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         databaseManager.executeQuery { database ->
             val dao = MatchActionsDAO(database, this)
             val mBean = ReactionsBean()
-            mBean.match_id = if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id else 0
-            mBean.team_id = if (CommonMethods.isValidString(strTeamId)) strTeamId.toInt() else 0
-            mBean.team_name = if (mMatchBean != null && mMatchBean!!.id > 0) {
-                if (mMatchBean!!.team_id == strTeamId.toInt()) {
-                    mMatchBean!!.team1
-                } else {
-                    mMatchBean!!.team2
-                }
+            mBean.match_id = mMatchBean?.id ?: -1
+            mBean.team_id = strTeamId.toInt()
+            mBean.team_name = if (mMatchBean!!.team_id == strTeamId.toInt()) {
+                mMatchBean?.team1
             } else {
-                getString(R.string.app_name)
+                mMatchBean?.team2
             }
 
             var recordedSeconds = TimeUnit.NANOSECONDS.toSeconds(
@@ -747,6 +796,10 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
 
             if (mHalf == 2) {
                 recordedSeconds += SECOND_HALF_TIME
+            }
+
+            if (mHalf == 3) {
+                recordedSeconds += SECOND_HALF_TIME * 2
             }
 
             mBean.half = mHalf
@@ -782,7 +835,6 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
 
     @Suppress("MagicNumber")
     private fun saveVideo(file: File) {
-
         when(mHalf) {
             1 -> {
                 saveMatchVideo(file, mHalf)
@@ -793,11 +845,15 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
             }
             2 -> {
                 saveMatchVideo(file, mHalf)
-                mHalf = 3
-                makeConfirmation(getString(R.string.msg_video_success))
+                makeConfirmation(showExtraTime = true)
                 uiState = UiState.IDLE
             }
             3 -> {
+                saveMatchVideo(file, mHalf)
+                makeConfirmation()
+                uiState = UiState.IDLE
+            }
+            4 -> {
                 saveInterviewVideo(file)
             }
         }
@@ -805,8 +861,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
 
     @Suppress("MagicNumber")
     private fun saveMatchVideo(file: File, half: Int) {
-        val fileName = file.toString()
-            .substring(file.toString().lastIndexOf('/') + 1, file.toString().length)
+        val fileName = file.nameWithoutExtension
         val extension = "mp4"
         val timeStamp = SimpleDateFormat(
             "yyyy/MM/dd HH:mm:ss",
@@ -824,13 +879,16 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
             mBean.date = timeStamp
 
             dao.insert(mBean)
-            CommonMethods.checkTrimServiceWithData(this, TrimService::class.java, mMatchBean?.id.toString())
+            val intent = Intent(this, TrimService::class.java)
+            intent.putExtra(TrimService.EXTRA_MATCH_HALF, mHalf)
+            intent.putExtra(TrimService.EXTRA_MATCH_ID, mMatchBean?.id.toString())
+            intent.putExtra(TrimService.EXTRA_MATCH_FILE, file)
+            CommonMethods.checkTrimServiceWithData(this, intent)
         }
     }
 
     private fun saveInterviewVideo(file: File) {
-        val fileName = file.toString()
-            .substring(file.toString().lastIndexOf('/') + 1, file.toString().length)
+        val fileName = file.nameWithoutExtension
 
         val timeStamp = SimpleDateFormat(
             "yyyy/MM/dd HH:mm:ss",
@@ -839,8 +897,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
 
         databaseManager.executeQuery { database ->
             val dao = InterviewsDAO(database, this)
-            val matchId =
-                if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id.toString() else ""
+            val matchId = mMatchBean?.id.toString()
             dao.insert(matchId, fileName, file.toString(), "0", timeStamp)
 
             val intent = Intent(this, ProcessingActivity::class.java)
@@ -850,30 +907,32 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         }
     }
 
-    fun makeConfirmation(msg: String) {
-        if (!isDialogOpen) {
-            if (customDialog == null) {
-                customDialog = CustomDialog(
-                    this,
-                    msg,
-                    getString(R.string.lbl_interview),
-                    getString(R.string.lbl_end_video),
-                    this,
-                    "1"
-                )
-                customDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            }
-            isDialogOpen = true
-            if (customDialog!!.isShowing) {
-                customDialog!!.dismiss()
-            }
-            customDialog!!.show()
+    fun makeConfirmation(showExtraTime: Boolean = false) {
+        val dialog = RecordingDialog(this, showExtraTime)
+        dialog.show()
+        dialog.setOnClickEndVideoListener {
+            val intent = Intent(this, ProcessingActivity::class.java)
+            intent.putExtra(ProcessingActivity.EXTRA_MATCH_BEAN, mMatchBean)
+            startActivity(intent)
+            dialog.dismiss()
+            finish()
+        }
+        dialog.setOnClickRecordInterviewListener {
+            mHalf = 4
+            binding.statusOverlay.visibility = View.VISIBLE
+            binding.btnStartVideo.text = getString(R.string.lbl_start_interview)
+            dialog.dismiss()
+        }
+        dialog.setOnClickRecordExtraTimeListener {
+            mHalf = 3
+            binding.statusOverlay.visibility = View.VISIBLE
+            binding.btnStartVideo.text = getString(R.string.lbl_start_extratime)
+            dialog.dismiss()
         }
     }
 
     @OptIn(UnstableApi::class)
     override fun onConfirm(isTrue: Boolean, type: String) {
-        isDialogOpen = false
         if (isTrue) {
             if (type == "99") {
                 UserSessions.clearUserInfo(this)

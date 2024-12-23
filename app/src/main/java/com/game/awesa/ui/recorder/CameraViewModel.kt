@@ -27,8 +27,6 @@ class CameraViewModel @OptIn(UnstableApi::class)
 ) : ViewModel() {
     private var cameraProviderLiveData: MutableLiveData<ProcessCameraProvider>? = null
 
-    private var _recordEvent: MutableLiveData<VideoRecordEvent> = MutableLiveData()
-
     val recordEvent: LiveData<VideoRecordEvent?>
         get() {
             return awesa.recordEvent
