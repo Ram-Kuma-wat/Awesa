@@ -2,6 +2,7 @@ package com.codersworld.awesalibs.database;
 
 
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
@@ -11,7 +12,7 @@ import com.codersworld.awesalibs.utils.Tags;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DatabaseManager {
-
+    private static String TAG = DatabaseManager.class.getSimpleName();
     private final AtomicInteger mOpenCounter = new AtomicInteger();
     private static DatabaseManager instance;
     private final SQLiteOpenHelper mDatabaseHelper;
@@ -23,16 +24,16 @@ public class DatabaseManager {
 
     public synchronized SQLiteDatabase openDatabase() {
         mDatabase = mDatabaseHelper.getWritableDatabase();
-        Log.d(Tags.TAG,"Database open counter: " + mOpenCounter.get());
+        Log.d(TAG,"Database open counter: " + mOpenCounter.get());
         return mDatabase;
     }
 
     public synchronized void closeDatabase() {
        try {
            mDatabase.close();
-           Log.d(Tags.TAG, "Database close counter: " + mOpenCounter.get());
-       } catch (Exception e) {
-           e.printStackTrace();
+           Log.d(TAG, "Database close counter: " + mOpenCounter.get());
+       } catch (SQLiteException e) {
+           Log.e(TAG, e.getLocalizedMessage(), e);
        }
     }
 
@@ -41,8 +42,8 @@ public class DatabaseManager {
            SQLiteDatabase database = openDatabase();
            executor.run(database);
            closeDatabase();
-       } catch (Exception e) {
-           e.printStackTrace();
+       } catch (SQLiteException e) {
+           Log.e(TAG, e.getLocalizedMessage(), e);
        }
     }
 
