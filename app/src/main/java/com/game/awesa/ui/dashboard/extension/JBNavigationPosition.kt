@@ -20,7 +20,7 @@ fun findNavigationPositionById(id: Int): JBNavigationPosition = when (id) {
     JBNavigationPosition.PROFILE.id -> JBNavigationPosition.PROFILE
     JBNavigationPosition.HISTORY.id -> JBNavigationPosition.HISTORY
     JBNavigationPosition.MORE.id -> JBNavigationPosition.MORE
-     else -> JBNavigationPosition.HOME
+     else -> error("Invalid Tab position")
 }
 
 fun findTabByPosition(position: Int): Int = when (position) {
@@ -36,7 +36,7 @@ fun findNavigationByPosition(position: Int): JBNavigationPosition = when (positi
     1 -> JBNavigationPosition.PROFILE
     2 -> JBNavigationPosition.HISTORY
     3 -> JBNavigationPosition.MORE
-    else -> JBNavigationPosition.HOME
+    else -> error("Invalid Tab position")
 }
 
 fun JBNavigationPosition.createFragment(): Fragment = when (this) {
