@@ -108,8 +108,12 @@ class ResetPassActivity : BaseActivity(), OnConfirmListener,  OnClickListener,
             )
         ) {
 
-        }  else if  (!CommonMethods.isValidString(strPassword1)  || !strPassword1.equals(strPassword))  {
-            CommonMethods.setError(binding.etCPassword,this@ResetPassActivity,getString(R.string.invalid_password),getString(R.string.invalid_password))
+        } else if  (!CommonMethods.isValidString(strPassword1)  || !strPassword1.equals(strPassword))  {
+            CommonMethods.setError(
+                binding.etCPassword,this@ResetPassActivity,
+                getString(R.string.invalid_password),
+                getString(R.string.invalid_password)
+            )
         }else {
             makeReset(strPassword)
         }
@@ -119,20 +123,24 @@ class ResetPassActivity : BaseActivity(), OnConfirmListener,  OnClickListener,
         if (CommonMethods.isNetworkAvailable(this@ResetPassActivity)) {
               mApiCall!!.resetPassword(this, strParams[0],strEmail,strOTP)
         } else {
-            CommonMethods.errorDialog(this@ResetPassActivity,getResources().getString(R.string.error_internet),getResources().getString(R.string.app_name),getResources().getString(R.string.lbl_ok),);
+            CommonMethods.errorDialog(
+                this@ResetPassActivity,
+                getResources().getString(R.string.error_internet),
+                getResources().getString(R.string.app_name),
+                getResources().getString(R.string.lbl_ok)
+            )
         }
     }
 
-    var customDialog: CustomDialog? = null
-    var isDialogOpen = false
+    private var customDialog: CustomDialog? = null
+    private var isDialogOpen = false
      fun makeConfirmation(msg:String){
          if (!isDialogOpen) {
             if (customDialog == null) {
                 customDialog = CustomDialog(this@ResetPassActivity,msg,"" ,this, "1")
-                customDialog!!.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             }
             isDialogOpen = true
-            if (customDialog!! != null && customDialog!!.isShowing()) {
+            if (customDialog!!.isShowing) {
                 customDialog!!.dismiss()
             }
             customDialog!!.show()

@@ -168,31 +168,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
         }
     }
 
-    private fun checkCompression() {
-        if (CommonMethods.isValidArrayList(mListData)) {
-            var counter = 0
-            for(a in mListData.indices) {
-                if (!CommonMethods.isValidString(mListData[a].video)){
-                    counter++
-                }else{
-                    val file: File = File(mListData[a].video)
-                    val fileSize = (((file.length() / 1024).toString().toInt()) / 1024).toString().toInt()
-                    if (fileSize < 4) {
-                        counter++
-                        databaseManager.executeQuery {
-                            val mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
-                            mMatchActionsDAO.updateVideo("", "", mListData[a].id)
-                        }
-                    }
-                }
-            }
-            if (counter > 0){
-                val handler = Handler()
-                handler.postDelayed({}, 3000)
-            }
-        }
-    }
-
     @OptIn(UnstableApi::class)
     override fun OnReactionAction(mReactionsBean: ReactionsBean?, type: Int, position:Int) {
         if (type < 99) {
@@ -253,10 +228,9 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
         if (!isDialogOpen) {
             if (customDialog == null) {
                 customDialog = CustomDialog(this@MatchOverviewActivity,msg,getString(R.string.lbl_cancel) ,this, type)
-                customDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             }
             isDialogOpen = true
-            if (customDialog != null && customDialog!!.isShowing) {
+            if (customDialog!!.isShowing) {
                 customDialog!!.dismiss()
             }
             customDialog!!.show()

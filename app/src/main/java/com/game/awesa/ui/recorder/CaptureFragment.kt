@@ -918,7 +918,6 @@ class CaptureFragment : Fragment(), OnClickListener, OnResponse<UniversalObject>
                     this,
                     "1"
                 )
-                customDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             }
             isDialogOpen = true
             if (customDialog!!.isShowing) {

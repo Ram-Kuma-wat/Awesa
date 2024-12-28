@@ -50,6 +50,8 @@
                 android:id="@+id/btnLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:showDividers="middle"
+                android:divider="@drawable/divider"
                 android:layout_below="@+id/spacer"
                 android:layout_gravity="center"
                 android:gravity="center_vertical|end"
@@ -57,7 +59,7 @@
 
                 <TextView
                     android:id="@+id/btnEndVideo"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
                     android:background="@drawable/square_button_selector_one"
@@ -75,7 +77,7 @@
 
                 <TextView
                     android:id="@+id/btnStartExtraTime"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
                     android:background="@drawable/square_button_selector_one"
@@ -88,12 +90,12 @@
                     android:paddingEnd="@dimen/_10dp"
                     android:text="@string/lbl_record_extratime"
                     android:textSize="@dimen/_14sp"
-                    android:visibility="visible"
+                    android:visibility="gone"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/btnStartInterview"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
                     android:background="@drawable/square_button_selector_one"

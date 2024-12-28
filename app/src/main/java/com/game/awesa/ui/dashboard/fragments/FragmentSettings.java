@@ -110,11 +110,9 @@ public class FragmentSettings extends Fragment implements View.OnClickListener, 
             startActivity(new Intent(requireActivity(), WebViewActivity.class).putExtra("type", 3));
         } else   if (v == binding.rlLogout) {
             CustomDialog customDialog = new CustomDialog(requireActivity(), getString(R.string.lbl_exit_app_msg),getString(R.string.lbl_cancel) ,this, "2");
-            customDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             customDialog.show();
         } else   if (v == binding.rlDelete) {
             CustomDialog customDialog = new CustomDialog(requireActivity(), getString(R.string.lbl_delete_account_msg),getString(R.string.lbl_cancel) ,this, "1");
-            customDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             customDialog.show();
         } else if (v == binding.rlContactUs) {
             CommonMethods.moveToNext(requireActivity(), SupportActivity.class);

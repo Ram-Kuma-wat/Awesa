@@ -13,16 +13,16 @@ import com.game.awesa.databinding.RecordingDialogBinding;
 
 public class RecordingDialog extends Dialog {
     RecordingDialogBinding binding;
-    Boolean showExtrTime;
+    Boolean showExtraTime;
 
     public RecordingDialog(Context activity) {
         super(activity);
-        this.showExtrTime = false;
+        this.showExtraTime = false;
     }
 
-    public RecordingDialog(Context activity, Boolean showExtrTime) {
+    public RecordingDialog(Context activity, Boolean showExtraTime) {
         super(activity);
-        this.showExtrTime = showExtrTime;
+        this.showExtraTime = showExtraTime;
     }
 
     @Override
@@ -34,13 +34,11 @@ public class RecordingDialog extends Dialog {
         setCancelable(false);
         setCanceledOnTouchOutside(false);
         binding = DataBindingUtil.bind(view);
+        View v = getWindow().getDecorView();
+        v.setBackgroundResource(android.R.color.transparent);
 
-        if(showExtrTime) {
-            binding.btnLayout.setOrientation(LinearLayout.VERTICAL);
+        if(showExtraTime) {
             binding.btnStartExtraTime.setVisibility(View.VISIBLE);
-        } else {
-            binding.btnLayout.setOrientation(LinearLayout.HORIZONTAL);
-            binding.btnStartExtraTime.setVisibility(View.GONE);
         }
     }
 
