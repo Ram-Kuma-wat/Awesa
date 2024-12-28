@@ -73,6 +73,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         const val SIXTY = 60
         const val FIVE_MILLISECONDS = 5000L
         const val SECOND_HALF_TIME = 2700L
+        const val FULL_TIME = 5400L
         const val EXTRA_TIME = 2400L
         const val EXTRA_MATCH_HALF = "mHalf"
         const val EXTRA_MATCH_BEAN = "MatchBean"
@@ -532,30 +533,6 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
                 }
                 val time = convertRecordedTime(recordedSeconds)
                 binding.tvTimer.text = time
-
-                when(mHalf) {
-                    1 -> {
-                        if (uiState == UiState.RECORDING && recordedSeconds >= SECOND_HALF_TIME) {
-                            stopRecording()
-                            return
-                        }
-                    }
-                    2 -> {
-                        if (uiState == UiState.RECORDING && recordedSeconds >= (SECOND_HALF_TIME * 2)) {
-                            stopRecording()
-                            return
-                        }
-                    }
-                    3 -> {
-                        if (uiState == UiState.RECORDING && recordedSeconds >= (SECOND_HALF_TIME * 2) + EXTRA_TIME) {
-                            stopRecording()
-                            return
-                        }
-                    }
-                    4 -> {
-
-                    }
-                }
             }
             is VideoRecordEvent.Start -> {
                 uiState = UiState.RECORDING
@@ -794,16 +771,29 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
                 recordingState.recordingStats.recordedDurationNanos
             )
 
+            if (mHalf == 1) {
+                if (recordedSeconds > SECOND_HALF_TIME) {
+                    mBean.time = "45+${convertRecordedTime(recordedSeconds - SECOND_HALF_TIME)}"
+                } else {
+                    mBean.time = convertRecordedTime(recordedSeconds)
+                }
+            }
+
             if (mHalf == 2) {
-                recordedSeconds += SECOND_HALF_TIME
+                if(recordedSeconds > SECOND_HALF_TIME) {
+                    mBean.time = "90+${convertRecordedTime(recordedSeconds - SECOND_HALF_TIME)}"
+                } else {
+                    recordedSeconds += SECOND_HALF_TIME
+                    mBean.time = convertRecordedTime(recordedSeconds)
+                }
             }
 
             if (mHalf == 3) {
                 recordedSeconds += SECOND_HALF_TIME * 2
+                mBean.time = convertRecordedTime(recordedSeconds)
             }
 
             mBean.half = mHalf
-            mBean.time = convertRecordedTime(recordedSeconds)
             mBean.timestamp = TimeUnit.NANOSECONDS.toSeconds(
                 recordingState.recordingStats.recordedDurationNanos
             )
@@ -845,7 +835,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
             }
             2 -> {
                 saveMatchVideo(file, mHalf)
-                makeConfirmation(showExtraTime = true)
+                makeConfirmation()
                 uiState = UiState.IDLE
             }
             3 -> {
