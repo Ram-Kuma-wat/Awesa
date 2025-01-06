@@ -16,8 +16,8 @@ android {
         applicationId "com.itech.game.awesa"
         minSdk gradle.ext.minSdkVersion
         targetSdk gradle.ext.targetSdkVersion
-        versionCode 25
-        versionName "1.2.0"
+        versionCode 29
+        versionName "1.2.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -34,26 +34,11 @@ android {
         abi {
             enable true
             reset()
-            include 'armeabi-v7a', 'arm64-v8a' // , 'x86', 'x86_64'
+            include 'armeabi-v7a', 'arm64-v8a' // , 'x86_64'
             universalApk false
         }
-//        density {
-//            enable true
-//            reset()
-//            include "ldpi", "mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"
-//        }
     }
-  /*  bundle {
-        abi {
-            enableSplit true
-        }
-        density {
-            enableSplit true
-        }
-        language {
-            enableSplit true
-        }
-    }*/
+
     signingConfigs {
         release {
             storeFile file('../keystore/awesa.jks')
