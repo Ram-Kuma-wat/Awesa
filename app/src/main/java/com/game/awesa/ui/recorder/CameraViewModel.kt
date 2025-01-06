@@ -78,6 +78,7 @@ class CameraViewModel @OptIn(UnstableApi::class)
     }
 
     override fun onCleared() {
+        awesa.recordEvent.value = null
         super.onCleared()
     }
 
