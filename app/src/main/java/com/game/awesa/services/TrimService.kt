@@ -74,14 +74,12 @@ class TrimService : Service() {
             val actionsDao = MatchActionsDAO(database, applicationContext)
             val mListReaction = actionsDao.selectAllForTrim(matchId) // 1 - LIMIT 1, 0 - ALL
 
-            if (!mListReaction.isNullOrEmpty()) {
-                media3Transformer.trimVideo(
-                    matchId = matchId.toInt(),
-                    half = mHalf,
-                    inputUri = mFile.toUri(),
-                    actions = mListReaction
-                )
-            }
+            media3Transformer.trimVideo(
+                matchId = matchId.toInt(),
+                half = mHalf,
+                inputUri = mFile.toUri(),
+                actions = mListReaction
+            )
         }
     }
 }
