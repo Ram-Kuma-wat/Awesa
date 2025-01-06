@@ -94,7 +94,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
         }
 
         binding.rlPlay.setOnClickListener {
-            if (CommonMethods.isValidString(strInterview)){
+            if (CommonMethods.isValidString(strInterview)) {
                 val intent = Intent(this@MatchOverviewActivity, VideoPreviewActivity::class.java)
                 intent.putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, strInterview)
                 startActivity(intent)
@@ -108,7 +108,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
             }
         }
         binding.imgPlay.setOnClickListener {
-            if (CommonMethods.isValidString(strInterview)){
+            if (CommonMethods.isValidString(strInterview)) {
                 val intent = Intent(this@MatchOverviewActivity,VideoPreviewActivity::class.java)
                 intent.putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, strInterview)
                 startActivity(intent)

@@ -119,8 +119,6 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
     private var mImageView: ImageView? = null
     private var reaction = ""
 
-    private val mArrayZoom = floatArrayOf(0.2f, 0.4f, 0.6f, 0.8f, 1.0f)
-
     private val requestAudioPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -207,14 +205,6 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         outState.putSerializable(EXTRA_MATCH_BEAN, mMatchBean)
         outState.putSerializable(EXTRA_UI_START, uiState)
         super.onSaveInstanceState(outState)
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-    }
-
-    override fun onStop() {
-        super.onStop()
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -566,10 +556,6 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     private fun makeAction(imageView: ImageView) {
         if (isActionClick) {
             actionTimer()
@@ -901,6 +887,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         val dialog = RecordingDialog(this, showExtraTime)
         dialog.show()
         dialog.setOnClickEndVideoListener {
+            viewModel.recordEvent
             val intent = Intent(this, ProcessingActivity::class.java)
             intent.putExtra(ProcessingActivity.EXTRA_MATCH_BEAN, mMatchBean)
             startActivity(intent)
@@ -911,6 +898,8 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
             mHalf = 4
             binding.statusOverlay.visibility = View.VISIBLE
             binding.btnStartVideo.text = getString(R.string.lbl_start_interview)
+            binding.leftBtnLayout.visibility = View.GONE
+            binding.rightBtnLayout.visibility = View.GONE
             dialog.dismiss()
         }
         dialog.setOnClickRecordExtraTimeListener {

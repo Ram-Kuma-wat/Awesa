@@ -539,7 +539,7 @@
                 android:background="@drawable/btn_selector"
                 android:gravity="center"
                 android:padding="@dimen/_10dp"
-                android:text="@string/lbl_start_second_half"
+                android:text="@string/lbl_start_first_half"
                 android:textColor="@color/white"
                 android:textSize="@dimen/_14sp" />
         </RelativeLayout>

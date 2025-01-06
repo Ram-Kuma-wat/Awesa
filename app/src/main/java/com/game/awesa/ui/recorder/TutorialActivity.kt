@@ -9,7 +9,8 @@ import android.view.animation.Animation.AnimationListener
 import android.view.animation.AnimationUtils
  import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import com.codersworld.awesalibs.beans.matches.MatchesBean
+ import androidx.media3.common.util.UnstableApi
+ import com.codersworld.awesalibs.beans.matches.MatchesBean
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivitySplashBinding
@@ -21,6 +22,7 @@ class TutorialActivity : AppCompatActivity() {
 
     private var mMatchBean: MatchesBean.InfoBean? = null
 
+    @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_splash)
@@ -38,6 +40,7 @@ class TutorialActivity : AppCompatActivity() {
         binding.btnContinue.setOnClickListener {
             val intent = Intent(this, CameraActivity::class.java)
             intent.putExtra(CameraActivity.EXTRA_MATCH_BEAN, mMatchBean)
+            intent.putExtra(CameraActivity.EXTRA_MATCH_HALF, 1)
             startActivity(intent)
             finish()
         }

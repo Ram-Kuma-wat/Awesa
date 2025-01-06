@@ -173,7 +173,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
 
     public void getDBGames() {
         SQLiteDatabase database = databaseManager.openDatabase();
-        GamesCategoryDAO mDAO=new GamesCategoryDAO(database,requireActivity());
+        GamesCategoryDAO mDAO=new GamesCategoryDAO(database, requireActivity());
         if (mDAO !=null){
             mListGames =mDAO.selectAll();
             databaseManager.closeDatabase();
