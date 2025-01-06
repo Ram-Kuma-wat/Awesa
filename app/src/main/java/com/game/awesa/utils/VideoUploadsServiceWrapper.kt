@@ -1,5 +1,6 @@
 package com.game.awesa.utils
 
+import android.app.ForegroundServiceStartNotAllowedException
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.content.ComponentName
@@ -8,6 +9,7 @@ import android.content.Intent
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.game.awesa.services.VideoUploadJobService
@@ -50,12 +52,21 @@ class VideoUploadsServiceWrapper @Inject constructor(
         jobScheduler.cancel(JOB_ID)
     }
 
+    @Suppress("TooGenericExceptionCaught", "InstanceOfCheckForException")
     fun startService() {
         // we can't use foreground services on devices running >API 34
         if (SystemVersionUtils.isAtLeastU()) {
             startJobService()
         } else {
-            ContextCompat.startForegroundService(context, Intent(context, VideoUploadService::class.java))
+            try {
+                ContextCompat.startForegroundService(context, Intent(context, VideoUploadService::class.java))
+            } catch (e: Exception) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                    && e is ForegroundServiceStartNotAllowedException
+                ) {
+                    Log.e(TAG, e.localizedMessage, e)
+                }
+            }
         }
     }
 
