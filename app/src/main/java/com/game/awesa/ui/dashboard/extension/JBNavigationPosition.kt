@@ -7,7 +7,6 @@ import com.game.awesa.ui.dashboard.fragments.FragmentHome
 import com.game.awesa.ui.dashboard.fragments.FragmentProfile
 import com.game.awesa.ui.dashboard.fragments.FragmentSettings
 
-
 enum class JBNavigationPosition(val position: Int, val id: Int) {
     HOME(0, R.id.navHome),
     PROFILE(1, R.id.navProfile),

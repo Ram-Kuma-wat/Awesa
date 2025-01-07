@@ -3,8 +3,9 @@ package com.game.awesa.ui.dashboard
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import androidx.annotation.IdRes
+import androidx.activity.OnBackPressedCallback
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.codersworld.awesalibs.listeners.OnConfirmListener
@@ -69,13 +70,33 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
             }
         }
 
-
         binding.bottomNavigation.selectedItemId = R.id.navHome
         val errReporter = ErrorReporter()
         errReporter.Init(this)
         errReporter.checkErrorAndSendMail(this)
 
-
+        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                try {
+                    if (navPosition != JBNavigationPosition.HOME) {
+                        binding.bottomNavigation.selectedItemId = R.id.navHome
+                    } else {
+                        val customDialog = CustomDialog(
+                            this@MainActivity,
+                            resources.getString(R.string.lbl_exit_app_msg),
+                            resources.getString(R.string.lbl_cancel) ,
+                            this@MainActivity,
+                            "2")
+                        customDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                        customDialog.show()
+                    }
+                } catch (ex: IllegalStateException) {
+                    Log.e(TAG, ex.localizedMessage, ex)
+                } catch (ex: UninitializedPropertyAccessException) {
+                    Log.e(TAG, ex.localizedMessage, ex)
+                }
+            }
+        })
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -109,21 +130,6 @@ class MainActivity : BaseActivity(), OnPageChangeListener,OnConfirmListener {
         navPosition = findNavigationPositionById(binding.bottomNavigation.selectedItemId)
         binding.llHeader.visibility = View.VISIBLE
         binding.bottomNavigation.selectedItemId = mPage
-    }
-
-    override fun onBackPressed() {
-        if (!navPosition.getTag().equals("FragmentHome", true)) {
-            binding.bottomNavigation.selectedItemId = R.id.navHome
-        } else {
-            val customDialog = CustomDialog(
-                this@MainActivity,
-                resources.getString(R.string.lbl_exit_app_msg),
-                resources.getString(R.string.lbl_cancel) ,
-                this,
-                "2")
-            customDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            customDialog.show()
-        }
     }
 
     override fun onConfirm(isTrue: Boolean, type: String) {
