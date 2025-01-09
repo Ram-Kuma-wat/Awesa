@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,10 +23,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.codersworld.awesalibs.R
-import com.codersworld.awesalibs.mediapicker.addFragment
-import com.codersworld.awesalibs.mediapicker.createImageFile
 import com.codersworld.awesalibs.databinding.ActivityImagePickerBinding
-import com.codersworld.awesalibs.mediapicker.dateFormatForTakePicture
+import com.codersworld.awesalibs.mediapicker.addFragment
 import com.codersworld.awesalibs.mediapicker.dispatchTakePictureIntent
 import com.codersworld.awesalibs.mediapicker.getBooleanAttribute
 import com.codersworld.awesalibs.mediapicker.getColorAttribute
@@ -35,13 +35,10 @@ import com.codersworld.awesalibs.mediapicker.model.PickerConfig
 import com.codersworld.awesalibs.mediapicker.model.PickerType
 import com.codersworld.awesalibs.mediapicker.registerActivityResult
 import com.codersworld.awesalibs.mediapicker.replaceFragment
- import com.codersworld.awesalibs.mediapicker.ui.fragment.ImageFragment
+import com.codersworld.awesalibs.mediapicker.ui.fragment.ImageFragment
 import com.codersworld.awesalibs.mediapicker.util.isAtLeast13
 import com.codersworld.awesalibs.mediapicker.viewmodel.ImagePickerViewModel
- import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import kotlinx.coroutines.launch
 
 /**
  * ImagePickerActivity to display all the images folder wise.
@@ -49,6 +46,11 @@ import java.util.Locale
  * and the caller is notified via callback
  */
 class ImagePickerActivity : AppCompatActivity(), View.OnClickListener {
+
+    companion object {
+        val TAG: String = ImagePickerActivity::class.java.simpleName
+    }
+
     private lateinit var binding: ActivityImagePickerBinding
     private val viewModel: ImagePickerViewModel by viewModels {
         ViewModelProvider.AndroidViewModelFactory(application)
@@ -168,14 +170,18 @@ class ImagePickerActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun showCamera() {
         fileUri = dispatchTakePictureIntent(onGetImageFromCameraActivityResult)
+
     }
 
     /**
-     * Apps targeting for Android 13 or higher requires to declare READ_MEDIA_* to request the media that other apps have created.
+     * Apps targeting for Android 13 or higher requires to declare READ_MEDIA_
+     * to request the media that other apps have created.
      * The READ_EXTERNAL_STORAGE will not work on Android 13 and higher to access the media created by other apps.
-     * If the user previously granted app the READ_EXTERNAL_STORAGE permission, the system automatically grants the granular media permission.
+     * If the user previously granted app the READ_EXTERNAL_STORAGE permission,
+     * the system automatically grants the granular media permission.
      * [More Details](https://developer.android.com/about/versions/13/behavior-changes-13#granular-media-permissions)
-     * So for Android 13+ we are asking for permission READ_MEDIA_IMAGES and below that READ_EXTERNAL_STORAGE to get the images from device.
+     * So for Android 13+ we are asking for permission READ_MEDIA_IMAGES and
+     * below that READ_EXTERNAL_STORAGE to get the images from device.
      */
     private fun showGallery() {
         val permission = if (isAtLeast13()) {
@@ -193,11 +199,7 @@ class ImagePickerActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun getInitialFragment(): Fragment {
-         /* return if (pickerConfig.showFolders) {
-            FolderFragment.newInstance()
-        } else {*/
         return ImageFragment.newInstance()
-        //}
     }
 
     private fun checkForPermission(permission: String): Boolean {
@@ -240,8 +242,13 @@ class ImagePickerActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private val onGetImageFromCameraActivityResult =
-        registerActivityResult("Camera", errorCallback = { createSingleSelectionResult(null) }) {
-            fileUri?.let { uri -> checkForCropping(uri) } ?: createSingleSelectionResult(null)
+        registerActivityResult("Camera", errorCallback = {
+            createSingleSelectionResult(null) }
+        ) { result ->
+            Log.d(TAG, result.data?.getStringExtra(MediaStore.EXTRA_OUTPUT).toString())
+            fileUri?.let {
+                uri -> checkForCropping(uri)
+            } ?: createSingleSelectionResult(null)
         }
 
     private fun checkForCropping(imageUri: Uri) {
