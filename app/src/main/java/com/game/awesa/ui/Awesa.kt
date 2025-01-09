@@ -1,5 +1,6 @@
 package com.game.awesa.ui
 
+import android.app.ForegroundServiceStartNotAllowedException
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -144,7 +145,15 @@ open class Awesa : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
                     mIntent.putExtra(TrimService.EXTRA_MATCH_ID, mList[index].match_id)
                     mIntent.putExtra(TrimService.EXTRA_MATCH_HALF, mList[index].video_half.toInt())
                     mIntent.putExtra(TrimService.EXTRA_MATCH_FILE, File(mList[index].video_path))
-                    this.startService(mIntent)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        try {
+                            this.startService(mIntent)
+                        } catch (e: ForegroundServiceStartNotAllowedException) {
+                            Log.e(TAG, e.localizedMessage, e)
+                        }
+                    } else {
+                        this.startService(mIntent)
+                    }
                     break@loop
                 }
             }
