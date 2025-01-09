@@ -61,8 +61,8 @@ class VideoAdapter(
         val item = getItem(position)
 
         return when (item.local_id) {
-            -1, -2, -3, -4 -> R.layout.item_header
-            Int.MAX_VALUE -> R.layout.item_interview
+            "-1", "-2", "-3", "-4" -> R.layout.item_header
+            Int.MAX_VALUE.toString() -> R.layout.item_interview
             else -> R.layout.item_video
         }
     }
@@ -84,10 +84,10 @@ class VideoAdapter(
             @Suppress("MagicNumber")
             fun bind(video: VideosBean) {
                 binding.header.text = when(video.local_id) {
-                    -1 -> context.getString(R.string.lbl_first_half)
-                    -2 -> context.getString(R.string.lbl_second_half)
-                    -3 -> context.getString(R.string.lbl_extratime)
-                    -4 -> context.getString(R.string.lbl_interview1)
+                    "-1" -> context.getString(R.string.lbl_first_half)
+                    "-2" -> context.getString(R.string.lbl_second_half)
+                    "-3" -> context.getString(R.string.lbl_extratime)
+                    "-4" -> context.getString(R.string.lbl_interview1)
                     else -> null
                 }
             }

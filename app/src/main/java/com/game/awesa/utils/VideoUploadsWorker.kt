@@ -398,7 +398,7 @@ class VideoUploadsWorker @Inject constructor(
                 broadcastIntent.action = MatchDetailActivity.INTENT_ACTION_UPLOAD
                 val interViewVideoBean = VideosBean()
                 interViewVideoBean.video = mBean.videos?.video
-                interViewVideoBean.local_id = mBean.localId
+                interViewVideoBean.local_id = mBean.localId.toString()
                 interViewVideoBean.match_id = mBean.videos.match_id
                 interViewVideoBean.thumbnail = mBean.videos?.thumbnail
                 broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, interViewVideoBean)

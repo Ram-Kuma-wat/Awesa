@@ -96,7 +96,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                         if (mBean.match_id != matchId.toInt()) return
 
                         val currentList = mAdapter?.currentList?.toMutableList()
-                        currentList?.removeIf { intArrayOf(-1, -2, -3, -4).contains(it.local_id) }
+                        currentList?.removeIf { intArrayOf(-1, -2, -3, -4).contains(it.local_id.toInt()) }
 
                         currentList?.replaceAll {
                             if(it.local_id == mBean.local_id) mBean else it
@@ -118,13 +118,13 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                         if (mInterview.match_id != matchId.toInt()) return
 
                         mInterview.half = 4
-                        mInterview.local_id = Int.MAX_VALUE
+                        mInterview.local_id = Int.MAX_VALUE.toString()
 
                         val currentList = mAdapter?.currentList?.toMutableList()
-                        currentList?.removeIf { intArrayOf(-1, -2, -3, -4).contains(it.local_id) }
+                        currentList?.removeIf { intArrayOf(-1, -2, -3, -4).contains(it.local_id.toInt()) }
 
                         currentList?.replaceAll {
-                            if(it.local_id == Int.MAX_VALUE) mInterview else it
+                            if(it.local_id.toInt() == Int.MAX_VALUE) mInterview else it
                         }
 
                         mAdapter?.submitList(formatList(currentList ?: emptyList()))
@@ -230,7 +230,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                             uploadedCount += 1
                             val interview = VideosBean()
                             interview.id = -4
-                            interview.local_id = Int.MAX_VALUE
+                            interview.local_id = Int.MAX_VALUE.toString()
                             interview.half = 4
                             interview.match_id = matchId.toInt()
                             interview.thumbnail = mBeanMatch.info[0].interview_thumbnail
@@ -238,9 +238,9 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                             interview.local_video = null
                             interview.views = 0
 
-                            if (currentList?.any { it.local_id == Int.MAX_VALUE } == true) {
+                            if (currentList?.any { it.local_id == Int.MAX_VALUE.toString() } == true) {
                                 currentList.replaceAll {
-                                    if(it.local_id == Int.MAX_VALUE) interview else it
+                                    if(it.local_id == Int.MAX_VALUE.toString()) interview else it
                                 }
                             } else {
                                 currentList?.add(interview)
@@ -276,8 +276,8 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                         }
 
                         val currentList = mAdapter?.currentList?.toMutableList()
-                        currentList?.removeIf { intArrayOf(-1, -2, -3, -4).contains(it.local_id) }
-                        currentList?.removeIf { it.local_id == mCommonBean.localId }
+                        currentList?.removeIf { intArrayOf(-1, -2, -3, -4).contains(it.local_id.toInt()) }
+                        currentList?.removeIf { it.local_id == mCommonBean.localId.toString() }
 
                         mAdapter?.submitList(formatList(currentList ?: emptyList()))
                     } else if (CommonMethods.isValidString(mCommonBean.msg)) {
@@ -316,7 +316,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                 for (a in mData) {
                     val mBean = VideosBean()
                     mBean.isDelete = "0"
-                    mBean.local_id = a.id
+                    mBean.local_id = a.id.toString()
                     mBean.match_id = a.match_id
                     mBean.half = a.half
                     mBean.time = a.time
@@ -333,7 +333,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
 
             if (interviews.isNotEmpty()) {
                 val interview = VideosBean()
-                interview.local_id = Int.MAX_VALUE
+                interview.local_id = Int.MAX_VALUE.toString()
                 interview.half = 4
                 interview.match_id = matchId.toInt()
                 interview.local_video = interviews[0].video
@@ -363,10 +363,10 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             val headerItem = VideosBean()
             headerItem.match_id = matchId.toInt()
             when(header) {
-                1 -> headerItem.local_id = -1
-                2 -> headerItem.local_id = -2
-                3 -> headerItem.local_id = -3
-                4 -> headerItem.local_id = -4
+                1 -> headerItem.local_id = "-1"
+                2 -> headerItem.local_id = "-2"
+                3 -> headerItem.local_id = "-3"
+                4 -> headerItem.local_id = "-4"
             }
 
             when (header) {

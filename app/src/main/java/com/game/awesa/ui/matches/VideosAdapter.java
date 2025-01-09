@@ -87,7 +87,7 @@ public class VideosAdapter extends ListAdapter<MatchesBean.VideosBean, VideosAda
     public void updateVideo(ReactionsBean localBean, MatchesBean.VideosBean remoteBean) {
         if (localBean !=null && remoteBean !=null) {
             for (int index =0; index < list.size(); index++) {
-                if (list.get(index).getLocal_id() == localBean.getId()) {
+                if (Integer.parseInt(list.get(index).getLocal_id()) == localBean.getId()) {
                     list.set(index, remoteBean);
                     notifyItemChanged(index);
                     break;
