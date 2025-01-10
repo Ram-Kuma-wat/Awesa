@@ -1,4 +1,4 @@
-package com.codersworld.awesalibs.mediapicker;
+package com.codersworld.awesalibs.mediapicker
 
 import android.app.Activity
 import android.content.ContentUris
@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Parcelable
 import android.provider.MediaStore
+import android.util.Log
 import android.util.TypedValue
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -42,7 +43,9 @@ import kotlin.contracts.contract
  * Checks whether the any camera activity is available or not to handle the intent.
  * If there is camera activity open the camera
  */
-internal fun Context.dispatchTakePictureIntent(onGetImageFromCameraActivityResult: ActivityResultLauncher<Intent>): Uri? {
+internal fun Context.dispatchTakePictureIntent(
+    onGetImageFromCameraActivityResult: ActivityResultLauncher<Intent>
+): Uri? {
     Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
         packageManager?.run {
             takePictureIntent.resolveActivity(this)?.also {
@@ -56,16 +59,16 @@ internal fun Context.dispatchTakePictureIntent(onGetImageFromCameraActivityResul
                         also { photo ->
                             photoURI = FileProvider.getUriForFile(
                                 this@dispatchTakePictureIntent,
-                                "${applicationContext.packageName}.com.codersworld.awesalibs.provider",
+                                "${applicationContext.packageName}.provider",
                                 photo
                             )
-                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI) // photoURI
                             onGetImageFromCameraActivityResult.launch(takePictureIntent)
                         }
                         return photoURI
                     }
                 } catch (ex: IOException) {
-                    ex.printStackTrace()
+                    Log.e("CAMERA", ex.localizedMessage, ex)
                     return null
                 }
             }
@@ -79,7 +82,7 @@ internal fun Context.dispatchTakePictureIntent(onGetImageFromCameraActivityResul
  */
 internal fun Context.createImageFile(name: String = ""): File {
     val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-    return File.createTempFile("JPEG_${name}_", ".jpg", storageDir)
+    return File.createTempFile("JPEG_${name}_", ".jpeg", storageDir)
 }
 
 /**
@@ -292,7 +295,7 @@ internal fun Fragment.toast(string: String) {
 internal fun Context.getFileUri(filePath: String): Uri? {
     return FileProvider.getUriForFile(
         this,
-        "${applicationContext.packageName}.com.codersworld.awesalibs.provider",
+        "${applicationContext.packageName}.provider",
         File(filePath)
     )
 }
