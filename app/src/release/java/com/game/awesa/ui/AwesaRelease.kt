@@ -5,4 +5,4 @@ import dagger.hilt.android.HiltAndroidApp
 
 @UnstableApi
 @HiltAndroidApp
-class MyAppRelease: MyApp()
+class AwesaRelease: Awesa()

@@ -138,5 +138,8 @@
     <string name="video_update_success_notification_content">%1$d videos have been added to the match %2$s</string>
     <string name="video_update_failure_notification">Updating video %1$s failed</string>
     <string name="no_match_videos_available">No match videos available</string>
+    <string name="lbl_start_extratime">Beginnen verlängerung</string>
+    <string name="lbl_record_extratime">Extratime aufzeichnen</string>
+    <string name="lbl_extratime">Verlängerung</string>
 
 </resources>

@@ -22,7 +22,6 @@ import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadFailure
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadSuccess
 import com.game.awesa.utils.VideoUploadsRepository.UploadResult.UploadInterviewSuccess
 import com.google.gson.Gson
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -33,7 +32,6 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import javax.inject.Inject
 
@@ -115,7 +113,7 @@ class VideoUploadsRepository @Inject constructor(
                             t.localizedMessage
                         )
 
-                        if (t is FileNotFoundException) {
+                        if (t is java.io.FileNotFoundException) {
                             trySend(UploadFailure(
                                 error = MediaUploadException(
                                     model = reactionModel,
@@ -239,6 +237,15 @@ class VideoUploadsRepository @Inject constructor(
                             Tags.SB_UPLOAD_INTERVIEW_API,
                             t.localizedMessage
                         )
+
+                        if (t is java.io.FileNotFoundException) {
+                            trySend(UploadFailure(
+                                error = MediaUploadException(
+                                    model = interviewModel,
+                                    errorMessage = "Missing video url")
+                            )
+                            )
+                        }
                     }
 
                     override fun onResponse(call: Call<CommonBean>, response: Response<CommonBean>) {

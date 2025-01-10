@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
-        android:name=".ui.MyAppDebug"
+        android:name=".ui.AwesaDebug"
         tools:replace="android:name">
     </application>
 

@@ -2,10 +2,12 @@ package com.game.awesa.ui.recorder;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,7 +21,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OverviewAdapter extends RecyclerView.Adapter {
+public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.GameHolder> {
+     static final String TAG = OverviewAdapter.class.getSimpleName();
      public Context context;
      public List<ReactionsBean> list;
     OnReactionListener mListener;
@@ -33,72 +36,82 @@ public class OverviewAdapter extends RecyclerView.Adapter {
          this.list = list;
     }
 
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        return new GameHolder(LayoutInflater.from(this.context).inflate(R.layout.item_video, viewGroup, false));
+    @NonNull
+    public OverviewAdapter.GameHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        Context context = this.context;
+        LayoutInflater inflater
+                = LayoutInflater.from(context);
+
+        View gameItemView
+                = inflater
+                .inflate(R.layout.item_video,
+                        parent, false);
+
+        return new GameHolder(gameItemView);
     }
 
     public void addAll(ArrayList<ReactionsBean> mList){
-        if (CommonMethods.isValidArrayList(mList)){
+        if (CommonMethods.isValidArrayList(mList)) {
             list = mList;
-            notifyDataSetChanged();
+            notifyItemRangeChanged(0, list.size());
         }
     }
     public void delete(int position){
         if (CommonMethods.isValidList(list)){
-            if (list.size()>position) {
+            if (list.size() > position) {
                 list.remove(position);
-                notifyDataSetChanged();
+                notifyItemRemoved(position);
             }
         }
     }
     public void update(ReactionsBean mBeanReaction,int position){
         if (CommonMethods.isValidList(list) && mBeanReaction !=null){
-            list.set(position,mBeanReaction);
-            notifyDataSetChanged();
+            list.set(position, mBeanReaction);
+            notifyItemChanged(position, mBeanReaction);
         }
     }
-    String half="";
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int i) {
-        GameHolder mHolder = (GameHolder) viewHolder;
-        ReactionsBean mBean = list.get(i);
-        mHolder.binding.imgDelete.setVisibility(View.VISIBLE);
-        mHolder.binding.imgEdit.setVisibility(View.VISIBLE);
-        try{
-        }catch (Exception ex){
-            ex.printStackTrace();
+
+    Integer half = -1;
+    public void onBindViewHolder(@NonNull OverviewAdapter.GameHolder viewHolder, int position) {
+        ReactionsBean mBean = list.get(position);
+        viewHolder.binding.imgDelete.setVisibility(View.VISIBLE);
+        viewHolder.binding.imgEdit.setVisibility(View.VISIBLE);
+
+        switch (mBean.getHalf()) {
+            case 1:
+                viewHolder.binding.txtHalf.setText(context.getString(R.string.lbl_first_half));
+                break;
+            case 2:
+                viewHolder.binding.txtHalf.setText(context.getString(R.string.lbl_second_half));
+                break;
+            case 3:
+                viewHolder.binding.txtHalf.setText(context.getString(R.string.lbl_extratime));
+                break;
         }
-        mHolder.binding.txtHalf.setText((mBean.getHalf()==1)?context.getString(R.string.lbl_first_half):context.getString(R.string.lbl_second_half));
-        if (half.equalsIgnoreCase(mBean.getHalf()+"")){
-            mHolder.binding.txtHalf.setVisibility(View.GONE);
-        }else{
-            mHolder.binding.txtHalf.setVisibility(View.VISIBLE);
+
+        if (half == mBean.getHalf()) {
+            viewHolder.binding.txtHalf.setVisibility(View.GONE);
+        } else {
+            viewHolder.binding.txtHalf.setVisibility(View.VISIBLE);
         }
-        half = mBean.getHalf()+"";
-        CommonMethods.setTextWithHtml(mBean.getTeam_name(),mHolder.binding.txtTeam);
-        CommonMethods.setTextWithHtml(mBean.getReaction(),mHolder.binding.txtReaction);
-//        mHolder.binding.txtTeam.setText(mBean.getTitle());
-        mHolder.binding.txtTime.setText(mBean.getTime());
+        half = mBean.getHalf();
+        CommonMethods.setTextWithHtml(mBean.getTeam_name(), viewHolder.binding.txtTeam);
+        CommonMethods.setTextWithHtml(mBean.getReaction(), viewHolder.binding.txtReaction);
+        viewHolder.binding.txtTime.setText(mBean.getTime());
         try{
             if(CommonMethods.isValidString(mBean.getVideo())) {
-                mHolder.binding.imgThumbnail.setImageBitmap(CommonMethods.createVideoThumb(context, Uri.fromFile(new File(mBean.getVideo()))));
+                viewHolder.binding.imgThumbnail.setImageBitmap(CommonMethods.createVideoThumb(context, Uri.fromFile(new File(mBean.getVideo()))));
             }
         }catch (Exception ex){
-            ex.printStackTrace();
+            Log.e(TAG, ex.getLocalizedMessage(), ex);
         }
-        //new DownloadImage(mHolder.binding.imgThumbnail).execute(mBean.getVideo());
-
- /*
-        CommonMethods.loadImage(context, mBean.getTeam1_image(), mHolder.binding.imgTeam1);
-        mHolder.binding.tvTeam2.setText(mBean.getTeam2());
-        CommonMethods.loadImage(context, mBean.getTeam2_image(), mHolder.binding.imgTeam2);
-        mHolder.binding.txtDate.setText( mBean.getCreated_date() );*/
     }
 
     public int getItemCount() {
         return this.list.size();
     }
 
-    class GameHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class GameHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ItemVideoBinding binding;
 
         public GameHolder(View view) {
@@ -112,11 +125,11 @@ public class OverviewAdapter extends RecyclerView.Adapter {
         public void onClick(View view) {
             if (mListener !=null){
                 if (view.getId()==R.id.rlPlay) {
-                    mListener.OnReactionAction(list.get(getAdapterPosition()),1,getAdapterPosition());
+                    mListener.OnReactionAction(list.get(getBindingAdapterPosition()),1, getBindingAdapterPosition());
                 }else if(view.getId()==R.id.imgDelete){
-                    mListener.OnReactionAction(list.get(getAdapterPosition()),2,getAdapterPosition());
+                    mListener.OnReactionAction(list.get(getBindingAdapterPosition()),2, getBindingAdapterPosition());
                 }else{
-                    mListener.OnReactionAction(list.get(getAdapterPosition()),3,getAdapterPosition());
+                    mListener.OnReactionAction(list.get(getBindingAdapterPosition()),3, getBindingAdapterPosition());
                 }
             }
         }

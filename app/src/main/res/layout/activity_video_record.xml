@@ -229,6 +229,7 @@
 
                 <!-- Left Buttons -->
                 <LinearLayout
+                    android:id="@+id/leftBtnLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
@@ -329,6 +330,7 @@
 
                 <!-- Right Buttons -->
                 <LinearLayout
+                    android:id="@+id/rightBtnLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
@@ -445,7 +447,7 @@
                 android:textColor="@color/colorAccent"
                 android:textSize="100sp"
                 android:textStyle="bold"
-                android:visibility="visible"
+                android:visibility="gone"
                 tools:ignore="HardcodedText" />
             <!--Zoom Controls-->
             <LinearLayout
@@ -537,7 +539,7 @@
                 android:background="@drawable/btn_selector"
                 android:gravity="center"
                 android:padding="@dimen/_10dp"
-                android:text="@string/lbl_start_second_half"
+                android:text="@string/lbl_start_first_half"
                 android:textColor="@color/white"
                 android:textSize="@dimen/_14sp" />
         </RelativeLayout>

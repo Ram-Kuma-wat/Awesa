@@ -677,8 +677,6 @@ class InterviewFragment : Fragment(), OnClickListener, OnResponse<UniversalObjec
                 if (mMatchBean != null && mMatchBean!!.id > 0) mMatchBean!!.id.toString() else ""
             dao.insert(matchId, fileName, mediaFile.toString(), "0", timeStamp)
 
-            CommonMethods.checkTrimServiceWithData(requireActivity(), TrimService::class.java, matchId)
-
             val intent = Intent(requireActivity(), ProcessingActivity::class.java)
             intent.putExtra(EXTRA_MATCH_BEAN, mMatchBean)
             startActivity(intent)

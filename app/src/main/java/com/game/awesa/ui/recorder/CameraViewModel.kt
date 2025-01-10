@@ -2,14 +2,17 @@ package com.game.awesa.ui.recorder
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.PendingRecording
 import androidx.camera.video.Recording
+import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.codersworld.awesalibs.beans.matches.MatchesBean
+import androidx.media3.common.util.UnstableApi
+import com.game.awesa.ui.Awesa
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.ExecutionException
@@ -17,18 +20,23 @@ import javax.inject.Inject
 
 @HiltViewModel
 @Suppress("LongParameterList")
-class CameraViewModel @Inject constructor(
-    private val savedState: SavedStateHandle,
-    @ApplicationContext private val context: Context
+class CameraViewModel @OptIn(UnstableApi::class)
+@Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val awesa: Awesa
 ) : ViewModel() {
     private var cameraProviderLiveData: MutableLiveData<ProcessCameraProvider>? = null
 
-    private var mMatchBean: MatchesBean.InfoBean? = savedState[CameraActivity.EXTRA_MATCH_BEAN]
-    private var mHalf: Int? = savedState[CameraActivity.EXTRA_MATCH_HALF]
+    val recordEvent: LiveData<VideoRecordEvent?>
+        get() {
+            return awesa.recordEvent
+        }
 
-    private var _currentRecording: MutableLiveData<Recording?> = MutableLiveData()
-
-    val currentRecording: LiveData<Recording?> = _currentRecording
+    val currentRecording: LiveData<Recording?>
+        @OptIn(UnstableApi::class)
+        get() {
+            return awesa.currentRecording
+        }
 
     // Handle any errors (including cancellation) here.
     val processCameraProvider: LiveData<ProcessCameraProvider>?
@@ -54,11 +62,24 @@ class CameraViewModel @Inject constructor(
             return cameraProviderLiveData
         }
 
+    @OptIn(UnstableApi::class)
     fun setRecording(recording: Recording?) {
-        if(_currentRecording.value != null) {
-            _currentRecording.value?.stop()
+        if(awesa.currentRecording.value != null) {
+            awesa.currentRecording.value?.stop()
         }
-        _currentRecording.value = recording
+
+        awesa.recordEvent.value = null
+        awesa.currentRecording.value = recording
+    }
+
+    @OptIn(UnstableApi::class)
+    fun startRecording(pendingRecording: PendingRecording) {
+        awesa.startRecording(pendingRecording)
+    }
+
+    override fun onCleared() {
+        awesa.recordEvent.value = null
+        super.onCleared()
     }
 
     companion object {

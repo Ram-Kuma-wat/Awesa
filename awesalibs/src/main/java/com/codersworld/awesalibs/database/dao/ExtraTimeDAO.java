@@ -4,22 +4,21 @@ import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.codersworld.awesalibs.beans.matches.InterviewBean;
- import com.codersworld.awesalibs.database.DatabaseHelper;
+import com.codersworld.awesalibs.database.DatabaseHelper;
 import com.codersworld.awesalibs.utils.CommonMethods;
 
 import java.util.ArrayList;
 
-public class InterviewsDAO {
+public class ExtraTimeDAO {
 
-    private static final String TAG = InterviewsDAO.class.getSimpleName();
-    private static final String TABLE_INTERVIEWS = "interviews";
+    private static final String TAG = ExtraTimeDAO.class.getSimpleName();
+    private static final String TABLE_EXTRA_TIME = "extratime";
 
     // Contacts Table Columns names
     private static final String COLUMN_KEY_ID = "id";
@@ -32,13 +31,13 @@ public class InterviewsDAO {
     private SQLiteDatabase mDatabase;
     private final Context mContext;
 
-    public InterviewsDAO(SQLiteDatabase database, Context context) {
+    public ExtraTimeDAO(SQLiteDatabase database, Context context) {
         mDatabase = database;
         mContext = context;
     }
 
     public static String getCreateTable() {
-        return "CREATE TABLE " + TABLE_INTERVIEWS
+        return "CREATE TABLE " + TABLE_EXTRA_TIME
                 + "("
                 + COLUMN_KEY_ID + " INTEGER PRIMARY KEY,"
                 + COLUMN_MATCH_ID + " INT ,"
@@ -49,7 +48,7 @@ public class InterviewsDAO {
     }
 
     public static String getDropTable() {
-        return "DROP TABLE IF EXISTS " + TABLE_INTERVIEWS;
+        return "DROP TABLE IF EXISTS " + TABLE_EXTRA_TIME;
     }
 
     public void initDBHelper() {
@@ -66,14 +65,14 @@ public class InterviewsDAO {
 
         String[] selectionArgs = { String.valueOf(id) };
 
-        mDatabase.delete(TABLE_INTERVIEWS, "id = ?", selectionArgs);
+        mDatabase.delete(TABLE_EXTRA_TIME, "id = ?", selectionArgs);
     }
 
     public void deleteUploadedVideos() {
         initDBHelper();
 
         String[] selectionArgs = { String.valueOf(1) };
-        mDatabase.delete(TABLE_INTERVIEWS, "upload_status = ?", selectionArgs);
+        mDatabase.delete(TABLE_EXTRA_TIME, "upload_status = ?", selectionArgs);
     }
 
 
@@ -86,7 +85,7 @@ public class InterviewsDAO {
         contentValues.put(COLUMN_STATUS, param[3]);
         contentValues.put(COLUMN_CREATED_DATE, param[4]);
 
-        mDatabase.insert(TABLE_INTERVIEWS, null, contentValues);
+        mDatabase.insert(TABLE_EXTRA_TIME, null, contentValues);
     }
 
     public int getRowCount( String match_id) {
@@ -95,7 +94,7 @@ public class InterviewsDAO {
         String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
         String[] selectionArgs = {match_id};
 
-        Cursor cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, selection, selectionArgs, "", "", "");
+        Cursor cursor = mDatabase.query(TABLE_EXTRA_TIME, new String[] {"*"}, selection, selectionArgs, "", "", "");
 
         int count = cursor.getCount(); // getInt(0);
         cursor.close();
@@ -105,7 +104,7 @@ public class InterviewsDAO {
 
     public ArrayList<InterviewBean> selectAll(String match_id) {
         initDBHelper();
-        String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where 1 = 1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") +" order by id DESC";
+        String getAllDetails = " SELECT * FROM " + TABLE_EXTRA_TIME + " where 1 = 1 " + ((CommonMethods.isValidString(match_id)) ? " AND match_id=" + match_id : "") +" order by id DESC";
         Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
         ArrayList<InterviewBean> dataList = manageCursor(cursor);
         closeCursor(cursor);
@@ -119,12 +118,12 @@ public class InterviewsDAO {
         ArrayList<InterviewBean> dataList;
 
         if (match_id == null) {
-            cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, null, null, null, null,  COLUMN_KEY_ID + " DESC");
+            cursor = mDatabase.query(TABLE_EXTRA_TIME, new String[] {"*"}, null, null, null, null,  COLUMN_KEY_ID + " DESC");
         } else {
             String selection = COLUMN_MATCH_ID + " = ?"; // "1 = 1 AND " +
             String[] selectionArgs = {match_id};
 
-            cursor = mDatabase.query(TABLE_INTERVIEWS, new String[] {"*"}, selection, selectionArgs, null, null,  COLUMN_KEY_ID + " DESC");
+            cursor = mDatabase.query(TABLE_EXTRA_TIME, new String[] {"*"}, selection, selectionArgs, null, null,  COLUMN_KEY_ID + " DESC");
         }
 
         dataList = manageCursor(cursor);
@@ -136,7 +135,7 @@ public class InterviewsDAO {
     public ArrayList<InterviewBean> selectSingle(int counter) {
         initDBHelper();
         try {
-            String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where upload_status = 0 order by id DESC LIMIT 1";
+            String getAllDetails = " SELECT * FROM " + TABLE_EXTRA_TIME + " where upload_status = 0 order by id DESC LIMIT 1";
             Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
             ArrayList<InterviewBean> dataList = manageCursor(cursor);
             closeCursor(cursor);
@@ -169,28 +168,13 @@ public class InterviewsDAO {
         String selection = COLUMN_KEY_ID + " = ?";
         String[] selectionArgs = { String.valueOf(id) };
 
-        mDatabase.update(TABLE_INTERVIEWS, values, selection, selectionArgs);
+        mDatabase.update(TABLE_EXTRA_TIME, values, selection, selectionArgs);
     }
 
     protected void closeCursor(Cursor cursor) {
         if (cursor != null) {
             cursor.close();
         }
-    }
-
-    public int getLastInsertedId() {
-        initDBHelper();
-        String countQuery = "SELECT max(id) FROM " + TABLE_INTERVIEWS;
-        Cursor cursor = mDatabase.rawQuery(countQuery, null);
-        int maxid = 0;
-        if (cursor != null) {
-            if (cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                maxid = cursor.getInt(0);
-            }
-            closeCursor(cursor);
-        }
-        return maxid;
     }
 
     protected ArrayList<InterviewBean> manageCursor(Cursor cursor) {

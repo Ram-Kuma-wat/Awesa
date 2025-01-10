@@ -313,7 +313,7 @@ public class MatchesBean implements Serializable {
         @SerializedName("id")
         int id;
         @SerializedName("local_id")
-        int local_id;
+        String local_id;
         @SerializedName("match_id")
         int match_id;
         @SerializedName("title")
@@ -343,11 +343,11 @@ public class MatchesBean implements Serializable {
             this.match_id = match_id;
         }
 
-        public int getLocal_id() {
+        public String getLocal_id() {
             return local_id;
         }
 
-        public void setLocal_id(int local_id) {
+        public void setLocal_id(String local_id) {
             this.local_id = local_id;
         }
 

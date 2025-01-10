@@ -32,9 +32,7 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="@dimen/_5dp"
-                android:paddingTop="@dimen/_5dp"
-                android:paddingEnd="@dimen/_5dp">
+                android:padding="@dimen/_5dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"

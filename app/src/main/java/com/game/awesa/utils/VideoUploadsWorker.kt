@@ -229,6 +229,12 @@ class VideoUploadsWorker @Inject constructor(
                             }
                         try {
                             uploadList[index] = uploadList[index].copy(isDone = true)
+
+                            val model = it.error.model as ReactionsBean
+                            databaseManager.executeQuery { database ->
+                                val dao = MatchActionsDAO(database, context)
+                                dao.deleteAll(model.id)
+                            }
                         } catch (e: ConcurrentModificationException) {
                             Log.e(TAG, e.localizedMessage, e)
                         }
@@ -300,7 +306,11 @@ class VideoUploadsWorker @Inject constructor(
                 when (it) {
                     is UploadFailure -> {
                         Log.w(TAG, "-> Upload interview failed for ${work.localUri}")
-
+                        val model = it.error.model as InterviewBean
+                        databaseManager.executeQuery { database ->
+                            val dao = InterviewsDAO(database, context)
+                            dao.deleteAll(model.id)
+                        }
                     }
                     is UploadProgress -> notificationHandler.setProgress(it.progress)
                     is UploadInterviewSuccess -> {
@@ -388,7 +398,7 @@ class VideoUploadsWorker @Inject constructor(
                 broadcastIntent.action = MatchDetailActivity.INTENT_ACTION_UPLOAD
                 val interViewVideoBean = VideosBean()
                 interViewVideoBean.video = mBean.videos?.video
-                interViewVideoBean.local_id = mBean.localId
+                interViewVideoBean.local_id = mBean.localId.toString()
                 interViewVideoBean.match_id = mBean.videos.match_id
                 interViewVideoBean.thumbnail = mBean.videos?.thumbnail
                 broadcastIntent.putExtra(MatchDetailActivity.VIDEO_PARAMETER, interViewVideoBean)

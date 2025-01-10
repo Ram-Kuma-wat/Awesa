@@ -84,7 +84,6 @@ class LoginActivity : BaseActivity(), OnClickListener , OnConfirmListener,
         if (!isDialogOpen) {
             if (customDialog == null) {
                 customDialog = CustomDialog(this@LoginActivity,msg,resources.getString(R.string.lbl_cancel) ,this, "1")
-                customDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             }
             isDialogOpen = true
             if (customDialog!!.isShowing) {

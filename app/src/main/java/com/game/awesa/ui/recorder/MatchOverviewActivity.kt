@@ -58,7 +58,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
     lateinit var binding:ActivityMatchOverviewBinding
     private var mMatchBean : MatchesBean.InfoBean? = null
     private var matchId: String? = null
-    private var mAdapter: OverviewAdapter?=null
+    private var mAdapter: OverviewAdapter? = null
     private var mListData: ArrayList<ReactionsBean> = ArrayList()
     private var mBeanReaction: ReactionsBean? = null
     private var actionPosition =-1
@@ -94,7 +94,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
         }
 
         binding.rlPlay.setOnClickListener {
-            if (CommonMethods.isValidString(strInterview)){
+            if (CommonMethods.isValidString(strInterview)) {
                 val intent = Intent(this@MatchOverviewActivity, VideoPreviewActivity::class.java)
                 intent.putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, strInterview)
                 startActivity(intent)
@@ -108,7 +108,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
             }
         }
         binding.imgPlay.setOnClickListener {
-            if (CommonMethods.isValidString(strInterview)){
+            if (CommonMethods.isValidString(strInterview)) {
                 val intent = Intent(this@MatchOverviewActivity,VideoPreviewActivity::class.java)
                 intent.putExtra(VideoPreviewActivity.EXTRA_VIDEO_PATH, strInterview)
                 startActivity(intent)
@@ -131,7 +131,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
 
         if (mMatchBean != null) {
             matchId = mMatchBean!!.id.toString()
-            CommonMethods.checkTrimServiceWithData(this@MatchOverviewActivity, TrimService::class.java, matchId)
             CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team1_image,binding.imgTeam1)
             CommonMethods.loadImage(this@MatchOverviewActivity, mMatchBean!!.team2_image,binding.imgTeam2)
         }
@@ -166,31 +165,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
             }
 
             binding.swRefresh.isRefreshing = false
-        }
-    }
-
-    private fun checkCompression() {
-        if (CommonMethods.isValidArrayList(mListData)) {
-            var counter = 0
-            for(a in mListData.indices) {
-                if (!CommonMethods.isValidString(mListData[a].video)){
-                    counter++
-                }else{
-                    val file: File = File(mListData[a].video)
-                    val fileSize = (((file.length() / 1024).toString().toInt()) / 1024).toString().toInt()
-                    if (fileSize < 4) {
-                        counter++
-                        databaseManager.executeQuery {
-                            val mMatchActionsDAO = MatchActionsDAO(it, this@MatchOverviewActivity)
-                            mMatchActionsDAO.updateVideo("", "", mListData[a].id)
-                        }
-                    }
-                }
-            }
-            if (counter > 0){
-                val handler = Handler()
-                handler.postDelayed({}, 3000)
-            }
         }
     }
 
@@ -254,10 +228,9 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
         if (!isDialogOpen) {
             if (customDialog == null) {
                 customDialog = CustomDialog(this@MatchOverviewActivity,msg,getString(R.string.lbl_cancel) ,this, type)
-                customDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             }
             isDialogOpen = true
-            if (customDialog != null && customDialog!!.isShowing) {
+            if (customDialog!!.isShowing) {
                 customDialog!!.dismiss()
             }
             customDialog!!.show()

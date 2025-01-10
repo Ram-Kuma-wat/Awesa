@@ -10,7 +10,7 @@ import dagger.hilt.android.HiltAndroidApp
 
 @UnstableApi
 @HiltAndroidApp
-class MyAppDebug: MyApp() {
+class AwesaDebug: Awesa() {
     override fun onCreate() {
         super.onCreate()
         enableStrictMode()

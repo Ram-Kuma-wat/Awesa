@@ -1,11 +1,26 @@
 package com.game.awesa.ui
 
+import android.app.ForegroundServiceStartNotAllowedException
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import androidx.camera.camera2.Camera2Config
 import androidx.camera.core.CameraXConfig
+import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.video.PendingRecording
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
+import androidx.core.content.ContextCompat
+import androidx.core.util.Consumer
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
@@ -25,12 +40,12 @@ import dagger.Lazy
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
+import java.io.File
 import java.util.Locale
 import javax.inject.Inject
 
-
 @UnstableApi
-open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Provider, Configuration.Provider {
+open class Awesa : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Provider, Configuration.Provider {
     @Inject
     lateinit var androidInjector: DispatchingAndroidInjector<Any>
 
@@ -42,8 +57,40 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
 
     @Inject lateinit var databaseManager: DatabaseManager
 
+    val recorder: Recorder by lazy {
+        Recorder.Builder()
+            .setQualitySelector(QualitySelector.from(Quality.HD))
+            .build()
+    }
+
+    val preview: Preview by lazy {
+        val resolutionSelector = ResolutionSelector.Builder().setAspectRatioStrategy(
+            AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY).build()
+        Preview.Builder()
+            .setResolutionSelector(resolutionSelector)
+            .build()
+    }
+
+    val videoCapture: VideoCapture<Recorder> by lazy {
+        VideoCapture.withOutput(recorder)
+    }
+
+    val currentRecording: MutableLiveData<Recording?> by lazy {
+        MutableLiveData()
+    }
+
+    val recordEvent: MutableLiveData<VideoRecordEvent?> by lazy {
+        MutableLiveData()
+    }
+
+    val mainThreadExecutor by lazy { ContextCompat.getMainExecutor(this) }
+
+    private val captureListener = Consumer<VideoRecordEvent> { event ->
+        recordEvent.value = event
+    }
+
     companion object {
-        val TAG: String = MyApp::class.java.simpleName
+        val TAG: String = Awesa::class.java.simpleName
         lateinit var simpleCache: SimpleCache
         const val EXO_PLAYER_CACHE_SIZE: Long = 90 * 1024 * 1024
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
@@ -84,6 +131,10 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
         appInitializer.get().init(this)
     }
 
+    fun startRecording(recorder: PendingRecording) {
+        currentRecording.value = recorder.start(mainThreadExecutor, captureListener)
+    }
+
     private fun startTrimService() {
         databaseManager.executeQuery { database ->
             val mVideoMasterDAO = VideoMasterDAO(database, applicationContext)
@@ -91,8 +142,18 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
             if (CommonMethods.isValidArrayList(mList)) {
                 loop@ for (index in mList.indices) {
                     val mIntent = Intent(this, TrimService::class.java)
-                    mIntent.putExtra("matchId", mList[index].match_id)
-                    this.startService(mIntent)
+                    mIntent.putExtra(TrimService.EXTRA_MATCH_ID, mList[index].match_id)
+                    mIntent.putExtra(TrimService.EXTRA_MATCH_HALF, mList[index].video_half.toInt())
+                    mIntent.putExtra(TrimService.EXTRA_MATCH_FILE, File(mList[index].video_path))
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        try {
+                            this.startService(mIntent)
+                        } catch (e: ForegroundServiceStartNotAllowedException) {
+                            Log.e(TAG, e.localizedMessage, e)
+                        }
+                    } else {
+                        this.startService(mIntent)
+                    }
                     break@loop
                 }
             }
@@ -108,6 +169,7 @@ open class MyApp : MultiDexApplication(), HasAndroidInjector, CameraXConfig.Prov
 
     override fun onTerminate() {
         networkObserver.tryToUnregisterCallback()
+        currentRecording.value = null
         super.onTerminate()
     }
 

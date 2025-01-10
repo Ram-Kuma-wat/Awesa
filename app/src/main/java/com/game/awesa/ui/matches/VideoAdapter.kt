@@ -13,6 +13,7 @@ import androidx.viewbinding.ViewBinding
 import com.codersworld.awesalibs.beans.matches.MatchesBean.VideosBean
 import com.codersworld.awesalibs.listeners.OnDeleteVideoListener
 import com.codersworld.awesalibs.listeners.OnMatchListener
+import com.codersworld.awesalibs.listeners.OnReactionListener
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.R
 import com.game.awesa.databinding.ItemHeaderBinding
@@ -20,8 +21,10 @@ import com.game.awesa.databinding.ItemInterviewBinding
 import com.game.awesa.databinding.ItemVideoBinding
 import java.io.File
 
-class VideoAdapter(onActonActionMatchListener: OnMatchListener, onDeleteVideoListener: OnDeleteVideoListener) :
-    ListAdapter<VideosBean, VideoAdapter.VideoRecyclerViewHolder>(VideoDiffCallback()) {
+class VideoAdapter(
+    onActonActionMatchListener: OnMatchListener,
+    onDeleteVideoListener: OnDeleteVideoListener,
+) : ListAdapter<VideosBean, VideoAdapter.VideoRecyclerViewHolder>(VideoDiffCallback()) {
 
     companion object {
         val TAG: String = VideoAdapter::class.java.simpleName
@@ -53,12 +56,13 @@ class VideoAdapter(onActonActionMatchListener: OnMatchListener, onDeleteVideoLis
         }
     }
 
+    @Suppress("MagicNumber")
     override fun getItemViewType(position: Int): Int {
         val item = getItem(position)
 
         return when (item.local_id) {
-            -1, -2, -3 -> R.layout.item_header
-            Int.MAX_VALUE -> R.layout.item_interview
+            "-1", "-2", "-3", "-4" -> R.layout.item_header
+            Int.MAX_VALUE.toString() -> R.layout.item_interview
             else -> R.layout.item_video
         }
     }
@@ -76,13 +80,14 @@ class VideoAdapter(onActonActionMatchListener: OnMatchListener, onDeleteVideoLis
         class HeaderHolder(
             private val binding: ItemHeaderBinding,
             private val context: Context) : VideoRecyclerViewHolder(binding) {
-            init {}
 
+            @Suppress("MagicNumber")
             fun bind(video: VideosBean) {
                 binding.header.text = when(video.local_id) {
-                    -1 -> context.getString(R.string.lbl_first_half)
-                    -2 -> context.getString(R.string.lbl_second_half)
-                    -3 -> context.getString(R.string.lbl_interview1)
+                    "-1" -> context.getString(R.string.lbl_first_half)
+                    "-2" -> context.getString(R.string.lbl_second_half)
+                    "-3" -> context.getString(R.string.lbl_extratime)
+                    "-4" -> context.getString(R.string.lbl_interview1)
                     else -> null
                 }
             }
@@ -115,7 +120,7 @@ class VideoAdapter(onActonActionMatchListener: OnMatchListener, onDeleteVideoLis
                 CommonMethods.setTextWithHtml(video.title, binding.txtTeam)
                 binding.txtTime.text = video.time
                 try {
-                    if (CommonMethods.isValidString(video.local_video)) {
+                    if (video.video.isNullOrEmpty()) {
                         binding.imgThumbnail.setImageBitmap(
                             CommonMethods.createVideoThumb(
                                 context, Uri.fromFile(

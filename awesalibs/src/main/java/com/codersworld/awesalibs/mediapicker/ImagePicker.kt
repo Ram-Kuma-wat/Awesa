@@ -3,6 +3,7 @@ package com.codersworld.awesalibs.mediapicker;
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
+import android.os.ext.SdkExtensions
 import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
@@ -53,7 +54,8 @@ class ImagePicker public constructor(
 
     /**
      * Whether to allow multiple selection or not
-     * If only multiple selection is enabled and no value is passed for maxcount then the default pick size will be value of MAX_PICK_LIMIT = (15)
+     * If only multiple selection is enabled and no value is passed for maxcount
+     * then the default pick size will be value of MAX_PICK_LIMIT = (15)
      */
     fun multipleSelection(enable: Boolean): ImagePicker {
         multipleSelection(enable, MAX_PICK_LIMIT)
@@ -67,7 +69,9 @@ class ImagePicker public constructor(
     fun multipleSelection(enable: Boolean, maxCount: Int): ImagePicker {
         val pickerConfig = pickerConfigManager.getPickerConfig()
         if (enable) {
-            require(maxCount in 1..MAX_PICK_LIMIT) { "The maximum allowed image count should be in range of 1..$MAX_PICK_LIMIT. The end limit is inclusive." }
+            require(maxCount in 1..MAX_PICK_LIMIT) {
+                "The maximum allowed image count should be in range of 1..$MAX_PICK_LIMIT. The end limit is inclusive."
+            }
             pickerConfig.maxPickCount = maxCount
         }
         pickerConfig.allowMultipleSelection = enable
@@ -135,10 +139,13 @@ class ImagePicker public constructor(
 
     /**
      * Whether to open new photo picker for android 11+ or not.
-     * If the system picker is set to open the all other options except multi selection, max count and pick extension are ignored.
-     * The max count for picking image depends on the OS, you can get the maximum images count via MediaStore.getPickImagesMaxLimit().
+     * If the system picker is set to open the all other options except multi selection,
+     * max count and pick extension are ignored.
+     * The max count for picking image depends on the OS, you can get the maximum
+     * images count via MediaStore.getPickImagesMaxLimit().
      * SSImagePicker automatically manages the max pick count for the system picker.
-     * The system picker is always available on android 13+. It is although available on android 11+ if the criteria is matched.
+     * The system picker is always available on android 13+.
+     * It is although available on android 11+ if the criteria is matched.
      * The criteria are as follow [More Details](https://developer.android.com/training/data-storage/shared/photopicker)
      * 1. Run Android 11 (API level 30) or higher
      * 2. Receive changes to Modular System Components through Google System Updates
@@ -154,7 +161,8 @@ class ImagePicker public constructor(
      * If this is enabled for single selection the compress is done via UCrop library.
      * All the image captured via camera in any picker mode will be handled via UCrop library.
      * If the crop option is disabled but the compression is enabled then the UCrop will be opened for only compression.
-     * For multiple selection the height and width of images are divided by 1.5 to scale down the image and the quality is applied on that scaled down image
+     * For multiple selection the height and width of images are divided by 1.5
+     * to scale down the image and the quality is applied on that scaled down image
      */
     fun compressImage(enable: Boolean, quality: Int = 75): ImagePicker {
         val pickerConfig = pickerConfigManager.getPickerConfig()
@@ -168,7 +176,8 @@ class ImagePicker public constructor(
 
     /**
      * Opens either system picker or the ImagePickerActivity activity depending on the configuration.
-     * If the system picker is selected for android 11+ and the picker type is camera then the ImagePickerActivity is opened in camera mode.
+     * If the system picker is selected for android 11+ and the picker type is
+     * camera then the ImagePickerActivity is opened in camera mode.
      * The system picker is only available in android 11+ with some that meets some criteria set by system.
      * [More Details](https://developer.android.com/training/data-storage/shared/photopicker)
      */
@@ -202,7 +211,9 @@ class ImagePicker public constructor(
     private fun openSystemPhotoPicker(picker: ActivityResultLauncher<Intent>) {
         val intent = Intent(MediaStore.ACTION_PICK_IMAGES)
         if (pickerConfigManager.getPickerConfig().allowMultipleSelection) {
-            intent.putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, getMaxItems())
+            if (SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2) {
+                intent.putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, getMaxItems())
+            }
         }
         intent.type = pickerConfigManager.getPickerConfig().pickExtension.getMimeType()
         picker.launch(intent)

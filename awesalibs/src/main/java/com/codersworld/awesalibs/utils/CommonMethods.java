@@ -618,20 +618,16 @@ public class CommonMethods {
         }
     }
 
-    public static void checkTrimServiceWithData(Activity mContext, Class<?> serviceClass, String str) {
+    public static void checkTrimServiceWithData(Activity mContext, Intent intent) {
         try {
-            Intent mIntent  = new Intent(mContext, serviceClass);
-            if (CommonMethods.isValidString(str)){
-                mIntent.putExtra("matchId",str);
-            }
-            if (isNetworkAvailable(mContext) && !isServiceRunning(mContext, serviceClass)) {
-                mContext.startService(mIntent);
+
+            if (isNetworkAvailable(mContext)) {
+                mContext.startService(intent);
             } else {
-                mContext.stopService(mIntent);
-                mContext.startService(mIntent);
+                mContext.startService(intent);
             }
-        } catch (Exception ex1) {
-            ex1.printStackTrace();
+        } catch (SecurityException ex) {
+            Log.e("CommonMethods", ex.getLocalizedMessage(), ex);
         }
     }
 
@@ -643,24 +639,24 @@ public class CommonMethods {
                 mContext.stopService(new Intent(mContext, serviceClass));
                 mContext.startService(new Intent(mContext, serviceClass));
             }
-        } catch (Exception ex1) {
-            ex1.printStackTrace();
+        } catch (SecurityException ex) {
+            Log.e("CommonMethods", ex.getLocalizedMessage(), ex);
         }
     }
 
     public static void checkForegroundService(Activity mContext, Class<?> serviceClass) {
         try {
             ContextCompat.startForegroundService(mContext, new Intent(mContext, serviceClass));
-        } catch (Exception ex1) {
-            ex1.printStackTrace();
+        } catch (SecurityException ex) {
+            Log.e("CommonMethods", ex.getLocalizedMessage(), ex);
         }
     }
 
     public static void stopService(Activity mContext, Class<?> serviceClass) {
         try {
             mContext.stopService(new Intent(mContext, serviceClass));
-        } catch (Exception ex1) {
-            ex1.printStackTrace();
+        } catch (SecurityException ex) {
+            Log.e("CommonMethods", ex.getLocalizedMessage(), ex);
         }
     }
 
@@ -698,15 +694,11 @@ public class CommonMethods {
     public static int checkLocationPermission(Context mContext) {
         int mPermission = -1;
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                boolean isGranted = (mContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
-                if (isGranted) {
-                    mPermission = 1;
-                } else if (mContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
-                    mPermission = 0;
-                }
-            } else {
+            boolean isGranted = (mContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
+            if (isGranted) {
                 mPermission = 1;
+            } else if (mContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
+                mPermission = 0;
             }
         } catch (Exception e) {
             mPermission = -1;
@@ -717,15 +709,11 @@ public class CommonMethods {
     public static int checkLockScreenPermission(Context mContext) {
         int mPermission = -1;
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                boolean isGranted = (mContext.checkSelfPermission(Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
-                if (isGranted) {
-                    mPermission = 1;
-                } else if (mContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED) {
-                    mPermission = 0;
-                }
-            } else {
+            boolean isGranted = (mContext.checkSelfPermission(Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
+            if (isGranted) {
                 mPermission = 1;
+            } else if (mContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED) {
+                mPermission = 0;
             }
         } catch (Exception e) {
             mPermission = -1;
@@ -763,15 +751,11 @@ public class CommonMethods {
     public static int checkStoragePermission(Context mContext) {
         int mPermission = 0;
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                boolean isGranted = (mContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED);
-                if (isGranted) {
-                    mPermission = 1;
-                } else if (mContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
-                    mPermission = -1;
-                }
-            } else {
+            boolean isGranted = (mContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && mContext.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED);
+            if (isGranted) {
                 mPermission = 1;
+            } else if (mContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED || mContext.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
+                mPermission = -1;
             }
         } catch (Exception e) {
             mPermission = 0;

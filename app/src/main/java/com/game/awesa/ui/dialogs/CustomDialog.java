@@ -62,6 +62,8 @@ public class CustomDialog extends Dialog implements View.OnClickListener {
         setCancelable(isCancelable);
         setCanceledOnTouchOutside(isCancelable);
         binding = DataBindingUtil.bind(view);
+        View v = getWindow().getDecorView();
+        v.setBackgroundResource(android.R.color.transparent);
         if (strText != null && !strText.isEmpty()) {
             CommonMethods.textWithHtml(binding.txtTitle, strText);
         } else {

@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
 
-    <style name="Theme.Awesa" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.Awesa" parent="Theme.MaterialComponents.Light.NoActionBar"> <!-- MaterialComponents -->
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -17,6 +17,16 @@
         <!--  <item name="materialCalendarFullscreenTheme">@style/ThemeMaterialCalendar</item> -->
         <item name="otpViewStyle">@style/OtpWidget.OtpView</item>
         <item name="textInputStyle">@style/CustomTextInputStyle</item>
+    </style>
+
+    <style name="buttonStyle" parent="android:style/Widget.Button">
+        <item name="android:textColor">#fff</item>
+        <item name="backgroundColor">#fff</item>
+    </style>
+
+    <style name="Theme.Awesa.Button.OutlinedButton"
+        parent="Widget.MaterialComponents.Button.OutlinedButton">
+
     </style>
 
     <style name="CustomTextInputStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">

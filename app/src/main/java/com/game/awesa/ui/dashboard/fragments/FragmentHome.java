@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.codersworld.awesalibs.beans.game.GameBean;
+import com.codersworld.awesalibs.beans.matches.MatchesBean;
 import com.codersworld.awesalibs.database.DatabaseHelper;
 import com.codersworld.awesalibs.database.DatabaseManager;
 import com.codersworld.awesalibs.database.dao.GamesCategoryDAO;
@@ -32,6 +33,7 @@ import com.game.awesa.services.VideoUploadService;
 import com.game.awesa.ui.LoginActivity;
 import com.game.awesa.ui.SupportActivity;
 import com.game.awesa.ui.dashboard.adapter.GamesAdapter;
+import com.game.awesa.ui.recorder.CameraActivity;
 import com.game.awesa.ui.teams.TeamsActivity;
 import com.game.awesa.utils.Global;
 
@@ -51,9 +53,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
     @NotNull
     public static final String TAG = FragmentHome.class.getSimpleName();
 
-    public FragmentHome() {
-        //if required
-    }
+    public FragmentHome() {}
 
     @Override
     public void onResume() {
@@ -63,13 +63,11 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
     @Override
     public void onDestroy() {
         super.onDestroy();
-
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -95,33 +93,18 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
                     });
         }
         mListGames = new ArrayList<>();
-/*        GameBean.InfoBean mBean = new GameBean.InfoBean();
-        mBean.setTitle("Hadnball");
-        mBean.setId(1);
-        mBean.setImage("https://farmkey.in/admin/apk/handball.jpg");
-        mBean.setCounty(1);
-        mBean.setCounty_id(1);
-        mListGames.add(mBean);
 
-        mBean = new GameBean.InfoBean();
-        mBean.setTitle("Football");
-        mBean.setId(2);
-        mBean.setImage("https://farmkey.in/admin/apk/football.jpg");
-        mBean.setCounty(2);
-        mBean.setCounty_id(0);
-        mListGames.add(mBean);*/
         binding.imgFootBall.setOnClickListener(this);
         binding.imgHandBall.setOnClickListener(this);
 
-//        CommonMethods.checkForegroundService(requireActivity(), VideoUploadService.class); TODO: Refactor
         initApiCall();
         getGames();
         return view;
     }
 
-    public void initApiCall(){
-        if (mApiCall ==null){
-            mApiCall=new ApiCall(requireActivity());
+    public void initApiCall() {
+        if (mApiCall == null){
+            mApiCall= new ApiCall(requireActivity());
         }
     }
     @NotNull
@@ -136,9 +119,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
         super.onAttach(context);
         try {
             mListener = (OnPageChangeListener) context;
-            if (mListener != null) {
-                mListener.onPageChange("home");
-            }
+            mListener.onPageChange(R.id.navHome);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -148,9 +129,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
     public void onClick(View v) {
         if (v.getId() == R.id.imgFootBall) {
             CommonMethods.moveToNext(requireActivity(), TeamsActivity.class);
-        } else if (v.getId() == R.id.imgHandBall) {
-
-        }
+        } else if (v.getId() == R.id.imgHandBall) {}
     }
 
     @Override
@@ -192,9 +171,9 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
         getDBGames();
     }
 
-    public void getDBGames(){
+    public void getDBGames() {
         SQLiteDatabase database = databaseManager.openDatabase();
-        GamesCategoryDAO mDAO=new GamesCategoryDAO(database,requireActivity());
+        GamesCategoryDAO mDAO=new GamesCategoryDAO(database, requireActivity());
         if (mDAO !=null){
             mListGames =mDAO.selectAll();
             databaseManager.closeDatabase();
@@ -202,14 +181,12 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
                 GamesAdapter mGamesAdapter = new GamesAdapter(requireActivity(),mListGames );
                 binding.rvGames.setLayoutManager(new GridLayoutManager(requireActivity(),2));
                 binding.rvGames.setAdapter(mGamesAdapter);
-            }else{
-             //no data found
             }
-        }else{
+        } else {
             errorMsg(getString(R.string.something_wrong));
         }
     }
-    public void getGames(){
+    public void getGames() {
         if (CommonMethods.isNetworkAvailable(requireActivity())) {
             mApiCall.getGames(this, true,UserSessions.getUserInfo(requireActivity()).getId()+"", UserSessions.getFcmToken(requireActivity()));
         }else{

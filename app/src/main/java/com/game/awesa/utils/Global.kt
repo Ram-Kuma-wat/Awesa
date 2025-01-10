@@ -29,7 +29,6 @@ public class Global {
         if (!isDialogOpen) {
             if (customDialog == null) {
                 customDialog = CustomDialog(mActivity,msg,"" ,mListener, "99")
-                customDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             }
             isDialogOpen = true
             if (customDialog!!.isShowing) {
