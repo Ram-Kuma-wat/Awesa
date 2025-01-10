@@ -1,20 +1,18 @@
 package com.game.awesa.ui.dashboard.fragments;
 
+
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -45,19 +43,22 @@ import com.game.awesa.databinding.FragmentProfileBinding;
 import com.game.awesa.ui.LoginActivity;
 import com.game.awesa.ui.mediapicker.PickerOptions;
 import com.game.awesa.utils.Global;
-
+import com.game.awesa.utils.MediaPickerUtils;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
+import javax.inject.Inject;
+import dagger.hilt.android.AndroidEntryPoint;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 
+@AndroidEntryPoint
 public class FragmentProfile extends Fragment implements View.OnClickListener,
         SSPickerOptionsBottomSheet.ImagePickerClickListener, OnConfirmListener,
         ImagePickerResultListener, OnResponse<UniversalObject> {
     ApiCall mApiCall = null;
+
+    @Inject MediaPickerUtils mediaPickerUtils;
 
     ImagePicker mImagePicker;
     @NotNull
@@ -154,11 +155,11 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
                 CommonMethods.setError(binding.etUsername,requireActivity(),getString(R.string.error_username),getString(R.string.error_username));
             } else {
                 RequestBody user_id = RetrofitUtils.createPartFromString(UserSessions.getUserInfo(requireActivity()).getId()+"");
-                RequestBody fname = RetrofitUtils.createPartFromString(strFName+"");
-                RequestBody lname = RetrofitUtils.createPartFromString(strLName+"");
-                RequestBody email = RetrofitUtils.createPartFromString(strEmail+"");
-                RequestBody username = RetrofitUtils.createPartFromString(strUsername+"");
-                RequestBody phone = RetrofitUtils.createPartFromString(strPhone+"");
+                RequestBody fname = RetrofitUtils.createPartFromString(strFName);
+                RequestBody lname = RetrofitUtils.createPartFromString(strLName);
+                RequestBody email = RetrofitUtils.createPartFromString(strEmail);
+                RequestBody username = RetrofitUtils.createPartFromString(strUsername);
+                RequestBody phone = RetrofitUtils.createPartFromString(strPhone);
                 MultipartBody.Part part =null;
                 if (CommonMethods.isValidString(strFilePath)) {
                     part = RetrofitUtils.createFilePart("image", strFilePath, MediaType.parse("image/jpeg"));
@@ -174,7 +175,6 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
     }
 
     private PickerOptions pickerOptions = new PickerOptions(PickerType.GALLERY, true, true, false, 15, 5.5f, PickExtension.ALL, true, true, false, false, false);
-
 
     @Override
     public void onImageProvider(ImageProvider provider) {
@@ -213,28 +213,7 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
     public void onImagePick(Uri uri) {
         strFilePath = "";
         binding.imgProfile.setImageURI(uri);
-        strFilePath = getRealPathFromURI(uri);
-    }
-
-    public String getRealPathFromURI(Uri contentUri) {
-        String res = null;
-        String[] proj = {MediaStore.Images.Media.DATA};
-        Cursor cursor = requireActivity().getContentResolver().query(contentUri, proj, null, null, null);
-        if (cursor.moveToFirst()) {
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            res = cursor.getString(column_index);
-        }
-        cursor.close();
-        return res;
-    }
-
-    public String getPath(Uri uri) {
-        String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = requireActivity().managedQuery(uri, projection, null, null, null);
-        int column_index = cursor
-                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
+        strFilePath = mediaPickerUtils.getFilePath(uri);  // MediaUtils.getRealPathFromURI(requireContext(), uri); // new File(uri.getPath()).getAbsolutePath();
     }
 
     @Override
@@ -260,7 +239,7 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
             ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestMultiplePermissions.launch(
-                        new String[]{
+                        new String[] {
                                 Manifest.permission.MEDIA_CONTENT_CONTROL,
                                 Manifest.permission.READ_MEDIA_IMAGES,
                                 Manifest.permission.READ_MEDIA_VIDEO,
@@ -271,9 +250,6 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
             }
         } else {
             if (ActivityCompat.checkSelfPermission(
-                    requireActivity(),
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                     requireActivity(), Manifest.permission.READ_EXTERNAL_STORAGE
             ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                     requireActivity(), Manifest.permission.CAMERA
@@ -282,8 +258,7 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
             ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestMultiplePermissions.launch(
-                        new String[]{
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        new String[] {
                                 Manifest.permission.READ_EXTERNAL_STORAGE,
                                 Manifest.permission.CAMERA,
                                 Manifest.permission.RECORD_AUDIO
@@ -316,7 +291,6 @@ public class FragmentProfile extends Fragment implements View.OnClickListener,
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
             errorMsg(getString(R.string.something_wrong));
         }
     }
