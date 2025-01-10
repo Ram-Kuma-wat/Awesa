@@ -58,7 +58,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
     lateinit var binding:ActivityMatchOverviewBinding
     private var mMatchBean : MatchesBean.InfoBean? = null
     private var matchId: String? = null
-    private var mAdapter: OverviewAdapter?=null
+    private var mAdapter: OverviewAdapter? = null
     private var mListData: ArrayList<ReactionsBean> = ArrayList()
     private var mBeanReaction: ReactionsBean? = null
     private var actionPosition =-1
