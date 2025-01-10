@@ -174,7 +174,7 @@
         </receiver>
 
         <provider
-            android:name="com.codersworld.awesalibs.mediapicker.ImagePickerFileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">
@@ -182,10 +182,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_path" />
         </provider>
-        <!--        <activity
-                    android:name="com.yalantis.ucrop.UCropActivity"
-                    android:screenOrientation="portrait"
-                    android:theme="@style/Theme.AppCompat.Light.NoActionBar" />-->
     </application>
 
 </manifest>
