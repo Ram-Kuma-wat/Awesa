@@ -2,6 +2,7 @@ package com.game.awesa.ui.recorder;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.GameHolder> {
+     static final String TAG = OverviewAdapter.class.getSimpleName();
      public Context context;
      public List<ReactionsBean> list;
     OnReactionListener mListener;
@@ -101,7 +103,7 @@ public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.GameHo
                 viewHolder.binding.imgThumbnail.setImageBitmap(CommonMethods.createVideoThumb(context, Uri.fromFile(new File(mBean.getVideo()))));
             }
         }catch (Exception ex){
-            ex.printStackTrace();
+            Log.e(TAG, ex.getLocalizedMessage(), ex);
         }
     }
 
