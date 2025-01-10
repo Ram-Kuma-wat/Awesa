@@ -10,10 +10,12 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -25,6 +27,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.codersworld.awesalibs.R
 import com.codersworld.awesalibs.databinding.ActivityImagePickerBinding
 import com.codersworld.awesalibs.mediapicker.addFragment
+import com.codersworld.awesalibs.mediapicker.dateFormatForTakePicture
 import com.codersworld.awesalibs.mediapicker.dispatchTakePictureIntent
 import com.codersworld.awesalibs.mediapicker.getBooleanAttribute
 import com.codersworld.awesalibs.mediapicker.getColorAttribute
@@ -39,6 +42,10 @@ import com.codersworld.awesalibs.mediapicker.ui.fragment.ImageFragment
 import com.codersworld.awesalibs.mediapicker.util.isAtLeast13
 import com.codersworld.awesalibs.mediapicker.viewmodel.ImagePickerViewModel
 import kotlinx.coroutines.launch
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * ImagePickerActivity to display all the images folder wise.
@@ -170,7 +177,6 @@ class ImagePickerActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun showCamera() {
         fileUri = dispatchTakePictureIntent(onGetImageFromCameraActivityResult)
-
     }
 
     /**
