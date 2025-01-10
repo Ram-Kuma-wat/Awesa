@@ -19,8 +19,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.codersworld.awesalibs.beans.matches.MatchesBean
 import com.codersworld.awesalibs.beans.teams.TeamsBean
-import com.codersworld.awesalibs.database.DatabaseHelper
-import com.codersworld.awesalibs.database.DatabaseManager
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
 import com.codersworld.awesalibs.listeners.OnTeamsListener
@@ -42,17 +40,20 @@ import com.game.awesa.utils.Global
 
 class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener,
     OnResponse<UniversalObject>, OnTeamsListener {
+        companion object {
+            val TAG: String = OpponentTeamsActivity::class.java.simpleName
+        }
     lateinit var binding: ActivityOpponentTeamBinding
-    var location_type="1"
-    var mApiCall: ApiCall? = null
-    var game_category=""
-    var county=""
-    var league=""
-    var team_id=""
-    var opponent_team_id=""
-    var mAdapter :TeamsAdapter?=null
-    var mListTeams:ArrayList<TeamsBean.InfoBean> = ArrayList()
-    var mMatchBean:MatchesBean.InfoBean? =null
+    private var locationType = "1"
+    private var mApiCall: ApiCall? = null
+    private var gameCategory = ""
+    private var county = ""
+    private var league = ""
+    private var teamId = ""
+    private var opponentTeamId = ""
+    private var mAdapter :TeamsAdapter?=null
+    private var mListTeams: ArrayList<TeamsBean.InfoBean> = ArrayList()
+    private var mMatchBean: MatchesBean.InfoBean? =null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,34 +75,22 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
             league = intent.getStringExtra("league") as String
         }
         if (intent.hasExtra("team_id")) {
-            team_id = intent.getStringExtra("team_id") as String
+            teamId = intent.getStringExtra("team_id") as String
         }
         if (intent.hasExtra("game_category")) {
-            game_category = intent.getStringExtra("game_category") as String
+            gameCategory = intent.getStringExtra("game_category") as String
             getTeams("")
         }
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
             override fun onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {
-               /* var mListTeams1 : ArrayList<TeamsBean.InfoBean> =java.util.ArrayList()
-
-                if (charSequence.length>0){
-                    for (a in mListTeams.indices) {
-                        if (mListTeams[a].title.lowercase().contains(charSequence.toString().lowercase())){
-                            mListTeams1.add(mListTeams[a])
-                        }
-                    }
-                }else{
-                    mListTeams1 =mListTeams
-                }*/
                 mAdapter!!.filter(charSequence.toString().lowercase())
-               // setData(mListTeams1)
             }
 
             override fun afterTextChanged(editable: Editable) {}
         })    }
 
-    fun makeSelection(v1:Button,v2:Button){
+    private fun makeSelection(v1:Button, v2:Button){
         v1.setBackgroundResource(R.drawable.selected_bg)
         v2.setBackgroundResource(R.drawable.unselected_bg)
         v1.setTextColor(ContextCompat.getColor(this,R.color.white))
@@ -109,17 +98,17 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
     }
     override fun onClick(v: View?) {
         when(v!!.id){
-            R.id.btnHome->{
-                location_type="1"
+            R.id.btnHome-> {
+                locationType="1"
                 makeSelection(binding.btnHome,binding.btnAway)
             }
-            R.id.btnAway->{
-                location_type="2"
+            R.id.btnAway-> {
+                locationType="2"
                 makeSelection(binding.btnAway,binding.btnHome)
             }
-            R.id.btnStart->{
-                if(CommonMethods.isValidString(opponent_team_id)){
-                    if(hasStoragePermission()!!) {
+            R.id.btnStart-> {
+                if(CommonMethods.isValidString(opponentTeamId)){
+                    if(hasStoragePermission()) {
                         createMatch("","","");
                     }
                 }else{
@@ -129,16 +118,21 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
         }
     }
 
+    @Suppress("ComplexCondition")
     private fun hasStoragePermission(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity,Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity, Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this@OpponentTeamsActivity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
+            if (ActivityCompat.checkSelfPermission(
+                    this@OpponentTeamsActivity,Manifest.permission.READ_MEDIA_IMAGES
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                    this@OpponentTeamsActivity, Manifest.permission.READ_MEDIA_VIDEO
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                    this@OpponentTeamsActivity, Manifest.permission.CAMERA
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                    this@OpponentTeamsActivity, Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestMultiplePermissions.launch(
                     arrayOf(
-//                        Manifest.permission.MEDIA_CONTENT_CONTROL,
                         Manifest.permission.READ_MEDIA_IMAGES,
                         Manifest.permission.READ_MEDIA_VIDEO,
                         Manifest.permission.CAMERA,
@@ -149,9 +143,6 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
             }
         } else {
             if (ActivityCompat.checkSelfPermission(
-                    this@OpponentTeamsActivity,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                     this@OpponentTeamsActivity, Manifest.permission.READ_EXTERNAL_STORAGE
                 ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                     this@OpponentTeamsActivity, Manifest.permission.CAMERA
@@ -161,7 +152,6 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
             ) {
                 requestMultiplePermissions.launch(
                     arrayOf(
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.READ_EXTERNAL_STORAGE,
                         Manifest.permission.CAMERA,
                         Manifest.permission.RECORD_AUDIO
@@ -173,13 +163,15 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
         return true
     }
 
-    val requestMultiplePermissions =  registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+    private val requestMultiplePermissions =  registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
         permissions.entries.forEach {
             Log.d("DEBUG", "${it.key} = ${it.value}")
         }
     }
 
-    fun setData(mList:ArrayList<TeamsBean.InfoBean>) {
+    private fun setData(mList:ArrayList<TeamsBean.InfoBean>) {
         mAdapter = TeamsAdapter(this@OpponentTeamsActivity,mList,this,1)
         binding.rvTeams.adapter = mAdapter
      }
@@ -251,7 +243,7 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
                 }
             }
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Log.e(TAG, ex.localizedMessage, ex)
             errorMsg(getResources().getString(R.string.something_wrong));
         }
 
@@ -276,7 +268,7 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
     private fun getTeams(vararg strParams: String) {
         if (CommonMethods.isNetworkAvailable(this@OpponentTeamsActivity)) {
             mApiCall!!.getOpponentTeams(this, true,strParams[0],
-                UserSessions.getUserInfo(this@OpponentTeamsActivity).id.toString(),game_category,team_id,league)
+                UserSessions.getUserInfo(this@OpponentTeamsActivity).id.toString(), gameCategory, teamId, league)
         } else {
             CommonMethods.errorDialog(
                 this@OpponentTeamsActivity,
@@ -295,7 +287,18 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
         }else{
             if (CommonMethods.isNetworkAvailable(this@OpponentTeamsActivity)) {
                 mApiCall!!.createMatch(this, true,
-                    UserSessions.getUserInfo(this@OpponentTeamsActivity).id.toString(),game_category,county,if(location_type.equals("1"))team_id else opponent_team_id,league,if(location_type.equals("1")) opponent_team_id else team_id,location_type,strParams[0],strParams[1],strParams[2])
+                    UserSessions.getUserInfo(
+                        this@OpponentTeamsActivity).id.toString(),
+                    gameCategory,
+                    county,
+                    if (locationType == "1") teamId else opponentTeamId,
+                    league,
+                    if (locationType == "1") opponentTeamId else teamId,
+                    locationType,
+                    strParams[0],
+                    strParams[1],
+                    strParams[2]
+                )
             } else {
                 CommonMethods.errorDialog(
                     this@OpponentTeamsActivity,
@@ -308,6 +311,6 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
     }
 
     override fun onTeamSelection(mBeanTeam: TeamsBean.InfoBean) {
-        opponent_team_id = mBeanTeam.id.toString()
+        opponentTeamId = mBeanTeam.id.toString()
      }
 }
