@@ -144,7 +144,6 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
                 mMatchActionsDAO.selectAllForPreview(mMatchBean!!.id.toString()) as ArrayList<ReactionsBean>
             mListData = actionsList
             mAdapter?.addAll(mListData)
-//            checkCompression()
 
             val mInterviewsDAO = InterviewsDAO(database, this@MatchOverviewActivity)
             val interviews =
