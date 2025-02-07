@@ -77,7 +77,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
 
     ArrayList<GameBean.InfoBean> mListGames = new ArrayList<>();
     FragmentHomeBinding binding;
-    ApiCall mApiCall=null;
+    ApiCall mApiCall = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {

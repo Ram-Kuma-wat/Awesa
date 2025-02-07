@@ -59,7 +59,7 @@ class VideoUploadsWorker @Inject constructor(
     @AppCoroutineScope private val appCoroutineScope: CoroutineScope
 ) {
     companion object {
-        private const val TAG = "VideoUploadsWorker"
+        private val TAG = VideoUploadsWorker::class.java.simpleName
         const val DURATION_BEFORE_STOPPING_SERVICE = 1000L
     }
 
@@ -79,7 +79,6 @@ class VideoUploadsWorker @Inject constructor(
     }
 
     private fun areEquivalent(old: Work, new: Work): Boolean {
-//        val hasSameId = old.videoId == new.videoId
         val hasSameUrl = old.localUri == new.localUri
 
         return hasSameUrl // hasSameId &&

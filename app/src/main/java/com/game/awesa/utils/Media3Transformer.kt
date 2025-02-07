@@ -58,10 +58,18 @@ class Media3Transformer @Inject constructor(
             Log.e(TAG, "exception: ${exception.localizedMessage}", exception)
         }
 
+        if (inputUri.path == null) {
+            databaseManager.executeQuery { database ->
+                val dao = VideoMasterDAO(database, context)
+                dao.deleteVideoByMatch(matchId, half)
+            }
+            return
+        }
+
         var actionCount: Int = actions.size
 
         if (actionCount == 0) {
-            val videoFile = File(inputUri.path)
+            val videoFile = File(inputUri.path!!)
             if (videoFile.exists()) {
                 databaseManager.executeQuery { database ->
                     val dao = VideoMasterDAO(database, context)
