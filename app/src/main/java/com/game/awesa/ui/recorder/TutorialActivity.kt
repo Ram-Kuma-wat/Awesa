@@ -1,8 +1,7 @@
 package com.game.awesa.ui.recorder
 
  import android.content.Intent
- import android.content.res.Configuration
-import android.os.Bundle
+ import android.os.Bundle
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.Animation.AnimationListener
@@ -16,8 +15,13 @@ import com.game.awesa.R
 import com.game.awesa.databinding.ActivitySplashBinding
 import com.game.awesa.utils.MyBounceInterpolator
 
-
 class TutorialActivity : AppCompatActivity() {
+
+    companion object {
+        const val EXTRA_MATCH_BEAN = "MatchBean"
+        val TAG: String = TutorialActivity::class.java.simpleName
+    }
+
     lateinit var binding: ActivitySplashBinding
 
     private var mMatchBean: MatchesBean.InfoBean? = null
@@ -30,11 +34,11 @@ class TutorialActivity : AppCompatActivity() {
         binding.btnContinue.visibility=View.VISIBLE
         animateButton()
 
-        if (intent.hasExtra(CameraActivity.EXTRA_MATCH_BEAN)) {
+        if (intent.hasExtra(EXTRA_MATCH_BEAN)) {
             mMatchBean =
                 CommonMethods.getSerializable(
                     intent,
-                    CameraActivity.EXTRA_MATCH_BEAN,
+                    EXTRA_MATCH_BEAN,
                     MatchesBean.InfoBean::class.java)
         }
         binding.btnContinue.setOnClickListener {
@@ -49,19 +53,19 @@ class TutorialActivity : AppCompatActivity() {
     @Suppress("MagicNumber")
     fun animateButton() {
         // Load the animation
-        val myAnim = AnimationUtils.loadAnimation(this, R.anim.bounce)
+        val buttonBounceAnimation = AnimationUtils.loadAnimation(this, R.anim.bounce)
         val animationDuration: Double = 3.0 * 1000
-        myAnim.duration = animationDuration.toLong()
+        buttonBounceAnimation.duration = animationDuration.toLong()
 
         // Use custom animation interpolator to achieve the bounce effect
         val interpolator = MyBounceInterpolator(0.20, 20.0)
-        myAnim.interpolator = interpolator
+        buttonBounceAnimation.interpolator = interpolator
 
         // Animate the button
-        binding.btnContinue.startAnimation(myAnim)
+        binding.btnContinue.startAnimation(buttonBounceAnimation)
 
         // Run button animation again after it finished
-        myAnim.setAnimationListener(object : AnimationListener {
+        buttonBounceAnimation.setAnimationListener(object : AnimationListener {
             override fun onAnimationStart(arg0: Animation) {}
             override fun onAnimationRepeat(arg0: Animation) {}
             override fun onAnimationEnd(arg0: Animation) {

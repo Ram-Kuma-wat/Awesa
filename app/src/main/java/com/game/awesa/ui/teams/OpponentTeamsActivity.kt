@@ -33,7 +33,6 @@ import com.game.awesa.databinding.ActivityOpponentTeamBinding
 import com.game.awesa.ui.BaseActivity
 import com.game.awesa.ui.LoginActivity
 import com.game.awesa.ui.dashboard.MainActivity
-import com.game.awesa.ui.recorder.CaptureFragment
 import com.game.awesa.ui.recorder.TutorialActivity
 import com.game.awesa.utils.Global
 
@@ -230,7 +229,7 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
                     if (mMatchesBean.status == 1 && CommonMethods.isValidArrayList(mMatchesBean.info)) {
                         this.mMatchBean = mMatchesBean.info[0]
                         val intent = Intent(this@OpponentTeamsActivity, TutorialActivity::class.java)
-                        intent.putExtra(CaptureFragment.EXTRA_MATCH_BEAN, mMatchBean)
+                        intent.putExtra(TutorialActivity.EXTRA_MATCH_BEAN, mMatchBean)
                         startActivity(intent)
                     }else if (mMatchesBean.status == 99) {
                         UserSessions.clearUserInfo(this@OpponentTeamsActivity)
@@ -282,7 +281,7 @@ class OpponentTeamsActivity : BaseActivity() ,OnClickListener, OnConfirmListener
     private fun createMatch(vararg strParams: String) {
         if(mMatchBean !=null && mMatchBean!!.id>0){
             val intent = Intent(this@OpponentTeamsActivity, TutorialActivity::class.java)
-            intent.putExtra(CaptureFragment.EXTRA_MATCH_BEAN, mMatchBean)
+            intent.putExtra(TutorialActivity.EXTRA_MATCH_BEAN, mMatchBean)
             startActivity(intent)
         }else{
             if (CommonMethods.isNetworkAvailable(this@OpponentTeamsActivity)) {

@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.media3.common.util.UnstableApi;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,6 +20,7 @@ import com.game.awesa.databinding.ItemGameBinding;
 import com.game.awesa.ui.county.CountyActivity;
 import com.game.awesa.ui.league.LeagueActivity;
 import com.game.awesa.ui.recorder.CameraActivity;
+import com.game.awesa.ui.recorder.TutorialActivity;
 
 import java.util.List;
 
@@ -31,11 +33,12 @@ public class GamesAdapter extends RecyclerView.Adapter {
         this.list = list;
     }
 
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+    @NonNull
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         return new GameHolder(LayoutInflater.from(this.context).inflate(R.layout.item_game, viewGroup, false));
     }
 
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int i) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
         GameHolder mHolder = (GameHolder) viewHolder;
         GameBean.InfoBean mBean = list.get(i);
         mHolder.binding.txtGameTitle.setText(mBean.getTitle());
@@ -61,7 +64,7 @@ public class GamesAdapter extends RecyclerView.Adapter {
                 context.startActivity(new Intent(context, CountyActivity.class).putExtra("game_category", list.get(getAdapterPosition()).getId() + ""));
             } else {
                 if (BuildConfig.DEBUG) {
-                    Intent intent = new Intent(context, CameraActivity.class);
+                    Intent intent = new Intent(context, TutorialActivity.class);
                     MatchesBean.InfoBean mMatchBean = new MatchesBean.InfoBean();
                     mMatchBean.setId(32);
                     mMatchBean.setCounty_id(1);
@@ -73,7 +76,7 @@ public class GamesAdapter extends RecyclerView.Adapter {
                     mMatchBean.setTeam1("Manchester");
                     mMatchBean.setTeam2("Arsenal");
                     mMatchBean.setUser_id(32);
-                    intent.putExtra(CameraActivity.EXTRA_MATCH_BEAN, mMatchBean);
+                    intent.putExtra(TutorialActivity.EXTRA_MATCH_BEAN, mMatchBean);
                     context.startActivity(intent);
                     return;
                 }
