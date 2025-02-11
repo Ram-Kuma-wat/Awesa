@@ -41,7 +41,7 @@ public class Global {
     fun getAppVersion(): String {
         return BuildConfig.VERSION_NAME + "/" + BuildConfig.VERSION_CODE.toString()
     }
-    fun getVersionName(mActivity: Activity): String {
+    fun getVersionName(mActivity: Activity): String? {
         try {
             val manager = mActivity.packageManager
             val info = manager.getPackageInfo(mActivity.packageName, PackageManager.GET_ACTIVITIES)
