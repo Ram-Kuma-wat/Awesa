@@ -16,8 +16,8 @@ android {
         applicationId "com.itech.game.awesa"
         minSdk gradle.ext.minSdkVersion
         targetSdk gradle.ext.targetSdkVersion
-        versionCode 32
-        versionName "1.2.4"
+        versionCode 33
+        versionName "1.2.5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -34,6 +34,7 @@ android {
         abi {
             enable true
             reset()
+            //noinspection ChromeOsAbiSupport
             include 'armeabi-v7a', 'arm64-v8a' // , 'x86_64'
             universalApk false
         }
@@ -96,10 +97,10 @@ hilt {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
     implementation 'com.squareup.picasso:picasso:2.71828'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
@@ -119,7 +120,7 @@ dependencies {
     api("com.otaliastudios:cameraview:2.7.2")
     implementation "androidx.concurrent:concurrent-futures-ktx:1.2.0"
 
-    def media3_version = "1.4.1"
+    def media3_version = "1.5.1"
     // Media Libraries - Exoplayer
     implementation "androidx.media3:media3-common:${media3_version}"
     // implementation "androidx.media3:media3-common-ktx:${media3_version}"
@@ -128,7 +129,7 @@ dependencies {
     implementation "androidx.media3:media3-transformer:${media3_version}"
 
     // CameraX dependencies (first release for video is: "1.1.0-alpha10")
-    def camerax_version = "1.4.0" // "1.1.0-beta01" NB:https://github.com/android/camera-samples/issues/434
+    def camerax_version = "1.4.1" // "1.1.0-beta01" NB:https://github.com/android/camera-samples/issues/434
     // The following line is optional, as the core library is included indirectly by camera-camera2
     implementation "androidx.camera:camera-core:${camerax_version}"
     implementation "androidx.camera:camera-camera2:${camerax_version}"
@@ -145,20 +146,23 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
 
+    def dagger_version = "2.53.1"
+    def hilt_version = "1.2.0"
+
     // Dependency Injection
-    implementation 'com.google.dagger:hilt-android:2.52'
-    implementation "androidx.hilt:hilt-common:1.2.0"
-    implementation "androidx.hilt:hilt-work:1.2.0"
-    ksp 'com.google.dagger:hilt-compiler:2.52'
+    implementation "com.google.dagger:hilt-android:${dagger_version}"
+    implementation "androidx.hilt:hilt-common:${hilt_version}"
+    implementation "androidx.hilt:hilt-work:${hilt_version}"
+    ksp "com.google.dagger:hilt-compiler:${dagger_version}"
 
     // For instrumentation tests
     androidTestImplementation  'com.google.dagger:hilt-android-testing:2.52'
-    kspAndroidTest 'com.google.dagger:hilt-compiler:2.52'
+    kspAndroidTest "com.google.dagger:hilt-compiler:${dagger_version}"
 
     // For local unit tests
     testImplementation 'com.google.dagger:hilt-android-testing:2.52'
-    ksp "androidx.hilt:hilt-compiler:1.2.0"
-    ksp "com.google.dagger:hilt-compiler:2.52"
-    implementation "com.google.dagger:dagger-android-support:2.51.1"
-    ksp "com.google.dagger:dagger-android-processor:2.51.1"
+    ksp "androidx.hilt:hilt-compiler:${hilt_version}"
+    ksp "com.google.dagger:hilt-compiler:${dagger_version}"
+    implementation "com.google.dagger:dagger-android-support:${dagger_version}"
+    ksp "com.google.dagger:dagger-android-processor:${dagger_version}"
 }

@@ -101,6 +101,13 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         RECOVERY    // For future use.
     }
 
+    enum class GameHalf: Serializable {
+        firstHalf,
+        secondHalf,
+        extraTime,
+        interview
+    }
+
     private var uiState: UiState = UiState.IDLE
 
     private var audioEnabled = true
@@ -515,7 +522,9 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
             }
             is VideoRecordEvent.Status -> {
                 uiState = UiState.RECORDING
-                var recordedSeconds = TimeUnit.NANOSECONDS.toSeconds(event.recordingStats.recordedDurationNanos)
+                var recordedSeconds = TimeUnit.NANOSECONDS.toSeconds(
+                    recordingState.recordingStats.recordedDurationNanos
+                )
                 if (mHalf == 2) {
                     recordedSeconds += SECOND_HALF_TIME
                 } else if (mHalf == 3) {
@@ -554,6 +563,10 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         if (viewModel.currentRecording.value != null) {
             viewModel.currentRecording.value?.pause()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
     }
 
     private fun makeAction(imageView: ImageView) {

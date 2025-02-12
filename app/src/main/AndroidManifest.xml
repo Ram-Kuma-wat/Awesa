@@ -101,12 +101,6 @@
             android:screenOrientation="landscape">
         </activity>
         <activity
-            android:name=".ui.recorder.InterviewActivityNew"
-            android:exported="true"
-            android:screenOrientation="landscape">
-        </activity>
-
-        <activity
             android:name=".ui.recorder.VideoPreviewActivity"
             android:exported="true"
             android:screenOrientation="landscape"/>
