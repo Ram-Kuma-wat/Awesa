@@ -101,13 +101,6 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         RECOVERY    // For future use.
     }
 
-    enum class GameHalf: Serializable {
-        firstHalf,
-        secondHalf,
-        extraTime,
-        interview
-    }
-
     private var uiState: UiState = UiState.IDLE
 
     private var audioEnabled = true
@@ -265,7 +258,6 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
                 }
 
                 saveVideo(mediaFile)
-
             }
         }
     }
@@ -553,16 +545,20 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
 
     override fun onResume() {
         super.onResume()
-        if (viewModel.currentRecording.value != null) {
-            viewModel.currentRecording.value?.resume()
-        }
+//        if (viewModel.currentRecording.value != null) {
+//            viewModel.currentRecording.value?.resume()
+//        }
     }
 
     override fun onPause() {
         super.onPause()
-        if (viewModel.currentRecording.value != null) {
-            viewModel.currentRecording.value?.pause()
-        }
+//        if (viewModel.currentRecording.value != null) {
+//            viewModel.currentRecording.value?.pause()
+//        }
+    }
+
+    override fun onStop() {
+        super.onStop()
     }
 
     override fun onDestroy() {
