@@ -79,7 +79,7 @@ class VideoUploadsRepository @Inject constructor(
                 "video/mp4".toMediaTypeOrNull()
             )
 
-            val mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(
+            val mRequest = RetrofitRequest.getRetrofitInstance(1, "").create(
                 ApiRequest::class.java
             )
 
@@ -209,7 +209,7 @@ class VideoUploadsRepository @Inject constructor(
                 "video/mp4".toMediaTypeOrNull()
             )
 
-            val mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(
+            val mRequest = RetrofitRequest.getRetrofitInstance(1, "").create(
                 ApiRequest::class.java
             )
 

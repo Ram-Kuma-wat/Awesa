@@ -9,6 +9,7 @@ import android.view.View.OnClickListener
 import androidx.databinding.DataBindingUtil
 import androidx.multidex.BuildConfig
 import com.codersworld.awesalibs.beans.CommonBean
+import com.codersworld.awesalibs.beans.login.LoginBean
 import com.codersworld.awesalibs.beans.user.UserBean
 import com.codersworld.awesalibs.listeners.OnConfirmListener
 import com.codersworld.awesalibs.listeners.OnResponse
@@ -178,7 +179,7 @@ class LoginActivity : BaseActivity(), OnClickListener , OnConfirmListener,
                     val mLoginBean: CommonBean = response.response as CommonBean
 
                     if (mLoginBean.status == 1) {
-                        moveToDashboard(mLoginBean.info)
+                        moveToDashboard(mLoginBean)
                         return
                     }
 
@@ -232,10 +233,15 @@ class LoginActivity : BaseActivity(), OnClickListener , OnConfirmListener,
         errorMsg(error)
     }
 
-    private fun moveToDashboard(mLoginBean: UserBean) {
-        mLoginBean.login_username = binding.etUsername.text?.trim().toString()
-        mLoginBean.password = binding.etPassword.text?.trim().toString()
-        UserSessions.saveUserInfo(this@LoginActivity, mLoginBean)
+    private fun moveToDashboard(mLoginBean: CommonBean) {
+        var mToken  = mLoginBean.token
+        var mUserBean = mLoginBean.info
+        mUserBean.login_username = binding.etUsername.text?.trim().toString()
+        mUserBean.password = binding.etPassword.text?.trim().toString()
+        UserSessions.saveUserInfo(this@LoginActivity, mUserBean)
+        try{
+            UserSessions.saveAccessToken(this@LoginActivity,mToken)
+        }catch (ex:Exception){}
         CommonMethods.moveWithClear(this@LoginActivity, MainActivity::class.java)
     }
 }

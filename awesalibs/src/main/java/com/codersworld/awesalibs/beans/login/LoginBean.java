@@ -10,6 +10,8 @@ public class LoginBean implements Serializable {
     int status;
     @SerializedName("msg")
     String msg;
+    @SerializedName("token")
+    String token;
     @SerializedName("info")
     UserBean info;
 
@@ -35,5 +37,13 @@ public class LoginBean implements Serializable {
 
     public void setMsg(String msg) {
         this.msg = msg;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

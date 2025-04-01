@@ -2,6 +2,8 @@ package com.codersworld.awesalibs.rest;
 
 import android.util.Log;
 
+import com.codersworld.awesalibs.storage.UserSessions;
+import com.codersworld.awesalibs.utils.CommonMethods;
 import com.codersworld.awesalibs.utils.Tags;
 import com.codersworld.awesalibs.rest.network.ProgressInterceptor;
 import com.codersworld.awesalibs.rest.network.RetryInterceptor;
@@ -38,8 +40,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class RetrofitRequest {
 
     public static Retrofit retrofit;
+    public  static String token="";
 
-    public static Retrofit getRetrofitInstance(int urlType, int converter) {
+    public static Retrofit getRetrofitInstance(int urlType, String strToken) {
+        token = strToken;
         retrofit = null;
         String baseUrl = Tags.BASE_URL_APP;
         if (retrofit == null) {
@@ -103,10 +107,23 @@ public class RetrofitRequest {
             builder.writeTimeout(5,TimeUnit.MINUTES);
             builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
             builder.retryOnConnectionFailure(true);
-            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+
+
+            HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
+                @Override
+                public void log(String message) {
+                     Log.e("ApiResponse1", message);
+                }
+            });
+            httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+            builder.addInterceptor(httpLoggingInterceptor);
+
+
+
+ /*           HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
             interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
             builder.addInterceptor(interceptor);
-            builder.hostnameVerifier(new HostnameVerifier() {
+ */           builder.hostnameVerifier(new HostnameVerifier() {
                 @Override
                 public boolean verify(String hostname, SSLSession session) {
                     return true;
@@ -114,6 +131,18 @@ public class RetrofitRequest {
             });
 
             builder.addNetworkInterceptor(new ProgressInterceptor());
+            if (CommonMethods.isValidString(token)) {
+                builder.addInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        Request request = chain.request().newBuilder().addHeader("token", /*"Basic " +*/ token).build();
+                        Log.e("requestrequest",request.header("token"));
+                        return chain.proceed(request);
+                    }
+                });
+            }
+
+
             return builder.build();
         } catch (Exception e) {
             throw new RuntimeException(e);

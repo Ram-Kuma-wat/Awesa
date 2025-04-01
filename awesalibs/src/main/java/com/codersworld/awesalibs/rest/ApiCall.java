@@ -14,6 +14,7 @@ import com.codersworld.awesalibs.beans.support.SubjectsBean;
 import com.codersworld.awesalibs.beans.support.TicketsBean;
 import com.codersworld.awesalibs.beans.teams.TeamsBean;
 import com.codersworld.awesalibs.listeners.OnResponse;
+import com.codersworld.awesalibs.storage.UserSessions;
 import com.codersworld.awesalibs.utils.CommonMethods;
 import com.codersworld.awesalibs.utils.SFProgress;
 import com.codersworld.awesalibs.utils.Tags;
@@ -39,7 +40,7 @@ public class ApiCall {
             SFProgress.showProgressDialog(mContext, true);
         }
 
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.userLogin(params[0],params[1],params[2],params[3],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
@@ -67,7 +68,7 @@ public class ApiCall {
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.userSignUp(params[0],params[1],params[2],params[3],params[4],params[5],params[6],  params[7],params[8],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext) ).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
@@ -94,7 +95,7 @@ public class ApiCall {
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.resendOTP(params[0],params[1],params[2],params[3] ,CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
@@ -123,7 +124,7 @@ public class ApiCall {
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.verifySignUpOTP(params[0],params[1],params[2],params[3],params[4] ,CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
@@ -148,7 +149,7 @@ public class ApiCall {
 
     public void forgotPassword(OnResponse<UniversalObject> onResponse, String... strParams) {
         SFProgress.showProgressDialog(mContext, true);
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.forgotPassword(strParams[0],strParams[1],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
@@ -170,7 +171,7 @@ public class ApiCall {
 
     public void resetPassword(OnResponse<UniversalObject> onResponse, String... strParams) {
         SFProgress.showProgressDialog(mContext, true);
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.resetPassword(strParams[0],strParams[1],strParams[2] ,CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
@@ -194,7 +195,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.supportTicket(params[0],params[1],params[2],params[3],params[4],params[5],params[6],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<TicketsBean>() {
             @Override
             public void onResponse(@NonNull Call<TicketsBean> call, @NonNull Response<TicketsBean> response) {
@@ -221,7 +222,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.getGames(params[0],params[1],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<GameBean>() {
             @Override
             public void onResponse(@NonNull Call<GameBean> call, @NonNull Response<GameBean> response) {
@@ -248,7 +249,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.getTeams(params[0],params[1],params[2],params[3],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<TeamsBean>() {
             @Override
             public void onResponse(@NonNull Call<TeamsBean> call, @NonNull Response<TeamsBean> response) {
@@ -275,7 +276,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.getOpponentTeams(params[0],params[1],params[2],params[3],params[4],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<TeamsBean>() {
             @Override
             public void onResponse(@NonNull Call<TeamsBean> call, @NonNull Response<TeamsBean> response) {
@@ -302,7 +303,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.getLeagues(params[0],params[1],params[2],params[3],params[4],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<LeagueBean>() {
             @Override
             public void onResponse(@NonNull Call<LeagueBean> call, @NonNull Response<LeagueBean> response) {
@@ -330,7 +331,7 @@ SFProgress.hideProgressDialog(mContext);
             SFProgress.showProgressDialog(mContext, true);
         }
 
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.getMatches(params[0], params[1], params[2], params[3], params[4], CommonMethods.getIMEI(mContext), "android", CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<MatchesBean>() {
             @Override
             public void onResponse(@NonNull Call<MatchesBean> call, @NonNull Response<MatchesBean> response) {
@@ -360,7 +361,7 @@ SFProgress.hideProgressDialog(mContext);
             SFProgress.showProgressDialog(mContext, true);
         }
 
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.getMatchDetail(params[0], params[1], CommonMethods.getIMEI(mContext), "android", CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<MatchesBean>() {
             @Override
             public void onResponse(@NonNull Call<MatchesBean> call, @NonNull Response<MatchesBean> response) {
@@ -386,7 +387,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.deleteVideos(params[0], params[1], params[2], params[3], CommonMethods.getIMEI(mContext), "android", CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
@@ -414,7 +415,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.getCounty(params[0],params[1],params[2],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CountyBean>() {
             @Override
             public void onResponse(@NonNull Call<CountyBean> call, @NonNull Response<CountyBean> response) {
@@ -441,7 +442,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.getSubjects("1",CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<SubjectsBean>() {
             @Override
             public void onResponse(@NonNull Call<SubjectsBean> call, @NonNull Response<SubjectsBean> response) {
@@ -470,7 +471,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.createMatch(params[0],params[1],params[2],params[3],params[4],params[5],params[6],params[7],params[8],params[9],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<MatchesBean>() {
             @Override
             public void onResponse(@NonNull Call<MatchesBean> call, @NonNull Response<MatchesBean> response) {
@@ -497,7 +498,7 @@ SFProgress.hideProgressDialog(mContext);
     public void updateProfile(OnResponse<UniversalObject> onResponse, RequestBody firstname, RequestBody lastname,
                               RequestBody user_id, RequestBody phone, RequestBody username, RequestBody email, MultipartBody.Part image) {
              SFProgress.showProgressDialog(mContext, true);
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         Call<CommonBean> mCall =  mRequest.updateProfile(firstname,lastname, user_id,phone,username,email,CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext));
         if (image !=null){
             mCall =  mRequest.updateProfileWithImage(firstname,lastname, user_id,phone,username,email,image,CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext));
@@ -525,7 +526,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.deleteAccount(params[0],CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
@@ -551,7 +552,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.updateMatchCount(params[0],params[1] ,params[2]  ,CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {
@@ -577,7 +578,7 @@ SFProgress.hideProgressDialog(mContext);
         if (isTrue) {
             SFProgress.showProgressDialog(mContext, true);
         }
-        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, 2).create(ApiRequest.class);
+        ApiRequest mRequest = RetrofitRequest.getRetrofitInstance(1, UserSessions.getAccessToken(mContext)).create(ApiRequest.class);
         mRequest.checkSignup( CommonMethods.getIMEI(mContext),"android",CommonMethods.getDeviceModel(mContext)).enqueue(new Callback<CommonBean>() {
             @Override
             public void onResponse(@NonNull Call<CommonBean> call, @NonNull Response<CommonBean> response) {

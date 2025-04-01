@@ -21,7 +21,7 @@ public class Tags {
     // public static final String SERVER_MID_PATH = "sportapp.boonoserver.de";
     public static final String SERVER_MID_PATH = "www.awesa-vereins.tv";
     // public static final String SERVER_MID_PATH = "dev.inventiveinfosys.com/awesa";
-    public static final String SERVER_API_PATH = "restapi";
+    public static final String SERVER_API_PATH = "restapi/v1";
     public static final String SERVER_SLASH = "/";
     public static final String SB_LOGIN_API = "action-login";
     public static final String SB_SIGNUP_API = "action-signup";
@@ -51,6 +51,8 @@ public class Tags {
     public static final String SB_TERMS_CONDITION = "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH + "page/terms-and-condition";
     public static final String SB_API_SUPPORT = "create-support-ticket";
     public static final String BASE_URL_APP = "https:" + SERVER_SLASH + SERVER_SLASH + SERVER_MID_PATH + SERVER_SLASH + SERVER_API_PATH + SERVER_SLASH;
+//    public static final String BASE_URL_APP = "https://localhost:8080/"+ SERVER_API_PATH+ SERVER_SLASH ;
+    // public static final String BASE_URL_APP = "http://10.0.2.2:8080/"+ SERVER_API_PATH+ SERVER_SLASH;
 
 
 }

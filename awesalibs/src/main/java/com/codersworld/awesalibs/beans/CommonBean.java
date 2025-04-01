@@ -17,6 +17,8 @@ public class CommonBean implements Serializable {
     int app_signup_allowed;
     @SerializedName("msg")
     String msg;
+    @SerializedName("token")
+    String token;
     @SerializedName("total_actions")
     int totalActions;
     @SerializedName("local_id")
@@ -31,6 +33,14 @@ public class CommonBean implements Serializable {
     ArrayList<ScoresBean> scores;
     @SerializedName("sponsors")
     ArrayList<SponsorsBean> sponsors;
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 
     public ArrayList<SponsorsBean> getSponsors() {
         return sponsors;

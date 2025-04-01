@@ -56,7 +56,11 @@ public class FancyAlertDialog {
     }
 
     public FancyAlertDialog show() {
-        dialog.show();
+        try{
+            dialog.show();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return this;
     }
 
