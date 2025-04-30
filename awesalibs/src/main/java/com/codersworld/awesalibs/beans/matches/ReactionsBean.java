@@ -17,6 +17,8 @@ public class ReactionsBean implements Serializable {
     private int half;
     @SerializedName("time")
     private String time;
+    @SerializedName("title")
+    private String title;
     @SerializedName("timestamp")
     private Long timestamp;
     @SerializedName("reaction")
@@ -25,7 +27,7 @@ public class ReactionsBean implements Serializable {
     private String video;
     @SerializedName("file_name")
     private String file_name;
-    @SerializedName("upload_status")
+    @SerializedName("status")
     private int upload_status;
     @SerializedName("created_date")
     private String created_date;
@@ -125,4 +127,8 @@ public class ReactionsBean implements Serializable {
     public void setCreated_date(String created_date) {
         this.created_date = created_date;
     }
+
+    public String getTitle() { return title; }
+
+    public void setTitle(String title) { this.title = title; }
 }
