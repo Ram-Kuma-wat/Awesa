@@ -97,6 +97,8 @@ hilt {
 }
 
 dependencies {
+    implementation files(fileTree(dir: 'libs', includes: ['*.jar', '*.aar']))
+//    implementation 'com.arthenica:smart-exception-java'
     implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
@@ -137,7 +139,7 @@ dependencies {
     implementation "androidx.camera:camera-lifecycle:${camerax_version}"
     implementation "androidx.camera:camera-video:${camerax_version}"
     implementation "androidx.camera:camera-view:${camerax_version}"
-    implementation 'com.github.Ram-Kuma-wat:ffmpeg-kit:1.0.3'
+//    implementation 'com.github.Ram-Kuma-wat:ffmpeg-kit:1.0.4'
 //    implementation 'com.github.Ram-Kuma-wat:ffmpeg-kit:1.0.1'
 //    implementation 'com.github.Ram-Kuma-wat:ffmpeg-kit-android-new:v1.0.1'
     //implementation 'com.arthenica:ffmpeg-kit-full:6.0.LTS'
