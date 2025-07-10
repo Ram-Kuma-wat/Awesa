@@ -18,8 +18,8 @@ public class Tags {
     public static final String TAG = "Awesa";
     public static final String tag = "Awesa";
     // https://sportapp.boonoserver.de/admin/games
-     public static final String SERVER_MID_PATH = "www.awesa-vereins.tv";
-    //public static final String SERVER_MID_PATH = "test.awesa-vereins.tv";
+    // public static final String SERVER_MID_PATH = "c";
+    public static final String SERVER_MID_PATH = "test.awesa-vereins.tv";
      public static final String SERVER_API_PATH = "restapi/v1";
     public static final String SERVER_SLASH = "/";
     public static final String SB_LOGIN_API = "action-login";

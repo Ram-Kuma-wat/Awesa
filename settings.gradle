@@ -17,6 +17,7 @@ dependencyResolutionManagement {
 rootProject.name = "Awesa"
 include ':app'
 include ':awesalibs'
+//include ':ffmpeg-kit-android-lib'
 
 gradle.ext {
     compileSdkVersion = 35

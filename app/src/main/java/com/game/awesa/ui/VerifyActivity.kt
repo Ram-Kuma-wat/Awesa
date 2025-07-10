@@ -117,7 +117,9 @@ class VerifyActivity : AppCompatActivity(), OnConfirmListener, OnClickListener,
                 //CommonMethods.moveToNext(this@VerifyActivity,SignUpActivity::class.java)
             }
             R.id.btnSubmit -> {
-                if (!binding.otpView.text.isNullOrEmpty() || binding.otpView.text.toString().length<4) {
+                var txt = binding.otpView.text.toString();
+                Log.e("OTTP",txt+" => ")
+                if (binding.otpView.text.isNullOrEmpty() || binding.otpView.text.toString().length<4) {
                      CommonMethods.errorDialog(
                          this@VerifyActivity,
                          getString(R.string.error_otp_required),

@@ -9,6 +9,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.media3.common.util.UnstableApi
 import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.FFmpegKitConfig
 import com.arthenica.ffmpegkit.FFmpegSession
 import com.arthenica.ffmpegkit.ReturnCode
 import com.codersworld.awesalibs.beans.matches.ReactionsBean
@@ -57,7 +58,6 @@ class Media3Transformer @Inject constructor(
         val handler = CoroutineExceptionHandler { _, exception ->
             Log.e(TAG, "exception: ${exception.localizedMessage}", exception)
         }
-
         if (inputUri.path == null) {
             databaseManager.executeQuery { database ->
                 val dao = VideoMasterDAO(database, context)
