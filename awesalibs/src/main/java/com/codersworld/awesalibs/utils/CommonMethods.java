@@ -75,6 +75,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -288,6 +291,32 @@ public class CommonMethods {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public static long getTimeDifferenceInHours(String startTime,String format) {
+        if (isValidString(startTime)) {
+
+            // Define the date format
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(isValidString(format)?format:"yyyy-MM-dd HH:mm:ss");
+
+            // Parse the given date string
+            LocalDateTime givenDateTime = LocalDateTime.parse(startTime, formatter);
+
+            // Get current date and time
+            LocalDateTime now = LocalDateTime.now();
+
+            // Calculate the duration between the two
+            Duration duration = Duration.between(givenDateTime, now);
+
+            // Get difference in hours
+
+            long diffInHours = duration.toHours();
+            //long diffInHours = duration.toMinutes();
+            //Log.e("diffInHours : ",diffInHours+"");
+            return  diffInHours;
+        } else {
+            return 0;
         }
     }
 

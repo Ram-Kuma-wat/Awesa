@@ -569,14 +569,14 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         if (isActionClick) {
             actionTimer()
             if (!isClicked && uiState == UiState.RECORDING) {
-                if (CommonMethods.isNetworkAvailable(this)) {
+                //if (CommonMethods.isNetworkAvailable(this)) {
                     mImageView = imageView
                     changeImage(0)
                     saveActions()
-                } else {
+                /*} else {
                     changeImage(1)
                     errorMsg(resources.getString(R.string.error_internet))
-                }
+                }*/
             }
         }
     }

@@ -230,6 +230,7 @@ SFProgress.hideProgressDialog(mContext);
                     SFProgress.hideProgressDialog(mContext);
                 }
                 try {
+
                     onResponse.onSuccess(new UniversalObject(response.body(), Tags.SB_GAME_CATEGORY_API, true, ""));
                 } catch (Exception e) {
                     onResponse.onError(Tags.SB_GAME_CATEGORY_API, mContext.getResources().getString(R.string.something_wrong));

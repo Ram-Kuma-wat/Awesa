@@ -117,8 +117,6 @@ class VerifyActivity : AppCompatActivity(), OnConfirmListener, OnClickListener,
                 //CommonMethods.moveToNext(this@VerifyActivity,SignUpActivity::class.java)
             }
             R.id.btnSubmit -> {
-                var txt = binding.otpView.text.toString();
-                Log.e("OTTP",txt+" => ")
                 if (binding.otpView.text.isNullOrEmpty() || binding.otpView.text.toString().length<4) {
                      CommonMethods.errorDialog(
                          this@VerifyActivity,
@@ -155,6 +153,12 @@ class VerifyActivity : AppCompatActivity(), OnConfirmListener, OnClickListener,
                         mCommonBean.info.login_username = mCommonBean.info.email
                         mCommonBean.info.password = strPassword
                         UserSessions.saveUserInfo(this@VerifyActivity,mCommonBean.info)
+                        var mToken  = mCommonBean.token
+                        try{
+                            UserSessions.saveAccessToken(this@VerifyActivity,mToken)
+                        }catch (ex:Exception){}
+
+
                         CommonMethods.moveWithClear(this@VerifyActivity, MainActivity::class.java)
                     } else {
                         val intent = Intent(this@VerifyActivity, ResetPassActivity::class.java)

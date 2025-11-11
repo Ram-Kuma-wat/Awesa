@@ -320,6 +320,8 @@ public class MatchesBean implements Serializable {
         String title;
         @SerializedName("isDelete")
         String isDelete;
+        @SerializedName("isUploading")
+        String isUploading;
          @SerializedName("time")
         String time;
         @SerializedName("reaction")
@@ -334,6 +336,24 @@ public class MatchesBean implements Serializable {
         int half;
         @SerializedName("views")
         int views;
+        @SerializedName("created_date")
+        private String created_date;
+
+        public String getIsUploading() {
+            return isUploading;
+        }
+
+        public void setIsUploading(String isUploading) {
+            this.isUploading = isUploading;
+        }
+
+        public String getCreated_date() {
+            return created_date;
+        }
+
+        public void setCreated_date(String created_date) {
+            this.created_date = created_date;
+        }
 
         public int getMatch_id() {
             return match_id;

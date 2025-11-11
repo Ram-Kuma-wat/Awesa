@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +37,7 @@ import com.game.awesa.ui.dashboard.adapter.GamesAdapter;
 import com.game.awesa.ui.recorder.CameraActivity;
 import com.game.awesa.ui.teams.TeamsActivity;
 import com.game.awesa.utils.Global;
+import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -148,6 +150,7 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
         if (response !=null){
             if (response.getMethodName() == Tags.SB_GAME_CATEGORY_API){
                 GameBean mBean = (GameBean)response.getResponse();
+                //Log.e("mBean",new Gson().toJson(mBean));
                 if(mBean.getStatus()==1 && CommonMethods.isValidArrayList(mBean.getInfo())){
                     mListGames = mBean.getInfo();
                     if (CommonMethods.isValidArrayList(mListGames)){

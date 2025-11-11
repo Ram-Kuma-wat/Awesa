@@ -106,6 +106,17 @@
                         android:src="@drawable/ic_delete"
                         android:visibility="visible"
                         app:tint="@color/red" />
+                    <ImageView
+                        android:id="@+id/imgUpload"
+                        android:layout_width="@dimen/_35dp"
+                        android:layout_height="@dimen/_35dp"
+                        android:background="@drawable/dialog_shape"
+                        android:padding="@dimen/_5dp"
+                        android:contentDescription="Upload Video"
+                        android:src="@drawable/ic_upload"
+                        android:visibility="gone"
+                        app:tint="@color/red"
+                        tools:ignore="HardcodedText" />
                     <ProgressBar
 
                         android:id="@+id/pbLoading"

@@ -115,21 +115,21 @@ class SignUpActivity : BaseActivity(),
     }
 
     private fun makeSignUp() {
-        if (!binding.etFirstname.text.isNullOrEmpty()) {
+        if (binding.etFirstname.text.isNullOrEmpty()) {
             CommonMethods.setError(
                 binding.etFirstname,
                 this@SignUpActivity,
                 getString(R.string.first_name_required),
                 getString(R.string.first_name_required)
             )
-        } else if (!binding.etLastname.text.isNullOrEmpty()) {
+        } else if (binding.etLastname.text.isNullOrEmpty()) {
             CommonMethods.setError(
                 binding.etLastname,
                 this@SignUpActivity,
                 getString(R.string.last_name_required),
                 getString(R.string.last_name_required)
             )
-        } else if (!binding.etEmail.text.isNullOrEmpty()) {
+        } else if (binding.etEmail.text.isNullOrEmpty()) {
             CommonMethods.setError(
                 binding.etEmail,
                 this@SignUpActivity,
@@ -143,21 +143,21 @@ class SignUpActivity : BaseActivity(),
                 getString(R.string.error_email_invalid),
                 getString(R.string.error_email_invalid)
             )
-        } else if (!binding.etPhone.text.isNullOrEmpty()) {
+        } else if (binding.etPhone.text.isNullOrEmpty()) {
             CommonMethods.setError(
                 binding.etPhone,
                 this@SignUpActivity,
                 getString(R.string.phone_required),
                 getString(R.string.phone_required)
             )
-        } else if (!binding.etUsername.text.isNullOrEmpty()) {
+        } else if (binding.etUsername.text.isNullOrEmpty()) {
             CommonMethods.setError(
                 binding.etUsername,
                 this@SignUpActivity,
                 getString(R.string.error_username),
                 getString(R.string.error_username)
             )
-        } else if (!binding.etPassword.text.isNullOrEmpty()) {
+        } else if (binding.etPassword.text.isNullOrEmpty()) {
             CommonMethods.setError(
                 binding.etPassword,
                 this@SignUpActivity,

@@ -186,7 +186,7 @@ public class MatchActionsDAO {
         return dataList;
     }
 
-    public ArrayList<ReactionsBean> selectAllUploaded(@Nullable String match_id, String half, int type) {
+    public ArrayList<ReactionsBean> selectAllUploaded(@Nullable String match_id, String half, int type,String local_id) {
         initDBHelper();
 
         Cursor cursor;
@@ -196,12 +196,21 @@ public class MatchActionsDAO {
             cursor = mDatabase.query(TABLE_MATCH_REACTIONS, new String[] {"*"}, null, null, null, null,  COLUMN_KEY_ID + " ASC" + ", " + COLUMN_MATCH_ID + " DESC");
         } else {
             String selection = COLUMN_MATCH_ID + " = ?";
-            String[] selectionArgs = {match_id};
+            String[] selectionArgs;
 
+            if (CommonMethods.isValidString(local_id) && local_id !="0") {
+                selection += " AND " + COLUMN_KEY_ID + " = ?";
+                selectionArgs = new String[]{match_id, String.valueOf(local_id)};
+            } else {
+                selectionArgs = new String[]{match_id};
+            }
             cursor = mDatabase.query(TABLE_MATCH_REACTIONS, new String[] {"*"}, selection, selectionArgs, null, null,  COLUMN_KEY_ID + " ASC" + ", " + COLUMN_MATCH_ID + " DESC");
         }
 
         dataList = manageCursor(cursor);
+        if (type==2){
+            dataList.removeIf(bean -> CommonMethods.getTimeDifferenceInHours(bean.getCreated_date(),"yyyy-MM-dd HH:mm:ss") > 3);
+        }
 
         cursor.close();
         return dataList;

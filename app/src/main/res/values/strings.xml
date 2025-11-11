@@ -59,7 +59,7 @@
     <string name="lbl_exit_app_msg">Sind Sie sicher, dass Sie die App schließen möchten?</string>
     <string name="lbl_delete_account_msg">Sind Sie sicher, dass Sie Ihr Konto endgültig löschen wollen?</string>
     <string name="lbl_more">Mehr</string>
-    <string name="lbl_history">Geschichte</string>
+    <string name="lbl_history">Übersicht</string>
     <string name="lbl_profile">Profil</string>
     <string name="lbl_home">Startseite</string>
     <string name="lbl_send">Senden</string>
@@ -127,7 +127,7 @@
     <string name="lbl_fail" translatable="false">Fail</string>
     <string name="lbl_highlight" translatable="false">Highlight</string>
     <string name="lbl_pull_down">Ziehen Sie nach unten, um die hochgeladenen Szenen zu aktualisieren.</string>
-    <string name="lbl_storage_hint">Achtung: Die Nutzung der App erfordert aufgrund von Videoaufnahmen viel Speicherplatz. Stelle sicher, dass Du genügend Speicherplatz zur Verfügung hast, um probleme zu vermeiden!</string>
+    <string name="lbl_storage_hint">Achtung: Die Nutzung der App erfordert aufgrund von Videoaufnahmen viel Speicherplatz. Stelle sicher, dass Du genügend Speicherplatz zur Verfügung hast, um Probleme zu vermeiden!</string>
     <string name="lbl_continue">Weitermachen</string>
     <string name="lbl_video_trimming">Das Zuschneiden des Videos läuft...</string>
     <string name="video_uploading_single_notif_message">Uploading Video..</string>

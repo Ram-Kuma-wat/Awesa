@@ -23,6 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.IllegalStateException
 import java.text.SimpleDateFormat
@@ -116,6 +117,8 @@ class Media3Transformer @Inject constructor(
     /**
      * Trims a video segment synchronously.
      */
+
+
     private suspend fun exportVideo(
         reaction: ReactionsBean,
         inputUri: Uri
@@ -138,6 +141,20 @@ class Media3Transformer @Inject constructor(
 
         // Start the transformation and wait for it to complete
         return suspendCancellableCoroutine<Boolean> { continuation ->
+
+            /*val cmd = arrayOf(
+                "-i", inputUri.path,
+                "-i", copyWatermarkFromAssets(context),
+                "-y",
+                "-ss", startTime.toString(),
+                "-to", endTime.toString(),
+                "-filter_complex", "[1]format=rgba,colorchannelmixer=aa=0.3[wm];[0][wm]overlay=W-w-20:H-h-20",
+                "-c:v", "libx264",
+                "-crf", "23",
+                "-preset", "fast",
+                "-c:a", "copy",
+                outputFile.absolutePath
+            )*/
             val cmd = arrayOf(
                 "-i", inputUri.path,
                 "-y",

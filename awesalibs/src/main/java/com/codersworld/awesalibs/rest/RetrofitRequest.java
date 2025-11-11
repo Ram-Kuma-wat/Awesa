@@ -112,7 +112,7 @@ public class RetrofitRequest {
             HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
                 @Override
                 public void log(String message) {
-                     Log.e("ApiResponse1", message);
+                     //Log.e("ApiResponse1", message);
                 }
             });
             httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
@@ -136,7 +136,7 @@ public class RetrofitRequest {
                     @Override
                     public Response intercept(Chain chain) throws IOException {
                         Request request = chain.request().newBuilder().addHeader("token", /*"Basic " +*/ token).build();
-                        Log.e("requestrequest",request.header("token"));
+                        //Log.e("requestrequest",request.header("token"));
                         return chain.proceed(request);
                     }
                 });

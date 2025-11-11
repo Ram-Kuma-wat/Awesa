@@ -218,6 +218,7 @@ class VideoUploadsWorker @Inject constructor(
 
             val doneUploads = uploadList.count { it.isDone }
             notificationHandler.update(doneUploads + 1, uploadList.size)
+            //return ;
             videoUploadsRepository.uploadMedia(work.reactionModel).collect {
                 when (it) {
                     is UploadFailure -> {

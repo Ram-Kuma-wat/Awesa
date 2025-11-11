@@ -63,6 +63,7 @@ public class GamesAdapter extends RecyclerView.Adapter {
             if(list.get(getBindingAdapterPosition()).getCounty()>1) {
                 context.startActivity(new Intent(context, CountyActivity.class).putExtra("game_category", list.get(getAdapterPosition()).getId() + ""));
             } else {
+/*
                 if (BuildConfig.DEBUG) {
                     Intent intent = new Intent(context, TutorialActivity.class);
                     MatchesBean.InfoBean mMatchBean = new MatchesBean.InfoBean();
@@ -80,6 +81,7 @@ public class GamesAdapter extends RecyclerView.Adapter {
                     context.startActivity(intent);
                     return;
                 }
+*/
 
                 Intent intent = new Intent(context, LeagueActivity.class);
                 intent.putExtra("game_category", list.get(getBindingAdapterPosition()).getId() + "");

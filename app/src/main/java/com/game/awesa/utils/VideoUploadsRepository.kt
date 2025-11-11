@@ -298,7 +298,7 @@ class VideoUploadsRepository @Inject constructor(
         return callbackFlow {
             databaseManager.executeQuery { database ->
                 val dao = MatchActionsDAO(database, context)
-                val list = dao.selectAllUploaded(matchId, "", 1)
+                val list = dao.selectAllUploaded(matchId, "", 2,"")
                 trySend(list)
                 close()
             }

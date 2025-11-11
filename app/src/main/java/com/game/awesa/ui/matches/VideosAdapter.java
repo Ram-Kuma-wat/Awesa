@@ -127,7 +127,6 @@ public class VideosAdapter extends ListAdapter<MatchesBean.VideosBean, VideosAda
             }
         } catch (Exception ex) {
             CommonMethods.loadImage(context, mBean.getThumbnail(), viewHolder.binding.imgThumbnail);
-            Log.e("VideosAdapter", ex.getLocalizedMessage(), ex);
         }
     }
 

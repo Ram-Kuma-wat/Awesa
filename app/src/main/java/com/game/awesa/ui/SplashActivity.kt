@@ -41,9 +41,12 @@ class SplashActivity : AppCompatActivity() {
             override fun onFinish() {
                 mTimer!!.cancel()
                 if (counter == 0) {
+                    callActivityIntent()
+/*
                     animateImage()
                     counter++
                     mTimer!!.start()
+*/
                 } else {
                     callActivityIntent()
                 }
@@ -72,5 +75,4 @@ class SplashActivity : AppCompatActivity() {
         binding.img.startAnimation(animationOut);
         animationOut.setAnimationListener(animListener);
     }
-
 }
