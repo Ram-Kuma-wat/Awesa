@@ -338,6 +338,16 @@ public class MatchesBean implements Serializable {
         int views;
         @SerializedName("created_date")
         private String created_date;
+        @SerializedName("upload_type")
+        private int upload_type;
+
+        public int getUpload_type() {
+            return upload_type;
+        }
+
+        public void setUpload_type(int upload_type) {
+            this.upload_type = upload_type;
+        }
 
         public String getIsUploading() {
             return isUploading;

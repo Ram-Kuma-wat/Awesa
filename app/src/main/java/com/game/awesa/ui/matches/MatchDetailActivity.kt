@@ -371,6 +371,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                     mBean.time = a.time
                     mBean.reaction = a.reaction
                     mBean.local_video = a.video
+                    mBean.upload_type = a.upload_type
                     mBean.title =
                         matchBean.team1 + " <b>Vs</b> " + matchBean.team2 + " : <b>" + a.reaction + "</b>"
                     mBean.views = 0
@@ -379,13 +380,14 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             }
 
             val mInterviewDao = InterviewsDAO(database, this@MatchDetailActivity)
-            val interviews = mInterviewDao.selectAllUploaded(matchId) as ArrayList<InterviewBean>
+            val interviews = mInterviewDao.selectAllUploaded(matchId,1) as ArrayList<InterviewBean>
 
             if (interviews.isNotEmpty()) {
                 val interview = VideosBean()
                 interview.local_id = Int.MAX_VALUE.toString()
                 interview.half = 4
                 interview.created_date = interviews[0].created_date
+                interview.upload_type = interviews[0].upload_type
                 interview.match_id = matchId.toInt()
                 interview.local_video = interviews[0].video
                 mList.add(interview)
@@ -583,7 +585,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
     fun uploadInterview(mBeanVideo: VideosBean, position: Int) {
         databaseManager.executeQuery { database ->
             val dao = InterviewsDAO(database, this@MatchDetailActivity)
-            val list = dao.selectAllUploaded(matchId)
+            val list = dao.selectAllUploaded(matchId,1)
             if (list.size > 0) {
                 SFProgress.showProgressDialog(this@MatchDetailActivity, false)
 

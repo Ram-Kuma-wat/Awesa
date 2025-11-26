@@ -28,6 +28,7 @@ public class InterviewsDAO {
     private static final String COLUMN_VIDEO_PATH = "video_path";
     private static final String COLUMN_CREATED_DATE = "created_date";
     private static final String COLUMN_STATUS = "upload_status";
+    private static final String COLUMN_UPLOAD_TYPE = "upload_type";
 
     private SQLiteDatabase mDatabase;
     private final Context mContext;
@@ -45,7 +46,8 @@ public class InterviewsDAO {
                 + COLUMN_VIDEO_NAME + " TEXT ,"
                 + COLUMN_VIDEO_PATH + " TEXT ,"
                 + COLUMN_STATUS + " INT ,"
-                + COLUMN_CREATED_DATE + " TEXT)";
+                + COLUMN_CREATED_DATE + " TEXT,"
+                + COLUMN_UPLOAD_TYPE + " TEXT)";
     }
 
     public static String getDropTable() {
@@ -68,15 +70,6 @@ public class InterviewsDAO {
 
         mDatabase.delete(TABLE_INTERVIEWS, "id = ?", selectionArgs);
     }
-
-    public void deleteUploadedVideos() {
-        initDBHelper();
-
-        String[] selectionArgs = { String.valueOf(1) };
-        mDatabase.delete(TABLE_INTERVIEWS, "upload_status = ?", selectionArgs);
-    }
-
-
     public void insert(String...param) {
         initDBHelper();
         ContentValues contentValues = new ContentValues();
@@ -85,6 +78,7 @@ public class InterviewsDAO {
         contentValues.put(COLUMN_VIDEO_PATH, param[2]);
         contentValues.put(COLUMN_STATUS, param[3]);
         contentValues.put(COLUMN_CREATED_DATE, param[4]);
+        contentValues.put(COLUMN_UPLOAD_TYPE, 0);
 
         mDatabase.insert(TABLE_INTERVIEWS, null, contentValues);
     }
@@ -112,7 +106,7 @@ public class InterviewsDAO {
         return dataList;
     }
 
-    public ArrayList<InterviewBean> selectAllUploaded(@Nullable String match_id) {
+    public ArrayList<InterviewBean> selectAllUploaded(@Nullable String match_id, int type) {
         initDBHelper();
 
         Cursor cursor;
@@ -128,23 +122,16 @@ public class InterviewsDAO {
         }
 
         dataList = manageCursor(cursor);
+        if (type==2){
+            try{
+                dataList.removeIf(bean -> (bean.getUpload_type() == 1 || CommonMethods.getTimeDifferenceInHours(bean.getCreated_date(),"yyyy/MM/dd HH:mm:ss") > 0.5));
+            }catch (Exception e){
+                dataList.removeIf(bean -> (CommonMethods.getTimeDifferenceInHours(bean.getCreated_date(),"yyyy/MM/dd HH:mm:ss") > 0.5));
+            }
+        }
 
         cursor.close();
         return dataList;
-    }
-
-    public ArrayList<InterviewBean> selectSingle(int counter) {
-        initDBHelper();
-        try {
-            String getAllDetails = " SELECT * FROM " + TABLE_INTERVIEWS + " where upload_status = 0 order by id DESC LIMIT 1";
-            Cursor cursor = mDatabase.rawQuery(getAllDetails, null);
-            ArrayList<InterviewBean> dataList = manageCursor(cursor);
-            closeCursor(cursor);
-            return dataList;
-        } catch (SQLiteException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-            return (counter == 0) ? selectSingle(1) : new ArrayList<>();
-        }
     }
 
     @SuppressLint("Range")
@@ -156,41 +143,14 @@ public class InterviewsDAO {
         model.setVideo(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_PATH)));
         model.setUpload_status(cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)));
         model.setCreated_date(cursor.getString(cursor.getColumnIndex(COLUMN_CREATED_DATE)));
+        model.setUpload_type(cursor.getInt(cursor.getColumnIndex(COLUMN_UPLOAD_TYPE)));
         return model;
-    }
-
-    public void updateVideo(String video_name, String video_path, int id) {
-        initDBHelper();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_VIDEO_NAME, video_name);
-        values.put(COLUMN_VIDEO_PATH, video_path);
-        values.put(COLUMN_STATUS, (CommonMethods.isValidString(video_path)) ? 1 : 0);
-
-        String selection = COLUMN_KEY_ID + " = ?";
-        String[] selectionArgs = { String.valueOf(id) };
-
-        mDatabase.update(TABLE_INTERVIEWS, values, selection, selectionArgs);
     }
 
     protected void closeCursor(Cursor cursor) {
         if (cursor != null) {
             cursor.close();
         }
-    }
-
-    public int getLastInsertedId() {
-        initDBHelper();
-        String countQuery = "SELECT max(id) FROM " + TABLE_INTERVIEWS;
-        Cursor cursor = mDatabase.rawQuery(countQuery, null);
-        int maxid = 0;
-        if (cursor != null) {
-            if (cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                maxid = cursor.getInt(0);
-            }
-            closeCursor(cursor);
-        }
-        return maxid;
     }
 
     protected ArrayList<InterviewBean> manageCursor(Cursor cursor) {
@@ -206,5 +166,16 @@ public class InterviewsDAO {
             }
         }
         return dataList;
+    }
+    public void updateUploadType(String upload_type, String matchId) {
+        initDBHelper();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_UPLOAD_TYPE, upload_type);
+
+        String selection = COLUMN_MATCH_ID + " = ?";
+        String[] selectionArgs = { matchId };
+
+        mDatabase.update(TABLE_INTERVIEWS, values, selection, selectionArgs);
     }
 }

@@ -3,6 +3,7 @@ package com.codersworld.awesalibs.database;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.codersworld.awesalibs.database.dao.ExtraTimeDAO;
 import com.codersworld.awesalibs.database.dao.GamesCategoryDAO;
@@ -12,7 +13,7 @@ import com.codersworld.awesalibs.database.dao.VideoMasterDAO;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "awesa_db_2024.db";
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 5;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -37,9 +38,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-        if (newVersion >= oldVersion) {
-            drop(sqLiteDatabase);
-            onCreate(sqLiteDatabase);
+        Log.e("oldVersion : ",oldVersion+"");
+        if (oldVersion ==4) {
+            sqLiteDatabase.execSQL("ALTER TABLE match_reactions ADD COLUMN upload_type INT");
+            sqLiteDatabase.execSQL("ALTER TABLE interviews ADD COLUMN upload_type INT");
         }
     }
 }

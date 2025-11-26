@@ -18,6 +18,16 @@ public class InterviewBean implements Serializable {
     private String file_name;
     @SerializedName("upload_status")
     private int upload_status;
+    @SerializedName("upload_type")
+    private int upload_type;
+
+    public int getUpload_type() {
+        return upload_type;
+    }
+
+    public void setUpload_type(int upload_type) {
+        this.upload_type = upload_type;
+    }
 
     public int getId() {
         return id;

@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.View
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
@@ -75,8 +76,9 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
         initUI()
         handleIntent()
         initApiCall()
-
-        getData()
+if (mMatchBean !=null) {
+    getData()
+}
     }
 
     @OptIn(UnstableApi::class)
@@ -86,7 +88,17 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
         mAdapter = OverviewAdapter(this@MatchOverviewActivity, mListData, this)
         binding.rvHistory.adapter = mAdapter
         binding.imgHome.setOnClickListener {
-            updateMatchCount()
+            val customDialog = CustomDialog(
+                this@MatchOverviewActivity,
+                resources.getString(R.string.msg_upload_confirmation),
+                resources.getString(R.string.lbl_later) ,
+                resources.getString(R.string.lbl_now) ,
+                this@MatchOverviewActivity,
+                "3")
+            customDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            customDialog.show()
+
+           // updateMatchCount()
         }
 
         binding.swRefresh.setOnRefreshListener {
@@ -201,6 +213,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
         }
     }
 
+
     override fun onConfirm(isTrue: Boolean, type: String) {
         isDialogOpen = false
         if (isTrue) {
@@ -219,6 +232,15 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
 
                     binding.llInterview.visibility = View.GONE
                 }
+            } else if (type == "3") {
+                 updateMatchCount(0)
+                Log.e("option clicked : ", "now")
+            }
+        }else{
+             if (type == "3") {
+                 updateMatchCount(1)
+                 Log.e("option clicked : ", "later")
+
             }
         }
     }
@@ -241,12 +263,15 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
             mApiCall = ApiCall(this@MatchOverviewActivity)
         }
     }
-    private fun updateMatchCount() {
+    private fun updateMatchCount( type : Int) {
         databaseManager.executeQuery { database ->
             val actionDao = MatchActionsDAO(database, applicationContext)
+            actionDao.updateUploadType( type.toString(),matchId)
+
             val actionCount = actionDao.getTotalCount(matchId)
 
             val interViewDao = InterviewsDAO(database, applicationContext)
+            interViewDao.updateUploadType(type.toString(),matchId)
             val interviewCount = interViewDao.getRowCount(matchId)
 
             if (CommonMethods.isNetworkAvailable(this@MatchOverviewActivity)) {
@@ -313,7 +338,7 @@ class MatchOverviewActivity : AppCompatActivity(),OnReactionListener, OnConfirmL
 
     override fun onBackPressed() {
         super.onBackPressed()
-        updateMatchCount()
+        updateMatchCount(0)
     }
 }
 
