@@ -243,6 +243,17 @@ class VideoAdapter(
                         binding.imgDelete.setVisibility(View.GONE)
                         binding.imgUpload.setVisibility(View.GONE)
                         binding.pbLoading.visibility = View.VISIBLE
+                        if (video.upload_type==1){
+                            binding.pbLoading.visibility = View.GONE
+                            binding.imgUpload.visibility = View.VISIBLE
+                        }else{
+                            if (CommonMethods.isValidString(video.created_date) && CommonMethods.getTimeDifferenceInHours(
+                                    video.created_date,"yyyy-MM-dd HH:mm:ss") > 0.5) {
+                                binding.pbLoading.visibility = View.GONE
+                                binding.imgUpload.visibility = View.VISIBLE
+                            }
+                        }
+/*
                         if (CommonMethods.isValidString(video.created_date) && CommonMethods.getTimeDifferenceInHours(
                                 video.created_date
                             ,"yyyy/MM/dd HH:mm:ss") > 3
@@ -250,6 +261,7 @@ class VideoAdapter(
                             binding.pbLoading.visibility = View.GONE
                             binding.imgUpload.visibility = View.VISIBLE
                         }
+*/
                     } else {
                         CommonMethods.loadImage(context, video.thumbnail, binding.imgThumbnail)
                         binding.imgDelete.setVisibility(View.VISIBLE)

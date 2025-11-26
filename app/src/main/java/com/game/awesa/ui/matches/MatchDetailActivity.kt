@@ -380,7 +380,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
             }
 
             val mInterviewDao = InterviewsDAO(database, this@MatchDetailActivity)
-            val interviews = mInterviewDao.selectAllUploaded(matchId) as ArrayList<InterviewBean>
+            val interviews = mInterviewDao.selectAllUploaded(matchId,1) as ArrayList<InterviewBean>
 
             if (interviews.isNotEmpty()) {
                 val interview = VideosBean()
@@ -585,7 +585,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
     fun uploadInterview(mBeanVideo: VideosBean, position: Int) {
         databaseManager.executeQuery { database ->
             val dao = InterviewsDAO(database, this@MatchDetailActivity)
-            val list = dao.selectAllUploaded(matchId)
+            val list = dao.selectAllUploaded(matchId,1)
             if (list.size > 0) {
                 SFProgress.showProgressDialog(this@MatchDetailActivity, false)
 
