@@ -1,5 +1,6 @@
 package com.game.awesa.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.animation.Animation
@@ -12,6 +13,8 @@ import com.codersworld.awesalibs.storage.UserSessions
 import com.codersworld.awesalibs.utils.CommonMethods
 import com.game.awesa.R
 import com.game.awesa.databinding.ActivitySplashBinding
+import com.game.awesa.ui.recorder.MatchOverviewActivity
+import com.game.awesa.ui.recorder.ProcessingActivity
 import com.game.awesa.utils.ErrorReporter
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -55,6 +58,11 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun callActivityIntent() {
+//        val intent = Intent(this@SplashActivity, MatchOverviewActivity::class.java)
+//        intent.putExtra(MatchOverviewActivity.EXTRA_MATCH_BEAN, mMatchBean)
+  //      startActivity(intent)
+    //    finish()
+
         CommonMethods.moveWithClear(this, LoginActivity::class.java)
     }
 

@@ -141,5 +141,8 @@
     <string name="lbl_start_extratime">Beginnen verlängerung</string>
     <string name="lbl_record_extratime">Extratime aufzeichnen</string>
     <string name="lbl_extratime">Verlängerung</string>
+    <string name="msg_upload_confirmation">Wann möchten Sie die Clips hochladen?</string>
+    <string name="lbl_now">Jetzt</string>
+    <string name="lbl_later">Später</string>
 
 </resources>

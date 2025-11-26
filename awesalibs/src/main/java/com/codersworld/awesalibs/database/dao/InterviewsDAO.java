@@ -28,6 +28,7 @@ public class InterviewsDAO {
     private static final String COLUMN_VIDEO_PATH = "video_path";
     private static final String COLUMN_CREATED_DATE = "created_date";
     private static final String COLUMN_STATUS = "upload_status";
+    private static final String COLUMN_UPLOAD_TYPE = "upload_type";
 
     private SQLiteDatabase mDatabase;
     private final Context mContext;
@@ -45,7 +46,8 @@ public class InterviewsDAO {
                 + COLUMN_VIDEO_NAME + " TEXT ,"
                 + COLUMN_VIDEO_PATH + " TEXT ,"
                 + COLUMN_STATUS + " INT ,"
-                + COLUMN_CREATED_DATE + " TEXT)";
+                + COLUMN_CREATED_DATE + " TEXT,"
+                + COLUMN_UPLOAD_TYPE + " TEXT)";
     }
 
     public static String getDropTable() {
@@ -85,6 +87,7 @@ public class InterviewsDAO {
         contentValues.put(COLUMN_VIDEO_PATH, param[2]);
         contentValues.put(COLUMN_STATUS, param[3]);
         contentValues.put(COLUMN_CREATED_DATE, param[4]);
+        contentValues.put(COLUMN_UPLOAD_TYPE, param[4]);
 
         mDatabase.insert(TABLE_INTERVIEWS, null, contentValues);
     }
@@ -156,6 +159,7 @@ public class InterviewsDAO {
         model.setVideo(cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO_PATH)));
         model.setUpload_status(cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)));
         model.setCreated_date(cursor.getString(cursor.getColumnIndex(COLUMN_CREATED_DATE)));
+        model.setUpload_type(cursor.getInt(cursor.getColumnIndex(COLUMN_UPLOAD_TYPE)));
         return model;
     }
 
@@ -206,5 +210,16 @@ public class InterviewsDAO {
             }
         }
         return dataList;
+    }
+    public void updateUploadType(String upload_type, String matchId) {
+        initDBHelper();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_UPLOAD_TYPE, upload_type);
+
+        String selection = COLUMN_MATCH_ID + " = ?";
+        String[] selectionArgs = { matchId };
+
+        mDatabase.update(TABLE_INTERVIEWS, values, selection, selectionArgs);
     }
 }

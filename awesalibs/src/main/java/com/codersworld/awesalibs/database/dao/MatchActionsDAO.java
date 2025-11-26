@@ -36,6 +36,7 @@ public class MatchActionsDAO {
     private static final String COLUMN_CREATED_DATE = "created_date";
     private static final String COLUMN_STATUS = "upload_status";
     private static final String COLUMN_TEAM_NAME = "team_name";
+    private static final String COLUMN_UPLOAD_TYPE = "upload_type";
 
     private SQLiteDatabase mDatabase;
     private final Context mContext;
@@ -59,7 +60,8 @@ public class MatchActionsDAO {
                 + COLUMN_VIDEO_PATH + " TEXT,"
                 + COLUMN_STATUS + " INT,"
                 + COLUMN_TEAM_NAME + " TEXT,"
-                + COLUMN_CREATED_DATE + " TEXT)";
+                + COLUMN_CREATED_DATE + " TEXT,"
+                + COLUMN_UPLOAD_TYPE + " INT)";
     }
 
     public static String getDropTable() {
@@ -115,6 +117,7 @@ public class MatchActionsDAO {
             contentValues.put(COLUMN_STATUS, 0);
             contentValues.put(COLUMN_CREATED_DATE, mBean.getCreated_date());
             contentValues.put(COLUMN_TEAM_NAME, mBean.getTeam_name());
+            contentValues.put(COLUMN_UPLOAD_TYPE, 0);
 
             mDatabase.insert(TABLE_MATCH_REACTIONS, null, contentValues);
         }
@@ -209,7 +212,11 @@ public class MatchActionsDAO {
 
         dataList = manageCursor(cursor);
         if (type==2){
-            dataList.removeIf(bean -> CommonMethods.getTimeDifferenceInHours(bean.getCreated_date(),"yyyy-MM-dd HH:mm:ss") > 3);
+           try{
+               dataList.removeIf(bean -> (bean.getUpload_type() == 1 || CommonMethods.getTimeDifferenceInHours(bean.getCreated_date(),"yyyy-MM-dd HH:mm:ss") > 0.5));
+           }catch (Exception e){
+               dataList.removeIf(bean -> (CommonMethods.getTimeDifferenceInHours(bean.getCreated_date(),"yyyy-MM-dd HH:mm:ss") > 3));
+           }
         }
 
         cursor.close();
@@ -245,6 +252,7 @@ public class MatchActionsDAO {
         model.setUpload_status(cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)));
         model.setCreated_date(cursor.getString(cursor.getColumnIndex(COLUMN_CREATED_DATE)));
         model.setTeam_name(cursor.getString(cursor.getColumnIndex(COLUMN_TEAM_NAME)));
+        model.setUpload_type(cursor.getInt(cursor.getColumnIndex(COLUMN_UPLOAD_TYPE)));
         return model;
     }
 
@@ -270,6 +278,17 @@ public class MatchActionsDAO {
 
         String selection = COLUMN_KEY_ID + " = ?";
         String[] selectionArgs = { String.valueOf(id) };
+
+        mDatabase.update(TABLE_MATCH_REACTIONS, values, selection, selectionArgs);
+    }
+    public void updateUploadType(String upload_type, String matchId) {
+        initDBHelper();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_UPLOAD_TYPE, upload_type);
+
+        String selection = COLUMN_MATCH_ID + " = ?";
+        String[] selectionArgs = { matchId };
 
         mDatabase.update(TABLE_MATCH_REACTIONS, values, selection, selectionArgs);
     }

@@ -371,6 +371,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                     mBean.time = a.time
                     mBean.reaction = a.reaction
                     mBean.local_video = a.video
+                    mBean.upload_type = a.upload_type
                     mBean.title =
                         matchBean.team1 + " <b>Vs</b> " + matchBean.team2 + " : <b>" + a.reaction + "</b>"
                     mBean.views = 0
@@ -386,6 +387,7 @@ class MatchDetailActivity : BaseActivity(), OnConfirmListener, OnResponse<Univer
                 interview.local_id = Int.MAX_VALUE.toString()
                 interview.half = 4
                 interview.created_date = interviews[0].created_date
+                interview.upload_type = interviews[0].upload_type
                 interview.match_id = matchId.toInt()
                 interview.local_video = interviews[0].video
                 mList.add(interview)

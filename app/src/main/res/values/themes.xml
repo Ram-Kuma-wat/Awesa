@@ -1,7 +1,7 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources  xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
 
-    <style name="Theme.Awesa" parent="Theme.MaterialComponents.DayNight.NoActionBar"> <!-- MaterialComponents -->
+    <style name="Theme.Awesa" parent="Theme.MaterialComponents.Light.NoActionBar"> <!-- MaterialComponents -->
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
