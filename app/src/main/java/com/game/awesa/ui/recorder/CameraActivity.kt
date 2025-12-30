@@ -823,10 +823,15 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         when(mHalf) {
             1 -> {
                 saveMatchVideo(file, mHalf)
-                mHalf = 2
-                binding.statusOverlay.visibility = View.VISIBLE
-                binding.btnStartVideo.text = getString(R.string.lbl_start_second_half)
-                uiState = UiState.IDLE
+                if (mMatchBean?.game_category==3) {
+                    makeConfirmation()
+                    uiState = UiState.IDLE
+                }else {
+                    mHalf = 2
+                    binding.statusOverlay.visibility = View.VISIBLE
+                    binding.btnStartVideo.text = getString(R.string.lbl_start_second_half)
+                    uiState = UiState.IDLE
+                }
             }
             2 -> {
                 saveMatchVideo(file, mHalf)
