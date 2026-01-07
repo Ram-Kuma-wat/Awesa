@@ -62,7 +62,10 @@ public interface ApiRequest {
                                    @Part("user_id") RequestBody user_id,
                                    @Part("phone") RequestBody phone,
                                    @Part("username") RequestBody username,
-                                   @Part("email") RequestBody email, @Part("login_id") String login_id, @Part("device_type") String device_type, @Part("device_model") String device_model);
+                                   @Part("email") RequestBody email,
+                                   @Part("login_id") String login_id,
+                                   @Part("device_type") String device_type,
+                                   @Part("device_model") String device_model);
 
     @Multipart
     @POST(Tags.SB_UPDATE_PROFILE_API)
@@ -72,13 +75,26 @@ public interface ApiRequest {
                                             @Part("phone") RequestBody phone,
                                             @Part("username") RequestBody username,
                                             @Part("email") RequestBody email,
-                                            @Part MultipartBody.Part image, @Part("login_id") String login_id, @Part("device_type") String device_type, @Part("device_model") String device_model);
+                                            @Part MultipartBody.Part image,
+                                            @Part("login_id") String login_id,
+                                            @Part("device_type") String device_type,
+                                            @Part("device_model") String device_model);
+
+
 
 
     @POST(Tags.SB_API_SUPPORT)
     @FormUrlEncoded
-    Call<TicketsBean> supportTicket(@Field("user_id") String user_id, @Field("name") String name, @Field("email") String email,
-                                    @Field("subject_id") String subject_id, @Field("subject") String subject, @Field("comment") String comment, @Field("source") String source, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<TicketsBean> supportTicket(@Field("user_id") String user_id,
+                                    @Field("name") String name,
+                                    @Field("email") String email,
+                                    @Field("subject_id") String subject_id,
+                                    @Field("subject") String subject,
+                                    @Field("comment") String comment,
+                                    @Field("source") String source,
+                                    @Field("login_id") String login_id,
+                                    @Field("device_type") String device_type,
+                                    @Field("device_model") String device_model);
 
     @POST(Tags.SB_GAME_CATEGORY_API)
     @FormUrlEncoded
@@ -86,28 +102,64 @@ public interface ApiRequest {
 
     @POST(Tags.SB_TEAMS_API)
     @FormUrlEncoded
-    Call<TeamsBean> getTeams(@Field("search") String search, @Field("user_id") String user_id, @Field("game_category") String game_category, @Field("league_id") String league_id, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<TeamsBean> getTeams(@Field("search") String search,
+                             @Field("user_id") String user_id,
+                             @Field("game_category") String game_category,
+                             @Field("league_id") String league_id,
+                             @Field("login_id") String login_id,
+                             @Field("device_type") String device_type,
+                             @Field("device_model") String device_model);
 
     @POST(Tags.SB_OPPONENT_TEAMS_API)
     @FormUrlEncoded
-    Call<TeamsBean> getOpponentTeams(@Field("search") String search, @Field("user_id") String user_id, @Field("game_category") String game_category, @Field("team_id") String team_id, @Field("league_id") String league_id, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<TeamsBean> getOpponentTeams(@Field("search") String search,
+                                     @Field("user_id") String user_id,
+                                     @Field("game_category") String game_category,
+                                     @Field("team_id") String team_id,
+                                     @Field("league_id") String league_id,
+                                     @Field("login_id") String login_id,
+                                     @Field("device_type") String device_type,
+                                     @Field("device_model") String device_model);
 
     @POST(Tags.SB_LEAGUE_API)
     @FormUrlEncoded
-    Call<LeagueBean> getLeagues(@Field("search") String search, @Field("user_id") String user_id, @Field("game_category") String game_category, @Field("county") String county, @Field("team_id") String team_id, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<LeagueBean> getLeagues(@Field("search") String search,
+                                @Field("user_id") String user_id,
+                                @Field("game_category") String game_category,
+                                @Field("county") String county,
+                                @Field("team_id") String team_id,
+                                @Field("login_id") String login_id,
+                                @Field("device_type") String device_type,
+                                @Field("device_model") String device_model);
 
     @POST(Tags.SB_USER_MATCHES_API)
     @FormUrlEncoded
-    Call<MatchesBean> getMatches(@Field("page") String page, @Field("search") String search, @Field("user_id") String user_id,
-                                 @Field("game_category") String game_category, @Field("game_id") String game_id, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<MatchesBean> getMatches(@Field("page") String page,
+                                 @Field("search") String search,
+                                 @Field("user_id") String user_id,
+                                 @Field("game_category") String game_category,
+                                 @Field("game_id") String game_id,
+                                 @Field("login_id") String login_id,
+                                 @Field("device_type") String device_type,
+                                 @Field("device_model") String device_model);
 
     @POST(Tags.SB_MATCH_DETAIL_API)
     @FormUrlEncoded
-    Call<MatchesBean> getMatchDetail(@Field("user_id") String user_id, @Field("game_id") String game_id, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<MatchesBean> getMatchDetail(@Field("user_id") String user_id,
+                                     @Field("game_id") String game_id,
+                                     @Field("login_id") String login_id,
+                                     @Field("device_type") String device_type,
+                                     @Field("device_model") String device_model);
 
     @POST(Tags.SB_DELETE_VIDEO_API)
     @FormUrlEncoded
-    Call<CommonBean> deleteVideos(@Field("user_id") String user_id, @Field("game_id") String game_id, @Field("type") String type, @Field("video_id") String video_id, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<CommonBean> deleteVideos(@Field("user_id") String user_id,
+                                  @Field("game_id") String game_id,
+                                  @Field("type") String type,
+                                  @Field("video_id") String video_id,
+                                  @Field("login_id") String login_id,
+                                  @Field("device_type") String device_type,
+                                  @Field("device_model") String device_model);
     @POST(Tags.SB_UPDATE_MATCH_COUNT_API)
     @FormUrlEncoded
     Call<CommonBean> updateMatchCount(@Field("user_id") String user_id, @Field("match_id") String game_id,   @Field("actions") String actions, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
@@ -115,27 +167,45 @@ public interface ApiRequest {
 
     @POST(Tags.SB_COUNTY_API)
     @FormUrlEncoded
-    Call<CountyBean> getCounty(@Field("search") String search, @Field("user_id") String user_id, @Field("game_category") String game_category, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<CountyBean> getCounty(@Field("search") String search,
+                               @Field("user_id") String user_id,
+                               @Field("game_category") String game_category,
+                               @Field("login_id") String login_id,
+                               @Field("device_type") String device_type,
+                               @Field("device_model") String device_model);
 
     @POST(Tags.SB_SUPPORT_SUBJECTS_API)
     @FormUrlEncoded
-    Call<SubjectsBean> getSubjects(@Field("user_id") String user_id, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<SubjectsBean> getSubjects(@Field("user_id") String user_id,
+                                   @Field("login_id") String login_id,
+                                   @Field("device_type") String device_type,
+                                   @Field("device_model") String device_model);
 
     @POST(Tags.SB_DELETE_ACCOUNT_API)
     @FormUrlEncoded
-    Call<CommonBean> deleteAccount(@Field("user_id") String user_id, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<CommonBean> deleteAccount(@Field("user_id") String user_id,
+                                   @Field("login_id") String login_id,
+                                   @Field("device_type") String device_type,
+                                   @Field("device_model") String device_model);
     @POST(Tags.SB_CHECK_SIGNUP_API)
     @FormUrlEncoded
     Call<CommonBean> checkSignup(  @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
 
     @POST(Tags.SB_CREATE_MATCH_API)
     @FormUrlEncoded
-    Call<MatchesBean> createMatch(@Field("user_id") String user_id, @Field("game_category") String game_category
-            , @Field("county_id") String county_id
-            , @Field("team_id") String team_id, @Field("league_id") String league_id
-            , @Field("opponent_team_id") String opponent_team_id, @Field("location_type") String location_type
-            , @Field("sort") String sort, @Field("order") String order
-            , @Field("search") String search, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<MatchesBean> createMatch(@Field("user_id") String user_id,
+                                  @Field("game_category") String game_category,
+                                  @Field("county_id") String county_id,
+                                  @Field("team_id") String team_id,
+                                  @Field("league_id") String league_id,
+                                  @Field("opponent_team_id") String opponent_team_id,
+                                  @Field("location_type") String location_type,
+                                  @Field("sort") String sort,
+                                  @Field("order") String order,
+                                  @Field("search") String search,
+                                  @Field("login_id") String login_id,
+                                  @Field("device_type") String device_type,
+                                  @Field("device_model") String device_model);
 
     @Streaming // Use this annotation to stream the request body
     @Multipart

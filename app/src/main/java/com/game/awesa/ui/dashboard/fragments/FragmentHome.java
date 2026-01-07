@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.codersworld.awesalibs.beans.game.GameBean;
 import com.codersworld.awesalibs.beans.matches.MatchesBean;
+import com.codersworld.awesalibs.beans.user.UserBean;
 import com.codersworld.awesalibs.database.DatabaseHelper;
 import com.codersworld.awesalibs.database.DatabaseManager;
 import com.codersworld.awesalibs.database.dao.GamesCategoryDAO;
@@ -101,6 +102,14 @@ public class FragmentHome extends Fragment implements View.OnClickListener, OnCo
 
         initApiCall();
         getGames();
+/*
+        MatchesBean mMatchesBean= new Gson().fromJson("{\"status\":1,\"msg\":\"Spiel erfolgreich erstellt.\",\"info\":[{\"id\":\"672\",\"user_id\":\"38\",\"game_category\":\"1\",\"county_id\":\"1\",\"league_id\":\"17\",\"team_id\":\"94\",\"opponent_team_id\":\"159\",\"total_actions\":\"0\",\"location_type\":\"1\",\"interview\":\"\",\"interview_thumbnail\":\"\",\"status\":\"1\",\"created_date\":\"06 January 2026\",\"modified_date\":\"2026-01-06 13:37:42\",\"county_title\":\"Hameln-Pyrmont\",\"county_image\":\"https://test.awesa-vereins.tv/public/uploads/counties/29Feb2024/Download (1).jpg\",\"league_title\":\"Testspiele\",\"league_image\":\"https://test.awesa-vereins.tv/public/uploads/leagues/24Jul2024/Test-Team.png\",\"game_title\":\"Fussball\",\"game_image\":\"https://test.awesa-vereins.tv/public/uploads/gameCategory/15Aug2023/awesa-football.png\",\"team1\":\"Test-Gegner\",\"team1_image\":\"https://test.awesa-vereins.tv/public/uploads/teams/12Jul2024/Test-Team.png\",\"team2\":\"TSV Lüntorf II\",\"team2_image\":\"https://test.awesa-vereins.tv/public/uploads/teams/18Jul2024/TSV Lüntorf_1.png\"}]}", MatchesBean.class);
+        Intent intent = new Intent(requireActivity(), CameraActivity.class);
+        intent.putExtra("MatchBean", mMatchesBean.getInfo().get(0));
+        intent.putExtra("mHalf", 1);
+        startActivity(intent);
+*/
+
         return view;
     }
 

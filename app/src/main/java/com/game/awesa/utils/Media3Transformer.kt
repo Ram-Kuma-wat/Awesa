@@ -46,6 +46,8 @@ class Media3Transformer @Inject constructor(
         private const val MILLISECONDS = 1_000
         private const val TRIM_START_SECONDS = 12 // -12 seconds
         private const val TRIM_END_SECONDS = 3 // +3 seconds
+        private const val TRIM_START_SECONDS_FOR_INDOOR = 8 // -12 seconds
+        private const val TRIM_END_SECONDS_FOR_INDOOR = 2 // +3 seconds
     }
 
     @SuppressLint("UnusedParameter")
@@ -123,8 +125,12 @@ class Media3Transformer @Inject constructor(
         reaction: ReactionsBean,
         inputUri: Uri
     ): Boolean {
-        val startTime = maxOf(reaction.timestamp - TRIM_START_SECONDS, 0L) // -12 seconds
-        val endTime = reaction.timestamp + TRIM_END_SECONDS // +3 seconds
+        var startTime = maxOf(reaction.timestamp - TRIM_START_SECONDS, 0L) // -12 seconds
+        var endTime = reaction.timestamp + TRIM_END_SECONDS // +3 seconds
+        if (reaction.game_category==3){
+            startTime = maxOf(reaction.timestamp - TRIM_START_SECONDS_FOR_INDOOR, 0L) // -12 seconds
+             endTime = reaction.timestamp + TRIM_END_SECONDS_FOR_INDOOR // +3 seconds
+        }
 
         val outputDir = createMediaFolder()
 

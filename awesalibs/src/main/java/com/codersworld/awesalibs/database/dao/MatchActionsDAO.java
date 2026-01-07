@@ -37,6 +37,7 @@ public class MatchActionsDAO {
     private static final String COLUMN_STATUS = "upload_status";
     private static final String COLUMN_TEAM_NAME = "team_name";
     private static final String COLUMN_UPLOAD_TYPE = "upload_type";
+    private static final String COLUMN_GAME_CATEGORY = "game_category";
 
     private SQLiteDatabase mDatabase;
     private final Context mContext;
@@ -61,7 +62,8 @@ public class MatchActionsDAO {
                 + COLUMN_STATUS + " INT,"
                 + COLUMN_TEAM_NAME + " TEXT,"
                 + COLUMN_CREATED_DATE + " TEXT,"
-                + COLUMN_UPLOAD_TYPE + " INT)";
+                + COLUMN_UPLOAD_TYPE + " INT,"
+                + COLUMN_GAME_CATEGORY + " INT)";
     }
 
     public static String getDropTable() {
@@ -118,6 +120,7 @@ public class MatchActionsDAO {
             contentValues.put(COLUMN_CREATED_DATE, mBean.getCreated_date());
             contentValues.put(COLUMN_TEAM_NAME, mBean.getTeam_name());
             contentValues.put(COLUMN_UPLOAD_TYPE, 0);
+            contentValues.put(COLUMN_GAME_CATEGORY, mBean.getGame_category());
 
             mDatabase.insert(TABLE_MATCH_REACTIONS, null, contentValues);
         }
@@ -253,6 +256,7 @@ public class MatchActionsDAO {
         model.setCreated_date(cursor.getString(cursor.getColumnIndex(COLUMN_CREATED_DATE)));
         model.setTeam_name(cursor.getString(cursor.getColumnIndex(COLUMN_TEAM_NAME)));
         model.setUpload_type(cursor.getInt(cursor.getColumnIndex(COLUMN_UPLOAD_TYPE)));
+        model.setGame_category(cursor.getInt(cursor.getColumnIndex(COLUMN_GAME_CATEGORY)));
         return model;
     }
 

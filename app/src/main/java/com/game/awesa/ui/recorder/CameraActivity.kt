@@ -793,6 +793,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
                 recordingState.recordingStats.recordedDurationNanos
             )
             mBean.reaction = reaction
+            mBean.game_category = mMatchBean?.game_category!!
             mBean.file_name = ""
             mBean.video = ""
             mBean.upload_status = 0
@@ -888,7 +889,7 @@ class CameraActivity : BaseActivity(), OnClickListener, OnResponse<UniversalObje
         databaseManager.executeQuery { database ->
             val dao = InterviewsDAO(database, this)
             val matchId = mMatchBean?.id.toString()
-            dao.insert(matchId, fileName, file.toString(), "0", timeStamp)
+            dao.insert(matchId, fileName, file.toString(), "0", timeStamp,mMatchBean?.game_category.toString())
 
             val intent = Intent(this, ProcessingActivity::class.java)
             intent.putExtra(ProcessingActivity.EXTRA_MATCH_BEAN, mMatchBean)

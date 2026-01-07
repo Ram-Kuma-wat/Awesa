@@ -9,6 +9,8 @@ public class ReactionsBean implements Serializable {
     private int id;
     @SerializedName("match_id")
     private int match_id;
+    @SerializedName("game_category")
+    private int game_category;
     @SerializedName("team_id")
     private int team_id;
     @SerializedName("team_name")
@@ -44,6 +46,14 @@ public class ReactionsBean implements Serializable {
 
     public String getTeam_name() {
         return team_name;
+    }
+
+    public int getGame_category() {
+        return game_category;
+    }
+
+    public void setGame_category(int game_category) {
+        this.game_category = game_category;
     }
 
     public void setTeam_name(String team_name) {
