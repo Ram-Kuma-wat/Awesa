@@ -162,7 +162,12 @@ public interface ApiRequest {
                                   @Field("device_model") String device_model);
     @POST(Tags.SB_UPDATE_MATCH_COUNT_API)
     @FormUrlEncoded
-    Call<CommonBean> updateMatchCount(@Field("user_id") String user_id, @Field("match_id") String game_id,   @Field("actions") String actions, @Field("login_id") String login_id, @Field("device_type") String device_type, @Field("device_model") String device_model);
+    Call<CommonBean> updateMatchCount(@Field("user_id") String user_id,
+                                      @Field("match_id") String game_id,
+                                      @Field("actions") String actions,
+                                      @Field("login_id") String login_id,
+                                      @Field("device_type") String device_type,
+                                      @Field("device_model") String device_model);
     //user_id, game_id, type(1,2 for video/interview), video_id
 
     @POST(Tags.SB_COUNTY_API)
@@ -207,7 +212,7 @@ public interface ApiRequest {
                                   @Field("device_type") String device_type,
                                   @Field("device_model") String device_model);
 
-    @Streaming // Use this annotation to stream the request body
+    @Streaming
     @Multipart
     @POST(Tags.SB_CREATE_MATCH_ACTION_API)
     Call<CommonBean> makeActions(@Part("user_id") RequestBody user_id,

@@ -6,7 +6,8 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:keepScreenOn="true">
+        android:keepScreenOn="true"
+        >
 
         <View
             android:id="@+id/view"
@@ -221,6 +222,8 @@
             </LinearLayout>
 
             <RelativeLayout
+                android:paddingStart="@dimen/_50dp"
+                android:paddingEnd="@dimen/_50dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:baselineAligned="false"
